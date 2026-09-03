@@ -1,0 +1,45 @@
+{
+  "training_date": "2026-08-26T23:01:45.908517",
+  "metrics": {
+    "LogisticRegression": {
+      "macro_f1": 0.5812132681668746,
+      "auroc": 0.6919514045996888,
+      "pr_auc": 0.327928874927665
+    },
+    "XGBoost": {
+      "macro_f1": 0.5880505490986299,
+      "auroc": 0.730068762288735,
+      "pr_auc": 0.35601306493040663
+    },
+    "LightGBM": {
+      "macro_f1": 0.6161749911525632,
+      "auroc": 0.7308458261280353,
+      "pr_auc": 0.3573772069333789
+    }
+  },
+  "feature_list": [
+    "Age",
+    "Scholarship",
+    "Hipertension",
+    "Diabetes",
+    "Alcoholism",
+    "Handcap",
+    "SMS_received",
+    "booking_delta_days",
+    "appointment_dow",
+    "sms_x_delta",
+    "comorbidity_count",
+    "Gender_M",
+    "age_group_adult",
+    "age_group_elderly",
+    "age_group_middle_age",
+    "age_group_senior",
+    "age_group_young_adult"
+  ],
+  "model_name": "LightGBM",
+  "version": "1.0.0",
+  "class_distribution": {
+    "class_0": 88208,
+    "class_1": 22319
+  }
+}

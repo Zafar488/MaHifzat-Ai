@@ -1,0 +1,206 @@
+{
+  "model_name": "GestationInsight",
+  "best_model": "LightGBM",
+  "timestamp": "2026-08-26T23:04:01.759678",
+  "dataset": "g:\\hackthon\\data\\gestation_prepared.parquet",
+  "n_samples": 768,
+  "n_features": 13,
+  "n_classes": 3,
+  "class_labels": [
+    0,
+    1,
+    2
+  ],
+  "class_distribution": {
+    "Low": 182,
+    "Moderate": 318,
+    "High": 268
+  },
+  "split": {
+    "train": 0.7,
+    "val": 0.15,
+    "test": 0.15
+  },
+  "balancing": "SMOTE-Tomek",
+  "numeric_features": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age",
+    "MAP",
+    "glucose_tolerance_idx",
+    "age_parity_interaction",
+    "insulin_glucose_ratio",
+    "SBP_estimated"
+  ],
+  "feature_names_after_preprocessing": [
+    "Pregnancies",
+    "Glucose",
+    "BloodPressure",
+    "SkinThickness",
+    "Insulin",
+    "BMI",
+    "DiabetesPedigreeFunction",
+    "Age",
+    "MAP",
+    "glucose_tolerance_idx",
+    "age_parity_interaction",
+    "insulin_glucose_ratio",
+    "SBP_estimated"
+  ],
+  "macro_f1": 0.7460081137500492,
+  "auroc_ovr": 0.888413365745022,
+  "all_results": {
+    "LogisticRegression": {
+      "params": {
+        "C": 1.0,
+        "max_iter": 2000,
+        "multi_class": "multinomial",
+        "class_weight": "balanced"
+      },
+      "macro_f1": 0.6686106346483704,
+      "auroc_ovr_macro": 0.8600334252520785,
+      "per_class": {
+        "0": {
+          "precision": 0.75,
+          "recall": 0.8571428571428571,
+          "f1-score": 0.8
+        },
+        "1": {
+          "precision": 0.603448275862069,
+          "recall": 0.7291666666666666,
+          "f1-score": 0.660377358490566
+        },
+        "2": {
+          "precision": 0.6923076923076923,
+          "recall": 0.45,
+          "f1-score": 0.5454545454545454
+        }
+      },
+      "confusion_matrix": [
+        [
+          24,
+          4,
+          0
+        ],
+        [
+          5,
+          35,
+          8
+        ],
+        [
+          3,
+          19,
+          18
+        ]
+      ]
+    },
+    "XGBoost": {
+      "params": {
+        "max_depth": 4,
+        "learning_rate": 0.08236578076729155,
+        "n_estimators": 201,
+        "min_child_weight": 1,
+        "subsample": 0.8863687105148309,
+        "colsample_bytree": 0.869596333689515,
+        "objective": "multi:softprob",
+        "num_class": 3,
+        "eval_metric": "mlogloss",
+        "random_state": 42,
+        "verbosity": 0,
+        "n_jobs": -1
+      },
+      "macro_f1": 0.7360202373706635,
+      "auroc_ovr_macro": 0.8912984751316796,
+      "per_class": {
+        "0": {
+          "precision": 0.8235294117647058,
+          "recall": 1.0,
+          "f1-score": 0.9032258064516129
+        },
+        "1": {
+          "precision": 0.7068965517241379,
+          "recall": 0.8541666666666666,
+          "f1-score": 0.7735849056603774
+        },
+        "2": {
+          "precision": 0.7083333333333334,
+          "recall": 0.425,
+          "f1-score": 0.53125
+        }
+      },
+      "confusion_matrix": [
+        [
+          28,
+          0,
+          0
+        ],
+        [
+          0,
+          41,
+          7
+        ],
+        [
+          6,
+          17,
+          17
+        ]
+      ]
+    },
+    "LightGBM": {
+      "params": {
+        "num_leaves": 36,
+        "learning_rate": 0.2996229432532082,
+        "n_estimators": 423,
+        "min_child_samples": 11,
+        "subsample": 0.6042557762309156,
+        "colsample_bytree": 0.9235373887238598,
+        "class_weight": "balanced",
+        "random_state": 42,
+        "verbose": -1,
+        "n_jobs": -1
+      },
+      "macro_f1": 0.7460081137500492,
+      "auroc_ovr_macro": 0.888413365745022,
+      "per_class": {
+        "0": {
+          "precision": 0.8235294117647058,
+          "recall": 1.0,
+          "f1-score": 0.9032258064516129
+        },
+        "1": {
+          "precision": 0.7192982456140351,
+          "recall": 0.8541666666666666,
+          "f1-score": 0.780952380952381
+        },
+        "2": {
+          "precision": 0.72,
+          "recall": 0.45,
+          "f1-score": 0.5538461538461539
+        }
+      },
+      "confusion_matrix": [
+        [
+          28,
+          0,
+          0
+        ],
+        [
+          0,
+          41,
+          7
+        ],
+        [
+          6,
+          16,
+          18
+        ]
+      ]
+    }
+  },
+  "training_time_seconds": 121.97
+}

@@ -1,0 +1,75 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens (Tailwind v4 CSS-first config).
+ *
+ * Typography — Hanken Grotesk for UI text paired with IBM Plex Mono for
+ * micro-labels (section headers, roles, IDs): a "precision instrument"
+ * pairing that suits the clinical theme.
+ */
+@theme {
+  --font-sans: 'Hanken Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', 'Source Code Pro', Menlo, monospace;
+
+  /*
+   * Custom animation utilities (Tailwind v4 CSS-based config).
+   * Exposed as `animate-overlay-fade-in`, `animate-modal-pop-in`,
+   * `animate-toast-slide-in` utilities.
+   */
+  --animate-overlay-fade-in: overlay-fade-in 150ms ease-out;
+  --animate-modal-pop-in: modal-pop-in 150ms ease-out;
+  --animate-toast-slide-in: toast-slide-in 200ms ease-out;
+
+  @keyframes overlay-fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes modal-pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97) translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes toast-slide-in {
+    from {
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+}
+
+@layer base {
+  html {
+    font-family: var(--font-sans);
+  }
+
+  /* Slim, unobtrusive scrollbars across the app. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-gray-300) transparent;
+  }
+}
+
+/*
+ * Content canvas — a gray-50 base with a faint dot grid, evoking medical
+ * chart paper. Applied to the scrollable <main> region of the app shell.
+ */
+.app-canvas {
+  background-color: var(--color-gray-50);
+  background-image: radial-gradient(var(--color-gray-200) 1px, transparent 1px);
+  background-size: 22px 22px;
+}

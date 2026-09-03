@@ -1,0 +1,29 @@
+Summary — Task #9 Complete
+Both model pipelines ran successfully end-to-end. Here's the complete output:
+Bugs Fixed
+Unicode encoding error in maternal_guard.py — box-drawing characters ── caused a UnicodeEncodeError on Windows cp1252 console. Replaced with ASCII --.
+Console encoding — added io.TextIOWrapper in run_models.py to force UTF-8 stdout/stderr on Windows.
+FetalWatch Results (UCI CTG — 3-class fetal health)
+Model	Macro-F1	AUROC (OVR)
+RandomForest (BEST)	0.9292	0.9858
+XGBoost	0.9267	0.9818
+LightGBM	0.9191	0.9851
+Best model: RandomForestPer-class (RandomForest):
+Normal: Precision=0.9876, Recall=0.9637, F1=0.9755
+Pathological: Precision=0.9310, Recall=1.0000, F1=0.9643
+Suspect: Precision=0.8125, Recall=0.8864, F1=0.8478
+Class distribution: Normal=1655, Suspect=295, Pathological=176 (after SMOTE: 1158 each)
+MaternalGuard Results (UCI Maternal — 3-class risk)
+Model	Macro-F1	AUROC (OVR)
+LightGBM (BEST)	0.8632	0.9660
+LogisticRegression	0.5479	0.7779
+Best model: LightGBMPer-class (LightGBM):
+high risk: Precision=0.9500, Recall=0.9268, F1=0.9383 (support=41)
+low risk: Precision=0.8772, Recall=0.8197, F1=0.8475 (support=61)
+mid risk: Precision=0.7679, Recall=0.8431, F1=0.8037 (support=51)
+Class distribution: high risk, low risk, mid risk (852 balanced training samples after SMOTE)
+Artifact Verification — All OK
+artifacts/fetalwatch/best_model.joblib
+artifacts/fetalwatch/results.json
+artifacts/maternalguard/best_model.joblib
+artifacts/maternalguard/results.json

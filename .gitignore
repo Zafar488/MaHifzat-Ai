@@ -1,0 +1,145 @@
+# =============================================================================
+# Python
+# =============================================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+
+# Testing
+.pytest_cache/
+.tox/
+.coverage
+.coverage.*
+htmlcov/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+
+# Type checking / linting
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# =============================================================================
+# Machine Learning / Data
+# =============================================================================
+# Trained model files
+*.pkl
+*.pickle
+*.h5
+*.hdf5
+*.pt
+*.pth
+*.onnx
+*.joblib
+
+# Large data files
+data/*.parquet
+data/*.csv
+data/*.json
+data/*.zip
+data/*.tar.gz
+data/ctu-uhb-ctgdb/
+
+# Logs
+*.log
+train_output.log
+uvicorn.log
+uvicorn_test.log
+
+# =============================================================================
+# Backend / Database
+# =============================================================================
+backend/*.db
+backend/*.sqlite
+backend/*.sqlite3
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# Environment & Secrets
+# =============================================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.json
+config.local.*
+
+# =============================================================================
+# Frontend (Node / Vite / React)
+# =============================================================================
+frontend/node_modules/
+frontend/dist/
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+frontend/.vite/
+
+# =============================================================================
+# OS & Editor
+# =============================================================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# VSCode
+.vscode/
+!.vscode/extensions.json
+
+# JetBrains IDEs
+.idea/
+*.iml
+
+# =============================================================================
+# Misc
+# =============================================================================
+# Artifacts / screenshots generated during runs
+artifacts/
+*.png
+test_bar.png
+
+# Compiled files
+*.o
+*.so
+*.dll
+
+# Temp files
+*.tmp
+*.bak
+*.swp
+*~

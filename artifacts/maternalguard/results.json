@@ -1,0 +1,96 @@
+{
+  "models": {
+    "LightGBM": {
+      "macro_f1": 0.8327,
+      "auroc_ovr": 0.9435,
+      "per_class": {
+        "high risk": {
+          "precision": 0.9487,
+          "recall": 0.9024,
+          "f1-score": 0.925,
+          "support": 41
+        },
+        "low risk": {
+          "precision": 0.8276,
+          "recall": 0.7869,
+          "f1-score": 0.8067,
+          "support": 61
+        },
+        "mid risk": {
+          "precision": 0.7321,
+          "recall": 0.8039,
+          "f1-score": 0.7664,
+          "support": 51
+        }
+      },
+      "confusion_matrix": [
+        [
+          37,
+          2,
+          2
+        ],
+        [
+          0,
+          48,
+          13
+        ],
+        [
+          2,
+          8,
+          41
+        ]
+      ]
+    },
+    "LogisticRegression": {
+      "macro_f1": 0.5479,
+      "auroc_ovr": 0.7779,
+      "per_class": {
+        "high risk": {
+          "precision": 0.6458,
+          "recall": 0.7561,
+          "f1-score": 0.6966,
+          "support": 41
+        },
+        "low risk": {
+          "precision": 0.5806,
+          "recall": 0.5902,
+          "f1-score": 0.5854,
+          "support": 61
+        },
+        "mid risk": {
+          "precision": 0.3953,
+          "recall": 0.3333,
+          "f1-score": 0.3617,
+          "support": 51
+        }
+      },
+      "confusion_matrix": [
+        [
+          31,
+          1,
+          9
+        ],
+        [
+          8,
+          36,
+          17
+        ],
+        [
+          9,
+          25,
+          17
+        ]
+      ]
+    }
+  },
+  "best_model": "LightGBM",
+  "best_macro_f1": 0.8327,
+  "feature_importance": {
+    "BS": 2929,
+    "Age": 2524,
+    "HeartRate": 1590,
+    "DiastolicBP": 913,
+    "SystolicBP": 779,
+    "BodyTemp": 437
+  }
+}

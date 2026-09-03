@@ -1,0 +1,164 @@
+{
+  "LightGBM": {
+    "params": {
+      "num_leaves": 57,
+      "learning_rate": 0.22815744712214903,
+      "n_estimators": 575,
+      "min_child_samples": 29,
+      "subsample": 0.7603200967436624,
+      "colsample_bytree": 0.6383209837206579,
+      "reg_alpha": 2.109846290527244,
+      "reg_lambda": 8.988072353774815,
+      "class_weight": "balanced",
+      "random_state": 42,
+      "verbose": -1,
+      "n_jobs": -1
+    },
+    "macro_f1": 0.8530214424951268,
+    "auroc_ovr_macro": 0.9562277340861732,
+    "per_class": {
+      "Normal": {
+        "precision": 0.9032258064516129,
+        "recall": 0.9655172413793104,
+        "f1-score": 0.9333333333333333
+      },
+      "Pathological": {
+        "precision": 0.7142857142857143,
+        "recall": 0.625,
+        "f1-score": 0.6666666666666666
+      },
+      "Suspect": {
+        "precision": 0.9761904761904762,
+        "recall": 0.9425287356321839,
+        "f1-score": 0.9590643274853801
+      }
+    },
+    "confusion_matrix": [
+      [
+        56,
+        1,
+        1
+      ],
+      [
+        2,
+        5,
+        1
+      ],
+      [
+        4,
+        1,
+        82
+      ]
+    ],
+    "classification_report": {
+      "Normal": {
+        "precision": 0.9032258064516129,
+        "recall": 0.9655172413793104,
+        "f1-score": 0.9333333333333333,
+        "support": 58.0
+      },
+      "Pathological": {
+        "precision": 0.7142857142857143,
+        "recall": 0.625,
+        "f1-score": 0.6666666666666666,
+        "support": 8.0
+      },
+      "Suspect": {
+        "precision": 0.9761904761904762,
+        "recall": 0.9425287356321839,
+        "f1-score": 0.9590643274853801,
+        "support": 87.0
+      },
+      "accuracy": 0.934640522875817,
+      "macro avg": {
+        "precision": 0.8645673323092677,
+        "recall": 0.8443486590038315,
+        "f1-score": 0.8530214424951268,
+        "support": 153.0
+      },
+      "weighted avg": {
+        "precision": 0.9348363001114425,
+        "recall": 0.934640522875817,
+        "f1-score": 0.9340213278293774,
+        "support": 153.0
+      }
+    }
+  },
+  "RandomForest": {
+    "params": {
+      "n_estimators": 500,
+      "class_weight": "balanced",
+      "random_state": 42
+    },
+    "macro_f1": 0.7945335710041593,
+    "auroc_ovr_macro": 0.9517622535090774,
+    "per_class": {
+      "Normal": {
+        "precision": 0.873015873015873,
+        "recall": 0.9482758620689655,
+        "f1-score": 0.9090909090909091
+      },
+      "Pathological": {
+        "precision": 0.5714285714285714,
+        "recall": 0.5,
+        "f1-score": 0.5333333333333333
+      },
+      "Suspect": {
+        "precision": 0.963855421686747,
+        "recall": 0.9195402298850575,
+        "f1-score": 0.9411764705882353
+      }
+    },
+    "confusion_matrix": [
+      [
+        55,
+        2,
+        1
+      ],
+      [
+        2,
+        4,
+        2
+      ],
+      [
+        6,
+        1,
+        80
+      ]
+    ],
+    "classification_report": {
+      "Normal": {
+        "precision": 0.873015873015873,
+        "recall": 0.9482758620689655,
+        "f1-score": 0.9090909090909091,
+        "support": 58.0
+      },
+      "Pathological": {
+        "precision": 0.5714285714285714,
+        "recall": 0.5,
+        "f1-score": 0.5333333333333333,
+        "support": 8.0
+      },
+      "Suspect": {
+        "precision": 0.963855421686747,
+        "recall": 0.9195402298850575,
+        "f1-score": 0.9411764705882353,
+        "support": 87.0
+      },
+      "accuracy": 0.9084967320261438,
+      "macro avg": {
+        "precision": 0.8027666220437304,
+        "recall": 0.789272030651341,
+        "f1-score": 0.7945335710041593,
+        "support": 153.0
+      },
+      "weighted avg": {
+        "precision": 0.9089004633535699,
+        "recall": 0.9084967320261438,
+        "f1-score": 0.9076881851968357,
+        "support": 153.0
+      }
+    }
+  },
+  "best_model": "LightGBM"
+}
