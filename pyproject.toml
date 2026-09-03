@@ -1,0 +1,8 @@
+[tool.vercel]
+entrypoint = "backend/api/main.py"
+
+[project]
+name = "maahifazat-ai"
+version = "1.0.0"
+description = "AI-powered maternal health monitoring platform for rural Pakistan"
+requires-python = ">=3.11"
