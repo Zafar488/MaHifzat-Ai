@@ -1,16 +1,76 @@
-import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, AlertCircle, Calendar, Phone, MapPin, Loader2, Activity, Bot, ArrowRightLeft, Clock } from 'lucide-react'
-import { usePatient } from '@/hooks/usePatients'
+import { useState } from 'react'
+import { useParams, Link, useNavigate } from 'react-router-dom'
+import { ArrowLeft, AlertCircle, Calendar, Phone, MapPin, Loader2, Activity, Bot, ArrowRightLeft, Clock, Edit2, X, Save } from 'lucide-react'
+import { usePatient, useUpdatePatient } from '@/hooks/usePatients'
 import { useReferrals } from '@/hooks/useReferrals'
 import { cn } from '@/lib/utils'
 
 export default function PatientProfilePage() {
-  const { patientId } = useParams<{ patientId: string }>()
-  const { data: patient, isLoading, isError } = usePatient(patientId || '')
+  const { id, patientId } = useParams<{ id?: string; patientId?: string }>()
+  const pid = id || patientId || ''
   
-  // We fetch referrals and filter by patientId since there's no patient-specific endpoint
+  const navigate = useNavigate()
+  const { data: patient, isLoading, isError, refetch } = usePatient(pid)
+  const updatePatientMutation = useUpdatePatient()
+  
+  // Referrals list
   const { data: allReferrals, isLoading: referralsLoading } = useReferrals({ limit: 500 })
-  const patientReferrals = allReferrals?.filter(r => r.patient_id === patientId) || []
+  const patientReferrals = allReferrals?.filter(r => r.patient_id === pid) || []
+
+  // Edit Modal State
+  const [isEditing, setIsEditing] = useState(false)
+  const [editFormData, setEditFormData] = useState({
+    name: '',
+    age: 0,
+    phone: '',
+    location: '',
+    gestational_age_weeks: '',
+    parity: '',
+    language: 'ur',
+    channel: 'app',
+  })
+  const [editError, setEditError] = useState<string | null>(null)
+
+  const handleOpenEdit = () => {
+    if (!patient) return
+    setEditFormData({
+      name: patient.name || '',
+      age: patient.age || 0,
+      phone: patient.phone || '',
+      location: patient.location || '',
+      gestational_age_weeks: patient.gestational_age_weeks?.toString() || '',
+      parity: patient.parity?.toString() || '',
+      language: patient.language || 'ur',
+      channel: patient.channel || 'app',
+    })
+    setEditError(null)
+    setIsEditing(true)
+  }
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setEditError(null)
+    try {
+      const cleanNum = (val: string) => (val === '' || isNaN(Number(val)) ? undefined : Number(val))
+      const payload: any = {
+        name: editFormData.name,
+        age: Number(editFormData.age),
+        gender: patient?.gender || 'female',
+        phone: editFormData.phone || undefined,
+        location: editFormData.location || undefined,
+        gestational_age_weeks: cleanNum(editFormData.gestational_age_weeks),
+        parity: cleanNum(editFormData.parity),
+        language: editFormData.language,
+        channel: editFormData.channel,
+      }
+
+      await updatePatientMutation.mutateAsync({ id: pid, payload })
+      setIsEditing(false)
+      refetch()
+    } catch (err: any) {
+      setEditError(err.response?.data?.detail || 'Failed to update patient profile.')
+    }
+  }
 
   if (isLoading) {
     return (
@@ -90,13 +150,17 @@ export default function PatientProfilePage() {
           </div>
           
           <div className="flex flex-col gap-3 sm:items-end shrink-0">
-            <Link
-              to={`/patients/${patient.patient_id}/edit`}
-              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
+            <button
+              onClick={handleOpenEdit}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-white px-4 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors"
             >
+              <Edit2 className="size-4 text-gray-500" />
               Edit Profile
-            </Link>
-            <button className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500">
+            </button>
+            <button 
+              onClick={() => navigate('/risk-assessment')}
+              className="inline-flex items-center justify-center gap-2 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-teal-500 transition-colors"
+            >
               <Activity className="size-4" />
               Run Assessment
             </button>
@@ -120,7 +184,7 @@ export default function PatientProfilePage() {
                 </div>
                 <div className="py-3 flex justify-between">
                   <dt className="text-gray-500">Parity</dt>
-                  <dd className="font-medium text-gray-900">{patient.parity !== null ? patient.parity : 'Unknown'}</dd>
+                  <dd className="font-medium text-gray-900">{patient.parity !== null && patient.parity !== undefined ? patient.parity : 'Unknown'}</dd>
                 </div>
                 <div className="py-3 flex justify-between">
                   <dt className="text-gray-500">Language</dt>
@@ -137,7 +201,7 @@ export default function PatientProfilePage() {
 
         {/* Right Column: Intelligence, Records & Timeline */}
         <div className="space-y-8 lg:col-span-2">
-          {/* Risk & Intelligence (Placeholder since no GET API exists) */}
+          {/* AI Risk Intelligence */}
           <div className="overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-gray-200">
             <div className="border-b border-gray-100 bg-gray-50/50 px-5 py-4 flex items-center gap-2">
               <Bot className="size-5 text-teal-600" />
@@ -151,7 +215,10 @@ export default function PatientProfilePage() {
               <p className="mt-1 text-sm text-gray-500">
                 Run a new risk assessment to generate AI-assisted clinical insights.
               </p>
-              <button className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-100">
+              <button 
+                onClick={() => navigate('/risk-assessment')}
+                className="mt-4 inline-flex items-center gap-2 rounded-lg bg-teal-50 px-3 py-2 text-sm font-semibold text-teal-700 hover:bg-teal-100 transition-colors"
+              >
                 Start Assessment
               </button>
             </div>
@@ -193,7 +260,7 @@ export default function PatientProfilePage() {
                           Created {new Date(ref.created_at || '').toLocaleDateString()}
                         </div>
                       </div>
-                      <Link to={`/referrals/${ref.id}`} className="text-sm font-medium text-teal-600 hover:text-teal-700">
+                      <Link to={`/referrals`} className="text-sm font-medium text-teal-600 hover:text-teal-700">
                         View
                       </Link>
                     </li>
@@ -208,6 +275,124 @@ export default function PatientProfilePage() {
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      {isEditing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl space-y-6">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+              <h3 className="text-lg font-bold text-gray-900">Edit Patient Profile</h3>
+              <button 
+                onClick={() => setIsEditing(false)}
+                className="rounded-lg p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              >
+                <X className="size-5" />
+              </button>
+            </div>
+
+            {editError && (
+              <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 border border-red-200">
+                {editError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700">Full Name *</label>
+                <input
+                  type="text"
+                  required
+                  value={editFormData.name}
+                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Age *</label>
+                  <input
+                    type="number"
+                    required
+                    min={10}
+                    max={100}
+                    value={editFormData.age}
+                    onChange={(e) => setEditFormData({ ...editFormData, age: Number(e.target.value) })}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Phone</label>
+                  <input
+                    type="text"
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700">Location</label>
+                <input
+                  type="text"
+                  value={editFormData.location}
+                  onChange={(e) => setEditFormData({ ...editFormData, location: e.target.value })}
+                  className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Gestational Age (weeks)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    max={42}
+                    value={editFormData.gestational_age_weeks}
+                    onChange={(e) => setEditFormData({ ...editFormData, gestational_age_weeks: e.target.value })}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-700">Parity</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editFormData.parity}
+                    onChange={(e) => setEditFormData({ ...editFormData, parity: e.target.value })}
+                    className="mt-1 block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-900 focus:border-teal-500 focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="rounded-lg bg-white px-4 py-2 text-xs font-semibold text-gray-700 border border-gray-300 hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={updatePatientMutation.isPending}
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-xs font-semibold text-white shadow-sm hover:bg-teal-500 disabled:opacity-50"
+                >
+                  {updatePatientMutation.isPending ? (
+                    <Loader2 className="size-4 animate-spin" />
+                  ) : (
+                    <Save className="size-4" />
+                  )}
+                  Save Changes
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

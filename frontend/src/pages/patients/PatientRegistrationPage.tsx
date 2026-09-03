@@ -41,13 +41,24 @@ export default function PatientRegistrationPage() {
   const onSubmit = async (data: any) => {
     setErrorMsg(null)
     try {
+      const cleanNum = (val: any) => {
+        if (val === '' || val === null || val === undefined || Number.isNaN(Number(val))) {
+          return undefined
+        }
+        return Number(val)
+      }
+
       const payload = {
         ...data,
-        gestational_age_weeks: data.gestational_age_weeks === '' ? undefined : Number(data.gestational_age_weeks),
-        parity: data.parity === '' ? undefined : Number(data.parity),
+        gestational_age_weeks: cleanNum(data.gestational_age_weeks),
+        parity: cleanNum(data.parity),
       }
       const newPatient = await createPatient.mutateAsync(payload as any)
-      navigate(`/patients/${newPatient.patient_id}`)
+      if (newPatient && newPatient.patient_id) {
+        navigate(`/patients/${newPatient.patient_id}`)
+      } else {
+        navigate('/patients')
+      }
     } catch (err: any) {
       setErrorMsg(err.response?.data?.detail || 'Failed to register patient. Please try again.')
     }
