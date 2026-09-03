@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useLocation } from 'react-router-dom'
-import { Bell, ChevronDown, LogOut, Menu } from 'lucide-react'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { Bell, ChevronDown, LogOut, Menu, ArrowRight, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { cn } from '@/lib/utils'
 import { getUserInitials } from './user'
@@ -11,10 +11,6 @@ interface PageMeta {
   match: (pathname: string) => boolean
 }
 
-/**
- * Route → page context for the header title area.
- * Ordered most-specific-first so `/patients/new` wins over `/patients`.
- */
 const PAGE_META: readonly PageMeta[] = [
   { section: 'Overview', title: 'Dashboard', match: (p) => p.startsWith('/dashboard') },
   { section: 'Clinical', title: 'Register Patient', match: (p) => p.startsWith('/patients/new') },
@@ -32,30 +28,36 @@ const PAGE_META: readonly PageMeta[] = [
 const FALLBACK_PAGE: PageMeta = { section: 'MaaHifazat AI', title: 'Dashboard', match: () => false }
 
 export interface HeaderProps {
-  /** Opens the mobile navigation drawer. */
   onMenuClick: () => void
 }
 
 export function Header({ onMenuClick }: HeaderProps) {
   const { user, logout } = useAuth()
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  
   const [menuOpen, setMenuOpen] = useState(false)
+  const [notifOpen, setNotifOpen] = useState(false)
+  
   const menuRef = useRef<HTMLDivElement>(null)
+  const notifRef = useRef<HTMLDivElement>(null)
 
   const page = PAGE_META.find((meta) => meta.match(pathname)) ?? FALLBACK_PAGE
   const initials = user ? getUserInitials(user.user_id) : '··'
 
-  // Dismiss the account dropdown on any outside pointer press.
+  // Dismiss account & notification dropdowns on outside pointer press.
   useEffect(() => {
-    if (!menuOpen) return
     const handlePointerDown = (event: PointerEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setMenuOpen(false)
       }
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setNotifOpen(false)
+      }
     }
     document.addEventListener('pointerdown', handlePointerDown)
     return () => document.removeEventListener('pointerdown', handlePointerDown)
-  }, [menuOpen])
+  }, [])
 
   return (
     <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-3 border-b border-gray-200 bg-white/90 px-4 backdrop-blur sm:gap-4 sm:px-6">
@@ -80,21 +82,76 @@ export function Header({ onMenuClick }: HeaderProps) {
 
       {/* Right — notifications + account */}
       <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
-        >
-          <Bell className="size-5" aria-hidden="true" />
-          {/* Placeholder indicator — wired to real alerts in a later task. */}
-          <span
-            className="absolute right-1.5 top-1.5 size-2 rounded-full bg-red-500 ring-2 ring-white"
-            aria-hidden="true"
-          />
-        </button>
+        {/* Notification Bell Dropdown */}
+        <div className="relative" ref={notifRef}>
+          <button
+            type="button"
+            onClick={() => setNotifOpen((prev) => !prev)}
+            aria-label="Notifications"
+            className="relative rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-600"
+          >
+            <Bell className="size-5" aria-hidden="true" />
+            <span
+              className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-rose-500 ring-2 ring-white animate-pulse"
+              aria-hidden="true"
+            />
+          </button>
+
+          {notifOpen && (
+            <div className="absolute right-0 top-full z-50 mt-2 w-80 sm:w-96 origin-top-right rounded-xl border border-gray-200 bg-white p-4 shadow-xl shadow-gray-900/10 space-y-3">
+              <div className="flex items-center justify-between border-b border-gray-100 pb-2">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-gray-900 flex items-center gap-2">
+                  <Bell className="size-4 text-teal-600" /> Active Alerts
+                </h3>
+                <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-700">3 New</span>
+              </div>
+
+              <ul className="divide-y divide-gray-100 text-xs max-h-64 overflow-y-auto">
+                <li 
+                  className="py-2.5 hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors"
+                  onClick={() => { setNotifOpen(false); navigate('/alerts'); }}
+                >
+                  <p className="font-bold text-red-900 flex items-center gap-1.5">
+                    <ShieldAlert className="size-3.5 text-red-600 shrink-0" />
+                    EMERGENCY: Severe Preeclampsia
+                  </p>
+                  <p className="text-gray-600 mt-1 text-[11px] leading-relaxed">
+                    Patient Fatima Bibi (BP 175/110). Immediate escalation required.
+                  </p>
+                  <span className="text-[10px] text-gray-400 mt-1 block">5 mins ago</span>
+                </li>
+
+                <li 
+                  className="py-2.5 hover:bg-gray-50 p-2 rounded cursor-pointer transition-colors"
+                  onClick={() => { setNotifOpen(false); navigate('/alerts'); }}
+                >
+                  <p className="font-bold text-amber-900 flex items-center gap-1.5">
+                    <Bell className="size-3.5 text-amber-600 shrink-0" />
+                    Missed 3rd Trimester ANC Visit
+                  </p>
+                  <p className="text-gray-600 mt-1 text-[11px] leading-relaxed">
+                    Patient Ayesha Khan missed scheduled appointment. Follow-up SMS dispatched.
+                  </p>
+                  <span className="text-[10px] text-gray-400 mt-1 block">1 hour ago</span>
+                </li>
+              </ul>
+
+              <div className="pt-2 border-t border-gray-100 text-center">
+                <button
+                  type="button"
+                  onClick={() => { setNotifOpen(false); navigate('/alerts'); }}
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 hover:text-teal-700"
+                >
+                  View All Alerts in Alert Center <ArrowRight className="size-3" />
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="hidden h-6 w-px bg-gray-200 sm:block" aria-hidden="true" />
 
+        {/* User Account Menu */}
         <div className="relative" ref={menuRef}>
           <button
             type="button"
