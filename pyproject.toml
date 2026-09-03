@@ -1,5 +1,5 @@
 [tool.vercel]
-entrypoint = "backend/api/main.py"
+entrypoint = "api/index.py"
 
 [project]
 name = "maahifazat-ai"

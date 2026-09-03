@@ -6,7 +6,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from jose import JWTError, jwt
-from passlib.context import CryptContext
+import bcrypt
 
 from backend.config import settings
 from backend.schemas.auth import TokenPayload, TokenResponse, UserRole, UserInDB
@@ -15,7 +15,15 @@ from backend.schemas.auth import TokenPayload, TokenResponse, UserRole, UserInDB
 # Crypto & OAuth
 # ---------------------------------------------------------------------------
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def _hash_password(password: str) -> str:
+    """Hash a plain-text password with bcrypt."""
+    return bcrypt.hashpw(password.encode(), bcrypt.gensalt()).decode()
+
+
+def _verify_password(plain: str, hashed: str) -> bool:
+    """Verify a plain-text password against a bcrypt hash."""
+    return bcrypt.checkpw(plain.encode(), hashed.encode())
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/auth/login")
 
 # ---------------------------------------------------------------------------
@@ -26,7 +34,7 @@ _MVP_USERS = {
     "admin": UserInDB(
         user_id="u-admin-001",
         username="admin",
-        hashed_password=pwd_context.hash("admin"),
+        hashed_password=_hash_password("admin"),
         role=UserRole.ADMIN,
         full_name="System Administrator",
         created_at=datetime.utcnow(),
@@ -34,7 +42,7 @@ _MVP_USERS = {
     "clinician": UserInDB(
         user_id="u-clinician-001",
         username="clinician",
-        hashed_password=pwd_context.hash("clinician"),
+        hashed_password=_hash_password("clinician"),
         role=UserRole.CLINICIAN,
         full_name="Dr. Ayesha Khan",
         created_at=datetime.utcnow(),
@@ -42,7 +50,7 @@ _MVP_USERS = {
     "lhw": UserInDB(
         user_id="u-lhw-001",
         username="lhw",
-        hashed_password=pwd_context.hash("lhw"),
+        hashed_password=_hash_password("lhw"),
         role=UserRole.LHW,
         full_name="Fatima Bibi (LHW)",
         created_at=datetime.utcnow(),
@@ -50,7 +58,7 @@ _MVP_USERS = {
     "patient": UserInDB(
         user_id="u-patient-001",
         username="patient",
-        hashed_password=pwd_context.hash("patient"),
+        hashed_password=_hash_password("patient"),
         role=UserRole.PATIENT,
         full_name="Sample Patient",
         created_at=datetime.utcnow(),
@@ -131,7 +139,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
         admin / admin, clinician / clinician, lhw / lhw, patient / patient
     """
     user = _MVP_USERS.get(form_data.username)
-    if user is None or not pwd_context.verify(form_data.password, user.hashed_password):
+    if user is None or not _verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -163,7 +171,7 @@ async def signup(request: SignupRequest):
     new_user = UserInDB(
         user_id=f"u-{uuid.uuid4().hex[:8]}",
         username=request.username,
-        hashed_password=pwd_context.hash(request.password),
+        hashed_password=_hash_password(request.password),
         role=request.role,
         full_name=request.full_name,
         created_at=datetime.utcnow(),
