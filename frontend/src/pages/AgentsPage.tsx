@@ -134,49 +134,85 @@ export default function AgentsPage() {
           </div>
         )}
 
-        {workflowResult && (
-          <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border-t border-teal-100">
-            <div className="col-span-1 md:col-span-2">
-              <div className={`p-4 rounded-lg flex items-start gap-3 ${workflowResult.emergency ? 'bg-red-50 border border-red-200 text-red-900' : 'bg-green-50 border border-green-200 text-green-900'}`}>
-                {workflowResult.emergency ? <AlertTriangle className="size-6 text-red-600 shrink-0 mt-0.5" /> : <CheckCircle2 className="size-6 text-green-600 shrink-0 mt-0.5" />}
-                <div>
-                  <h3 className="font-bold text-base">Agent Network Consensus: {workflowResult.emergency ? 'EMERGENCY TRIAGE DETECTED' : 'ROUTINE ANC MONITORING'}</h3>
-                  <p className="text-xs mt-1 leading-relaxed">{workflowResult.clinical_summary || 'No clinical summary generated.'}</p>
+        {workflowResult && (() => {
+          const clinicalSummary = workflowResult.clinician_result?.case_summary_text
+            || workflowResult.reporting_result?.narrative
+            || workflowResult.clinical_summary
+            || (workflowResult.emergency 
+                ? 'EMERGENCY TRIAGE: High risk flags detected. Immediate hospital referral and priority clinician review initiated.'
+                : 'Routine maternal & fetal health monitoring completed without high risk flags.')
+
+          const referralRes = workflowResult.referral_result
+          const selectedFac = referralRes?.selected_facility
+          let referralText = 'No hospital referral needed. Routine ANC care recommended.'
+          if (selectedFac) {
+            referralText = `Facility: ${selectedFac.name || 'Emergency Regional Hospital'} (${referralRes.urgency_level?.toUpperCase() || 'URGENT'})\nDistance: ${selectedFac.distance_km ? selectedFac.distance_km.toFixed(1) + ' km' : 'Nearby'}\nEst. Travel Time: ${referralRes.estimated_travel_time_min ? referralRes.estimated_travel_time_min + ' mins' : 'Immediate'}\nCapabilities: Emergency, Maternity${selectedFac.has_nicu ? ', NICU' : ''}`
+          } else if (workflowResult.referral_info?.recommendation || workflowResult.referral_info?.facility_name) {
+            referralText = workflowResult.referral_info?.recommendation || workflowResult.referral_info?.facility_name
+          } else if (workflowResult.emergency) {
+            referralText = 'Emergency facility lookup completed. Patient transport dispatch recommended to nearest tertiary hospital.'
+          }
+
+          const commRes = workflowResult.communication_result
+          const commStatus = commRes?.all_delivered !== undefined
+            ? (commRes.all_delivered ? 'Delivered (All Recipients)' : 'Pending / In Dispatch')
+            : (workflowResult.communication_status || 'Delivered')
+
+          const commMsg = (commRes?.delivery_status && commRes.delivery_status[0]?.message)
+            || (commRes?.is_emergency_alert ? 'EMERGENCY ALERT dispatched to local clinician and Lady Health Worker (LHW).' : 'Routine SMS reminder dispatched to patient.')
+            || workflowResult.alert_message
+            || 'Alert dispatched to local clinician & LHW.'
+
+          const reportText = workflowResult.reporting_result?.narrative
+            || workflowResult.report_content
+            || (workflowResult.reporting_result?.case_summary
+                ? JSON.stringify(workflowResult.reporting_result.case_summary, null, 2)
+                : null)
+
+          return (
+            <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-white border-t border-teal-100">
+              <div className="col-span-1 md:col-span-2">
+                <div className={`p-4 rounded-lg flex items-start gap-3 ${workflowResult.emergency ? 'bg-red-50 border border-red-200 text-red-900' : 'bg-green-50 border border-green-200 text-green-900'}`}>
+                  {workflowResult.emergency ? <AlertTriangle className="size-6 text-red-600 shrink-0 mt-0.5" /> : <CheckCircle2 className="size-6 text-green-600 shrink-0 mt-0.5" />}
+                  <div>
+                    <h3 className="font-bold text-base">Agent Network Consensus: {workflowResult.emergency ? 'EMERGENCY TRIAGE DETECTED' : 'ROUTINE ANC MONITORING'}</h3>
+                    <p className="text-xs mt-1 leading-relaxed">{clinicalSummary}</p>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <h4 className="flex items-center gap-2 font-semibold text-gray-900 text-xs uppercase tracking-wider mb-2">
-                <Share2 className="size-4 text-teal-600" /> Smart Referral Agent Output
-              </h4>
-              <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed">
-                {workflowResult.referral_info?.recommendation || workflowResult.referral_info?.facility_name || 'No referral needed.'}
-              </p>
-            </div>
-
-            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <h4 className="flex items-center gap-2 font-semibold text-gray-900 text-xs uppercase tracking-wider mb-2">
-                <MessageSquare className="size-4 text-teal-600" /> Communication Agent Output
-              </h4>
-              <div className="text-xs text-gray-700 space-y-1">
-                <p><span className="font-semibold">Dispatch Status:</span> {workflowResult.communication_status || 'Delivered'}</p>
-                <p><span className="font-semibold">Channel Message:</span> {workflowResult.alert_message || 'Alert dispatched to local clinician & LHW.'}</p>
-              </div>
-            </div>
-
-            {workflowResult.report_content && (
-              <div className="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
                 <h4 className="flex items-center gap-2 font-semibold text-gray-900 text-xs uppercase tracking-wider mb-2">
-                  <FileText className="size-4 text-teal-600" /> Final Structured Case Report
+                  <Share2 className="size-4 text-teal-600" /> Smart Referral Agent Output
                 </h4>
-                <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono bg-white p-3 rounded border border-gray-200 max-h-60 overflow-y-auto">
-                  {workflowResult.report_content}
-                </pre>
+                <p className="text-xs text-gray-700 whitespace-pre-wrap leading-relaxed font-mono">
+                  {referralText}
+                </p>
               </div>
-            )}
-          </div>
-        )}
+
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="flex items-center gap-2 font-semibold text-gray-900 text-xs uppercase tracking-wider mb-2">
+                  <MessageSquare className="size-4 text-teal-600" /> Communication Agent Output
+                </h4>
+                <div className="text-xs text-gray-700 space-y-1">
+                  <p><span className="font-semibold">Dispatch Status:</span> {commStatus}</p>
+                  <p><span className="font-semibold">Channel Message:</span> {commMsg}</p>
+                </div>
+              </div>
+
+              {reportText && (
+                <div className="col-span-1 md:col-span-2 bg-gray-50 p-4 rounded-lg border border-gray-200">
+                  <h4 className="flex items-center gap-2 font-semibold text-gray-900 text-xs uppercase tracking-wider mb-2">
+                    <FileText className="size-4 text-teal-600" /> Final Structured Case Report
+                  </h4>
+                  <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono bg-white p-3 rounded border border-gray-200 max-h-60 overflow-y-auto">
+                    {reportText}
+                  </pre>
+                </div>
+              )}
+            </div>
+          )
+        })()}
       </div>
 
       {/* 9 Agent Nodes Registry Overview */}

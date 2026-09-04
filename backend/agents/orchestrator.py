@@ -49,9 +49,7 @@ def route_after_fetal(state: dict) -> str:
 
 
 def route_after_clinician(state: dict) -> str:
-    """Normal → reporting; emergency → END (skip reporting for speed)."""
-    if state.get("emergency", False):
-        return END
+    """Move to reporting to generate final structured case summary and narrative."""
     return "reporting"
 
 
