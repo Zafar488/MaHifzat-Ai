@@ -88,6 +88,7 @@ backend/*.sqlite3
 .env
 .env.*
 !.env.example
+!.env.production.example
 *.pem
 *.key
 secrets.json

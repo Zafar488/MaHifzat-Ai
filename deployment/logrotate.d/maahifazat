@@ -1,0 +1,11 @@
+/var/log/maahifazat/*.log {
+    daily
+    missingok
+    rotate 14
+    compress
+    delaycompress
+    notifempty
+    create 0640 maahifazat maahifazat
+    sharedscripts
+    copytruncate
+}
