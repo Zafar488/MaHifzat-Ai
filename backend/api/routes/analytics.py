@@ -31,8 +31,8 @@ async def model_health(registry=Depends(get_model_registry), user=Depends(get_cu
     from backend.services.inference import get_model_health_status
     status = get_model_health_status()
     all_models = {**status["clinical_models"], **status["research_workbench_models"]}
-    loaded_count = sum(1 for v in status["clinical_models"].values() if v is True)
-    total_count = len(status["clinical_models"])
+    loaded_count = sum(1 for v in all_models.values() if v is True)
+    total_count = len(all_models)
     return {
         "status": "ok",
         "models": all_models,
@@ -44,6 +44,7 @@ async def model_health(registry=Depends(get_model_registry), user=Depends(get_cu
         "research_workbench_models": status["research_workbench_models"],
         "clinical_validation": "not established"
     }
+
 
 
 @router.get("/models/evidence")
