@@ -19,6 +19,9 @@ const AuditPage = lazy(() => import('@/pages/AuditPage'))
 const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'))
 const SettingsPage = lazy(() => import('@/pages/SettingsPage'))
 const SignupPage = lazy(() => import('@/pages/SignupPage'))
+const PregnancyHelperPage = lazy(() => import('@/pages/PregnancyHelperPage'))
+const ModelWorkbenchPage = lazy(() => import('@/pages/ModelWorkbenchPage'))
+const FollowupsPage = lazy(() => import('@/pages/FollowupsPage'))
 
 // --- Suspense fallbacks -------------------------------------------------------
 
@@ -66,6 +69,9 @@ export const router = createBrowserRouter([
               { path: '/patients/:id', element: <PatientProfilePage /> },
               { path: '/patients/:patientId', element: <PatientProfilePage /> },
               { path: '/risk-assessment', element: <RiskIntelligencePage /> },
+              { path: '/pregnancy-helper', element: <PregnancyHelperPage /> },
+              { path: '/models', element: <ModelWorkbenchPage /> },
+              { path: '/followups', element: <FollowupsPage /> },
               { path: '/referrals', element: <ReferralsPage /> },
               {
                 // AI Agents — clinicians and admins only. Nested inside the

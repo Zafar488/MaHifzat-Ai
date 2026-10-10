@@ -5,13 +5,16 @@ import {
   BarChart3,
   Bell,
   Bot,
+  CalendarClock,
   ChevronsLeft,
   ChevronsRight,
+  Cpu,
   FileText,
   HeartPulse,
   LayoutDashboard,
   LogOut,
   Settings,
+  Sparkles,
   Users,
   X,
   type LucideIcon,
@@ -44,12 +47,15 @@ const NAV_GROUPS: readonly NavGroup[] = [
     items: [
       { to: '/patients', label: 'Patients', icon: Users },
       { to: '/risk-assessment', label: 'Risk Assessment', icon: Activity },
+      { to: '/followups', label: 'ANC Followups', icon: CalendarClock },
       { to: '/referrals', label: 'Referrals', icon: ArrowRightLeft },
     ],
   },
   {
     label: 'Intelligence',
     items: [
+      { to: '/pregnancy-helper', label: 'Pregnancy Helper', icon: Sparkles },
+      { to: '/models', label: 'Model Workbench', icon: Cpu },
       {
         to: '/agents',
         label: 'AI Agents',
