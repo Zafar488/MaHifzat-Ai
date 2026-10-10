@@ -1,0 +1,34 @@
+[Unit]
+Description=MaaHifazat AI Maternal & Fetal Health Backend Service
+After=network.target remote-fs.target
+Documentation=https://github.com/Zafar488/MaHifzat-Ai
+
+[Service]
+Type=simple
+User=maahifazat
+Group=maahifazat
+WorkingDirectory=/opt/maahifazat-ai
+EnvironmentFile=/opt/maahifazat-ai/.env
+
+ExecStart=/opt/maahifazat-ai/.venv/bin/uvicorn backend.api.main:app --host 127.0.0.1 --port 8000 --workers 4 --access-log
+
+# Restart policies
+Restart=always
+RestartSec=5s
+StartLimitIntervalSec=60s
+StartLimitBurst=3
+
+# Resource and Security Hardening
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+NoNewPrivileges=true
+LimitNOFILE=65536
+
+# Standard Output & Logging to Systemd Journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=maahifazat-backend
+
+[Install]
+WantedBy=multi-user.target
