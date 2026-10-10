@@ -36,7 +36,7 @@
   --animate-modal-pop-in: modal-pop-in 150ms ease-out;
   --animate-toast-slide-in: toast-slide-in 200ms ease-out;
   --animate-gentle-float: gentle-float 4s ease-in-out infinite;
-  --animate-card-fade-in: card-fade-in 200ms ease-out forwards;
+  --animate-card-fade-in: card-fade-in 200ms ease-out both;
   --animate-emergency-pulse: emergency-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 2;
   --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
 
