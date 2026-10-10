@@ -123,15 +123,17 @@ export default function ModelWorkbenchPage() {
               }`}
             >
               <div>
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-gray-900">
+                <div className="flex items-center justify-between mb-1 gap-1">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-gray-900 truncate">
                     {m.name}
                   </span>
-                  {m.executable ? (
-                    <span className="size-2 rounded-full bg-emerald-500" title="Model Executable" />
-                  ) : (
-                    <span className="size-2 rounded-full bg-amber-500" title="Heuristic / Fallback" />
-                  )}
+                  <span
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase shrink-0 ${
+                      m.care_decision_use ? 'bg-teal-100 text-teal-800 border border-teal-200' : 'bg-purple-100 text-purple-800 border border-purple-200'
+                    }`}
+                  >
+                    {m.care_decision_use ? 'Clinical' : 'Research'}
+                  </span>
                 </div>
                 <p className="text-[11px] text-gray-500 line-clamp-2 mt-1">
                   Target: {m.target || 'Classification'}

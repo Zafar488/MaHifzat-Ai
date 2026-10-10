@@ -22,6 +22,7 @@ const SignupPage = lazy(() => import('@/pages/SignupPage'))
 const PregnancyHelperPage = lazy(() => import('@/pages/PregnancyHelperPage'))
 const ModelWorkbenchPage = lazy(() => import('@/pages/ModelWorkbenchPage'))
 const FollowupsPage = lazy(() => import('@/pages/FollowupsPage'))
+const ReportsPage = lazy(() => import('@/pages/ReportsPage'))
 
 // --- Suspense fallbacks -------------------------------------------------------
 
@@ -72,6 +73,7 @@ export const router = createBrowserRouter([
               { path: '/pregnancy-helper', element: <PregnancyHelperPage /> },
               { path: '/models', element: <ModelWorkbenchPage /> },
               { path: '/followups', element: <FollowupsPage /> },
+              { path: '/reports', element: <ReportsPage /> },
               { path: '/referrals', element: <ReferralsPage /> },
               {
                 // AI Agents — clinicians and admins only. Nested inside the

@@ -48,6 +48,7 @@ const NAV_GROUPS: readonly NavGroup[] = [
       { to: '/patients', label: 'Patients', icon: Users },
       { to: '/risk-assessment', label: 'Risk Assessment', icon: Activity },
       { to: '/followups', label: 'ANC Followups', icon: CalendarClock },
+      { to: '/reports', label: 'Case Reports', icon: FileText },
       { to: '/referrals', label: 'Referrals', icon: ArrowRightLeft },
     ],
   },

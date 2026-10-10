@@ -36,8 +36,31 @@ async def unhandled(request: Request, exc: Exception):
 @app.get("/api/health")
 async def health():
     from backend.services.model_workbench import catalog
-    execution={item["name"]:item["executable"] for item in catalog()}
-    return {"status": "ok", "model_execution":execution,"models": ModelRegistry().health_check(), "demo_mode": settings.DEMO_MODE, "clinical_validation": "not established"}
+    registry = ModelRegistry()
+    health_status = registry.health_check()
+    workbench_catalog = {item["name"]: item["executable"] for item in catalog()}
+
+    clinical_ready = health_status.get("maternalguard", False) and health_status.get("fetalwatch", False)
+    research_ready = all(workbench_catalog.get(m, False) for m in ("pretermguard", "gestationinsight", "carereach"))
+
+    return {
+        "status": "ok",
+        "inference_readiness": {
+            "clinical_serving_ready": clinical_ready,
+            "research_workbench_ready": research_ready,
+        },
+        "clinical_models": {
+            "maternalguard": health_status.get("maternalguard", False),
+            "fetalwatch": health_status.get("fetalwatch", False),
+        },
+        "research_workbench_models": {
+            "pretermguard": workbench_catalog.get("pretermguard", False),
+            "gestationinsight": workbench_catalog.get("gestationinsight", False),
+            "carereach": workbench_catalog.get("carereach", False),
+        },
+        "demo_mode": settings.DEMO_MODE,
+        "clinical_validation": "not established",
+    }
 
 
 @app.get("/api/ready")

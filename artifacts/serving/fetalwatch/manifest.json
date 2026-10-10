@@ -2183,7 +2183,7 @@
   },
   "clinical_validation": "not established; internal experimental evaluation only",
   "historical_metrics": "legacy metrics not reproduced or used for model selection",
-  "sklearn_version": "1.9.0",
+  "sklearn_version": "1.9.1",
   "units": {
     "LB": "UCI193 definition",
     "AC": "events/second",

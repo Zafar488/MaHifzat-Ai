@@ -9,7 +9,7 @@ from backend.services.model_workbench import catalog,predict
 from backend.services.hospital_search import discover_hospitals
 from backend.tests.conftest import login_as
 from backend.tests.test_api import VITALS
-from ui.contact_actions import contact_links
+from backend.services.contact_composers import contact_links
 
 @pytest.mark.asyncio
 async def test_patient_self_care_runs_nine_nodes_with_ownership(async_client,patient_id):

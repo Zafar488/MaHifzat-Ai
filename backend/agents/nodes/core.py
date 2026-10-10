@@ -20,8 +20,14 @@ async def patient_intake(state):
     return output("patient_intake", vitals=v.model_dump(exclude_none=True), symptoms=[s.model_dump() for s in normalize_symptoms(state.get("symptoms"))], intake_complete=not missing, missing_fields=missing, followup_questions=["Please provide measured " + key.replace("_", " ") for key in missing])
 
 async def clinical_risk(state):
-    safety = SafetyService().check_who_red_flags(state.get("vitals") or {}, state.get("symptoms"))
-    maternal = get_model_registry().predict_maternal_risk(state.get("vitals") or {})
+    vitals = dict(state.get("vitals") or {})
+    if vitals.get("age") is None and (state.get("demographics") or {}).get("age"):
+        vitals["age"] = state["demographics"]["age"]
+    safety = SafetyService().check_who_red_flags(vitals, state.get("symptoms"))
+    maternal = get_model_registry().predict_maternal_risk(vitals)
+    if safety["is_emergency"]:
+        maternal["safety_override"] = True
+        maternal["safety_override_reason"] = "who_red_flags_emergency"
     result = {"maternal_risk": maternal, "gestational_risk": get_model_registry().predict_gestational_complication({}), "who_red_flags": safety, "is_emergency": safety["is_emergency"], "risk_summary": "; ".join(safety["clinical_rationale"]), "llm_generated": False}
     if maternal["status"] == "error":
         return output("clinical_risk", clinical_risk_result=result, emergency=safety["is_emergency"], errors=[{"agent": "clinical_risk", "error": "model_inference_failed"}])

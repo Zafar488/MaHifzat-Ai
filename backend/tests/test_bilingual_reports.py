@@ -145,19 +145,13 @@ async def test_ai_withholds_all_identifying_case_notes_and_requires_urdu_script(
 
 
 def test_four_sections_render_without_invented_observations():
-    from streamlit.testing.v1 import AppTest
-    app=AppTest.from_string("""
-import streamlit as st
-from ui.assessment_form import render_assessment_form
-st.session_state['user']={'full_name':'Synthetic UI test'}
-render_assessment_form(None,{},'test',False,None,True)
-""").run(timeout=20)
-    assert not app.exception
-    headings=[s.value for s in app.subheader]
-    assert len(headings)==4 and "Mother's assessment" in headings[1]
-    assert next(v for v in app.number_input if v.label=='Systolic BP (mmHg)').value is None
-    assert next(v for v in app.selectbox if v.label=='Vision disturbance').value=='Unknown'
-    assert next(v for v in app.checkbox if v.label=='Patient consent obtained to store this case').value is False
+    from backend.services.bilingual_reports import build_two_reports
+    state = {"case_id": "test-123", "vitals": {}}
+    reports = build_two_reports(state)
+    assert "care" in reports and "referral" in reports
+    care_sections = reports["care"]["languages"]["en"]["sections"]
+    assert len(care_sections) >= 4
+    assert care_sections[0]["heading"] == "Patient and case"
 
 
 def test_clinician_date_gestation_is_separate_from_contact_milestone():

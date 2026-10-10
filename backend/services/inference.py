@@ -74,7 +74,7 @@ class ModelRegistry:
         return {**health, **{name: False for name in DISABLED}}
 
     def _fallback(self, key="risk_level", reason="Complete model pipeline unavailable", status="unavailable"):
-        return {key: "unknown", "probabilities": {}, "confidence": None, "model_available": False, "status": status, "reason": reason}
+        return {key: "unknown", "probabilities": {}, "confidence": None, "model_available": False, "status": status, "reason": reason, "source": "heuristic_fallback"}
 
     def _predict(self, name, features, values, key):
         bundle = self._models.get(name)
@@ -94,7 +94,7 @@ class ModelRegistry:
                 raise ValueError("Invalid probabilities")
             probabilities = {bundle["label_map"][str(c)]: float(p) for c, p in zip(bundle["pipeline"].classes_, proba)}
             return {key: bundle["label_map"][label], "probabilities": probabilities,
-                    "confidence": None, "model_available": True, "status": "experimental",
+                    "confidence": None, "model_available": True, "source": "ml_pipeline", "status": "experimental",
                     "model_version": bundle["model_version"], "calibration": bundle["calibration"],
                     "intended_use": bundle["intended_use"], "clinical_validation": "not established",
                     "out_of_training_range_features": [f for f, bounds in bundle.get("feature_ranges", {}).items() if values[f] < bounds[0] or values[f] > bounds[1]]}

@@ -1,10 +1,12 @@
 # 🤱 MaaHifazat AI (ماں حفاظت اے آئی)
 ### Intelligent Maternal Care Decision Support & Agentic Clinical Safety System
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.109-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
-[![Streamlit](https://img.shields.io/badge/Streamlit-1.31-FF4B4B.svg?style=flat&logo=streamlit)](https://streamlit.io)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.141-009688.svg?style=flat&logo=fastapi)](https://fastapi.tiangolo.com)
+[![React](https://img.shields.io/badge/React-19.0-61DAFB.svg?style=flat&logo=react)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.7-3178C6.svg?style=flat&logo=typescript)](https://www.typescriptlang.org)
+[![Vite](https://img.shields.io/badge/Vite-6.0-646CFF.svg?style=flat&logo=vite)](https://vitejs.dev)
 [![LangGraph](https://img.shields.io/badge/LangGraph-Multi--Agent-blue.svg?style=flat)](https://github.com/langchain-ai/langgraph)
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB.svg?style=flat&logo=python)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.12-3776AB.svg?style=flat&logo=python)](https://python.org)
 [![Tests](https://img.shields.io/badge/Tests-93%20Passed-brightgreen.svg?style=flat)]()
 [![License](https://img.shields.io/badge/License-MIT-purple.svg?style=flat)]()
 
@@ -221,18 +223,43 @@ OVERPASS_URL=https://overpass.private.coffee/api/interpreter
 ```
 
 ### 4. Run the Application
-Start both the FastAPI backend and Streamlit UI with a single command:
-```powershell
-.venv\Scripts\python.exe scripts/start_app.py
+Start the FastAPI backend API and Vite React frontend:
+```bash
+# Terminal 1: Start FastAPI Backend
+.venv/bin/python -m uvicorn backend.api.main:app --host 127.0.0.1 --port 8000
+
+# Terminal 2: Start React 19 Frontend (Vite)
+cd frontend && npm run dev
 ```
-- **Streamlit Web Application**: [http://localhost:8501](http://localhost:8501)
+- **React Web Application**: [http://localhost:5173](http://localhost:5173)
 - **FastAPI Interactive API Docs**: [http://localhost:8000/api/docs](http://localhost:8000/api/docs)
 
-*Or simply double-click `run_app.bat` on Windows.*
+### 5. Health & Readiness Monitoring (`/api/health`)
+The `/api/health` endpoint explicitly reports inference readiness across clinical decision models (`MaternalGuard`, `FetalWatch`) and research workbench models (`PretermGuard`, `GestationInsight`, `CareReach`):
+```json
+{
+  "status": "ok",
+  "inference_readiness": {
+    "clinical_serving_ready": true,
+    "research_workbench_ready": true
+  },
+  "clinical_models": {
+    "maternalguard": true,
+    "fetalwatch": true
+  },
+  "research_workbench_models": {
+    "pretermguard": true,
+    "gestationinsight": true,
+    "carereach": true
+  },
+  "demo_mode": false,
+  "clinical_validation": "not established"
+}
+```
 
-### 5. Create an Administrator (Optional)
-```powershell
-.venv\Scripts\python.exe scripts/create_admin.py
+### 6. Create an Administrator (Optional)
+```bash
+.venv/bin/python scripts/create_admin.py --non-interactive
 ```
 Log in as administrator to provision team accounts for doctors, nurses, and health workers.
 
