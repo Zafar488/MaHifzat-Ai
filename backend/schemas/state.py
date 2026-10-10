@@ -14,7 +14,13 @@ class AgentState(TypedDict, total=False):
     # Patient data
     vitals: dict           # BP, HR, temp, etc.
     symptoms: list         # Structured symptom list
+    location: Optional[dict]
+    followup: dict
+    provenance: str
+    allow_llm_processing: bool
     demographics: dict     # Age, gestational_age, parity, etc.
+    encounter: dict
+    patient_context: dict  # Local report identity; never sent to the language provider.
     ctg_data: Optional[dict]  # CTG features if available
     profile: Optional[dict]       # Structured intake profile (patient_intake)
     missing_fields: list         # Required vitals still missing (patient_intake)
@@ -35,6 +41,7 @@ class AgentState(TypedDict, total=False):
     clinician_result: Optional[dict]
     data_quality_result: Optional[dict]
     reporting_result: Optional[dict]
+    research_results: Optional[dict]
 
     # Cross-cutting concerns
     audit_trail: Annotated[list, operator.add]  # Append-only log

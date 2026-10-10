@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><style>
+body{font:14px system-ui;color:#334155;margin:0}button{padding:10px 14px;border:1px solid #0f766e;border-radius:8px;background:#f0fdfa;color:#115e59;cursor:pointer;margin-right:8px}p{margin:8px 0;font-size:12px}
+</style></head><body>
+<button id="once" type="button">Use current location</button>
+<button id="start" type="button">Start live location</button>
+<button id="stop" type="button" disabled>Stop tracking</button>
+<p id="status">Location is captured only when you click and permit it. Manual entry also works.</p>
+<script>
+function send(type,extra={}){window.parent.postMessage({isStreamlitMessage:true,type,...extra},"*")}
+send("streamlit:componentReady",{apiVersion:1});send("streamlit:setFrameHeight",{height:115});
+let watch=null,last=null,lastSent=0;
+const status=document.getElementById("status");
+function distance(a,b){const r=Math.PI/180;const dlat=(b.latitude-a.latitude)*r,dlon=(b.longitude-a.longitude)*r;const h=Math.sin(dlat/2)**2+Math.cos(a.latitude*r)*Math.cos(b.latitude*r)*Math.sin(dlon/2)**2;return 6371000*2*Math.asin(Math.min(1,Math.sqrt(h)))}
+function success(p){const v={latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy_m:p.coords.accuracy,captured_at:new Date(p.timestamp).toISOString(),source:"gps",tracking:watch!==null};
+ status.textContent="Location captured · accuracy "+Math.round(v.accuracy_m)+" m · "+(watch!==null?"live tracking on":"confirm below");
+ if(!last||Date.now()-lastSent>=30000||distance(last,v)>=100){last=v;lastSent=Date.now();send("streamlit:setComponentValue",{value:v,dataType:"json"})}}
+function failure(){status.textContent="Location unavailable or permission denied. Enter coordinates manually.";stop()}
+function stop(){if(watch!==null)navigator.geolocation.clearWatch(watch);watch=null;document.getElementById("stop").disabled=true;document.getElementById("start").disabled=false;}
+const opts={enableHighAccuracy:true,timeout:15000,maximumAge:10000};
+document.getElementById("once").onclick=()=>{if(!navigator.geolocation){failure();return}status.textContent="Waiting for permission...";navigator.geolocation.getCurrentPosition(success,failure,opts)};
+document.getElementById("start").onclick=()=>{if(!navigator.geolocation){failure();return}if(watch!==null)return;status.textContent="Waiting for live location permission...";watch=navigator.geolocation.watchPosition(success,failure,opts);document.getElementById("stop").disabled=false;document.getElementById("start").disabled=true;};
+document.getElementById("stop").onclick=()=>{stop();status.textContent="Live tracking stopped. Last captured location remains available.";if(last)send("streamlit:setComponentValue",{value:{...last,tracking:false},dataType:"json"})};
+window.addEventListener("pagehide",stop);
+</script></body></html>

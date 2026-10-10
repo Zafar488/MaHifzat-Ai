@@ -8,14 +8,17 @@ from typing import Tuple
 import pandas as pd
 
 
+DEFAULT_DATA_DIR = Path(__file__).resolve().parents[3] / "data"
+
+
 def load_uci_maternal(
-    data_dir: str | Path = "g:/hackthon/data",
+    data_dir: str | Path = DEFAULT_DATA_DIR,
 ) -> Tuple[pd.DataFrame, pd.Series]:
     """Load the UCI Maternal Health Risk dataset from a local Parquet file.
 
     Parameters
     ----------
-    data_dir : str or Path, default ``"g:/hackthon/data"``
+    data_dir : str or Path, default repo data dir
         Directory that contains ``uci_maternal.parquet``.
 
     Returns

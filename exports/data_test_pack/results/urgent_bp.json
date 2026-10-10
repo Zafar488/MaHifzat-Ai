@@ -1,0 +1,232 @@
+{
+  "patient_id": "software-verification",
+  "case_id": "pack-urgent_bp",
+  "language": "en",
+  "channel": "app",
+  "vitals": {
+    "age": 30.0,
+    "systolic_bp": 145.0,
+    "diastolic_bp": 95.0,
+    "heart_rate": 74.0,
+    "temperature_celsius": 37.0,
+    "blood_sugar_mmol_l": 5.2,
+    "gestational_age_weeks": 28.0
+  },
+  "symptoms": [],
+  "location": {
+    "latitude": 34.01,
+    "longitude": 71.53,
+    "source": "manual",
+    "share_for_discovery": false,
+    "share_for_routing": false
+  },
+  "followup": {
+    "gestational_age_weeks": 28.0,
+    "completed_contact_weeks": [
+      12,
+      20,
+      26
+    ],
+    "missed_visits": 0,
+    "transport_barrier": false,
+    "phone_access": null
+  },
+  "provenance": "patient_reported",
+  "allow_llm_processing": false,
+  "demographics": {
+    "age": 30,
+    "gestational_age_weeks": 28.0
+  },
+  "ctg_data": null,
+  "missing_fields": [],
+  "followup_questions": [],
+  "intake_complete": true,
+  "emergency": false,
+  "current_step": "reporting_complete",
+  "clinical_risk_result": {
+    "maternal_risk": {
+      "risk_level": "mid risk",
+      "probabilities": {
+        "high risk": 0.14812236334933543,
+        "low risk": 0.005518559978186248,
+        "mid risk": 0.8463590766724782
+      },
+      "confidence": null,
+      "model_available": true,
+      "status": "experimental",
+      "model_version": "experimental-v2-20261010",
+      "calibration": "uncalibrated class probabilities; not clinical confidence",
+      "intended_use": "UCI maternal risk category research",
+      "clinical_validation": "not established",
+      "out_of_training_range_features": [
+        "BS"
+      ]
+    },
+    "gestational_risk": {
+      "risk_level": "unknown",
+      "probabilities": {},
+      "confidence": null,
+      "model_available": false,
+      "status": "disabled",
+      "reason": "Pima diabetes proxy is not an observed pregnancy-complication outcome."
+    },
+    "who_red_flags": {
+      "triage_level": "URGENT",
+      "triggered_rules": [],
+      "clinical_rationale": [
+        "Available measurements require prompt clinical assessment."
+      ],
+      "recommended_actions": [
+        "Contact a qualified maternity clinician promptly."
+      ],
+      "override_ml_scores": false,
+      "is_emergency": false,
+      "missing_fields": [],
+      "rule_version": "2026-10-09.1",
+      "clinical_review_status": "pending",
+      "timestamp": "2026-10-10T10:57:16.743392+00:00"
+    },
+    "is_emergency": false,
+    "risk_summary": "Available measurements require prompt clinical assessment.",
+    "llm_generated": false
+  },
+  "fetal_result": {
+    "fetal_status": "not_assessed",
+    "status": "not_assessed",
+    "reason": "No measured CTG features",
+    "escalate": false
+  },
+  "anc_result": {
+    "status": "rule_based",
+    "priority": "high",
+    "recommended_action": "call",
+    "risk_factors": [
+      "Current maternal/fetal concern requires clinical assessment"
+    ],
+    "missed_risk_score": null,
+    "model_available": false,
+    "next_contact_week": 30,
+    "next_appointment_date": "2026-10-24",
+    "next_reminder_date": "2026-10-10",
+    "task_due_date": "2026-10-10",
+    "overdue_days": 0,
+    "schedule_basis": "suggested_WHO_contact",
+    "rule_version": "anc-outreach-v1",
+    "contact_schedule_weeks": [
+      12,
+      20,
+      26,
+      30,
+      34,
+      36,
+      38,
+      40
+    ],
+    "completed_contact_weeks": [
+      12,
+      20,
+      26
+    ],
+    "reason": "Clinician should individualize this suggested schedule. Outreach priority is an operational rule, not a predicted probability."
+  },
+  "referral_result": {
+    "urgency_level": "urgent",
+    "capabilities_needed": {
+      "has_maternity": true,
+      "has_emergency": true,
+      "has_nicu": false
+    },
+    "selected_facility": null,
+    "ranked_facilities": [],
+    "excluded_facilities": [],
+    "estimated_travel_time_min": null,
+    "simulated": false,
+    "status": "no_matching_facility",
+    "directory_status": "unavailable",
+    "reason": "No verified capable facility found within 100 km. Contact maternity/emergency services to arrange care manually."
+  },
+  "communication_result": {
+    "status": "not_sent",
+    "messages_sent": 0,
+    "all_delivered": false,
+    "draft_message": "Please contact your maternity care team. Follow-up action: call. Appointment: 2026-10-24.",
+    "recommended_channel": "call",
+    "reason": "Draft prepared; no external message sent. Reviewed explicit action and provider required."
+  },
+  "clinician_result": {
+    "case_summary_text": "MaaHifazat clinical handover | Case: pack-urgent_bp\nPatient ID: software-verification | Provenance: patient_reported\nAttention: URGENT | Maternal rule triage: URGENT\nObservations: Age: 30 years; Gestation: 28 weeks; Systolic BP: 145 mmHg; Diastolic BP: 95 mmHg; Heart rate: 74 bpm; Temperature: 37 C; Blood glucose: 5.2 mmol/L\nReported symptoms: No symptoms reported\nDanger signs: None of the configured rules triggered\nExperimental maternal model: mid risk (experimental)\nExperimental fetal model: not_assessed (not_assessed)\nMissing measurements: None of the required maternal measurements\nReferral candidate: none | no_matching_facility\nANC: high priority; action: call; next appointment: 2026-10-24\nNext actions: Contact a qualified maternity clinician promptly.\nReview: pending qualified clinician review. Emergency assessment must not wait for software review.\nModel evidence: probabilities are uncalibrated; CTG-pattern, no-show and Pima-derived proxy results do not determine clinical care.",
+    "status": "pending_review",
+    "requires_immediate_attention": false,
+    "risk_indicators": [],
+    "decision": null,
+    "reviewer": null,
+    "llm_generated": false,
+    "ai_assistance": {
+      "llm_generated": false,
+      "status": "not_requested",
+      "provider": "groq",
+      "urgency": "urgent",
+      "reason": "External AI processing was not permitted."
+    }
+  },
+  "data_quality_result": {
+    "missing_fields": [],
+    "status": "validated_input"
+  },
+  "reporting_result": {
+    "narrative": "MaaHifazat clinical handover | Case: pack-urgent_bp\nPatient ID: software-verification | Provenance: patient_reported\nAttention: URGENT | Maternal rule triage: URGENT\nObservations: Age: 30 years; Gestation: 28 weeks; Systolic BP: 145 mmHg; Diastolic BP: 95 mmHg; Heart rate: 74 bpm; Temperature: 37 C; Blood glucose: 5.2 mmol/L\nReported symptoms: No symptoms reported\nDanger signs: None of the configured rules triggered\nExperimental maternal model: mid risk (experimental)\nExperimental fetal model: not_assessed (not_assessed)\nMissing measurements: None of the required maternal measurements\nReferral candidate: none | no_matching_facility\nANC: high priority; action: call; next appointment: 2026-10-24\nNext actions: Contact a qualified maternity clinician promptly.\nReview: pending qualified clinician review. Emergency assessment must not wait for software review.\nModel evidence: probabilities are uncalibrated; CTG-pattern, no-show and Pima-derived proxy results do not determine clinical care.",
+    "clinical_validation": "not established",
+    "review_status": "pending",
+    "llm_generated": false
+  },
+  "audit_trail": [
+    {
+      "agent": "clinical_risk",
+      "action": "clinical_risk_evaluated",
+      "timestamp": "2026-10-10T10:57:16.765314+00:00"
+    },
+    {
+      "agent": "patient_intake",
+      "action": "patient_intake_evaluated",
+      "timestamp": "2026-10-10T10:57:16.767783+00:00"
+    },
+    {
+      "agent": "data_quality",
+      "action": "data_quality_evaluated",
+      "timestamp": "2026-10-10T10:57:16.769430+00:00"
+    },
+    {
+      "agent": "fetal_monitoring",
+      "action": "fetal_monitoring_evaluated",
+      "timestamp": "2026-10-10T10:57:16.770362+00:00"
+    },
+    {
+      "agent": "anc_followup",
+      "action": "anc_followup_evaluated",
+      "timestamp": "2026-10-10T10:57:16.771954+00:00"
+    },
+    {
+      "agent": "smart_referral",
+      "action": "smart_referral_evaluated",
+      "timestamp": "2026-10-10T10:57:16.774160+00:00"
+    },
+    {
+      "agent": "clinician_review",
+      "action": "clinician_review_evaluated",
+      "timestamp": "2026-10-10T10:57:16.775852+00:00"
+    },
+    {
+      "agent": "communication",
+      "action": "communication_evaluated",
+      "timestamp": "2026-10-10T10:57:16.777456+00:00"
+    },
+    {
+      "agent": "reporting",
+      "action": "reporting_evaluated",
+      "timestamp": "2026-10-10T10:57:16.778863+00:00"
+    }
+  ],
+  "errors": [],
+  "messages": [],
+  "status": "pending_review"
+}

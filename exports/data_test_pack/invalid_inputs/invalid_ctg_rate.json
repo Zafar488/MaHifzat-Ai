@@ -1,0 +1,30 @@
+{
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {},
+    "ctg_features": {
+      "LB": 125.0,
+      "AC": 12,
+      "FM": 0.009,
+      "UC": 0.0,
+      "DL": 0.0,
+      "DS": 0.0,
+      "DP": 0.0,
+      "ASTV": 68.0,
+      "MSTV": 0.3,
+      "ALTV": 75.0,
+      "MLTV": 3.5,
+      "Width": 8.0,
+      "Min": 120.0,
+      "Max": 128.0,
+      "Nmax": 0.0,
+      "Nzeros": 0.0,
+      "Mode": 125.0,
+      "Mean": 125.0,
+      "Median": 126.0,
+      "Variance": 0.0,
+      "Tendency": 0.0
+    }
+  },
+  "expected_http_status": 422
+}

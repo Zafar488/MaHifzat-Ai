@@ -1,9 +1,10 @@
-"""Download PhysioNet CTU-UHB CTG database (subset for initial EDA)."""
+from pathlib import Path
 import os
 import wfdb
 
+ROOT = Path(__file__).resolve().parents[1]
 DB_NAME = 'ctu-uhb-ctgdb'
-LOCAL_DIR = 'g:/hackthon/data/ctu-uhb-ctgdb'
+LOCAL_DIR = str(ROOT / 'data' / 'ctu-uhb-ctgdb')
 SUBSET_SIZE = 15  # download first N records for initial EDA
 
 print("=" * 60)

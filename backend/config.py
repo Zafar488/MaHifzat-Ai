@@ -1,58 +1,53 @@
-"""Application configuration using Pydantic BaseSettings."""
-from pydantic_settings import BaseSettings
+"""Portable, explicit configuration. Production fails closed."""
 from pathlib import Path
-from typing import Optional
+from typing import Literal
+import secrets
+from pydantic import Field, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-# Resolve project root relative to this file (works on any machine / Vercel)
-_HERE = Path(__file__).parent          # backend/
-_ROOT = _HERE.parent                   # project root
+ROOT = Path(__file__).resolve().parents[1]
 
 
 class Settings(BaseSettings):
-    # Project paths (relative to repo root — portable across machines)
-    PROJECT_ROOT: Path = _ROOT
-    ARTIFACTS_DIR: Path = _ROOT / "artifacts"
-    DATA_DIR: Path = _ROOT / "data"
-
-    # Model paths
-    FETALWATCH_MODEL: Path = _ROOT / "artifacts/fetalwatch/best_model.joblib"
-    MATERNALGUARD_MODEL: Path = _ROOT / "artifacts/maternalguard/best_model.joblib"
-    MATERNALGUARD_ENCODER: Path = _ROOT / "artifacts/maternalguard/label_encoder.joblib"
-    PRETERMGUARD_MODEL: Path = _ROOT / "artifacts/pretermguard/best_model.joblib"
-    CAREREACH_MODEL: Path = _ROOT / "artifacts/carereach/best_model.joblib"
-    CAREREACH_PREPROCESSOR: Path = _ROOT / "artifacts/carereach/preprocessor.joblib"
-    GESTATIONINSIGHT_MODEL: Path = _ROOT / "artifacts/gestationinsight/best_model.joblib"
-    GESTATIONINSIGHT_ENCODER: Path = _ROOT / "artifacts/gestationinsight/label_encoder.joblib"
-
-    # Database (relative path — works locally and on Vercel /tmp)
-    DATABASE_URL: str = f"sqlite+aiosqlite:///{_ROOT / 'backend' / 'maahifazat.db'}"
-
-    # JWT Auth
-    JWT_SECRET: str = "maahifazat-secret-key-change-in-production"
+    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    PROJECT_ROOT: Path = ROOT
+    ARTIFACTS_DIR: Path = ROOT / "artifacts"
+    DATA_DIR: Path = ROOT / "data"
+    APP_ENV: Literal["development", "test", "production"] = "development"
+    APP_DEBUG: bool = False
+    DEMO_MODE: bool = False
+    # New development DB; original backend/maahifazat.db is never opened by default.
+    DATABASE_URL: str = f"sqlite+aiosqlite:///{ROOT / 'data' / 'local-app.db'}"
+    JWT_SECRET: str = Field(default_factory=lambda: secrets.token_urlsafe(48))
     JWT_ALGORITHM: str = "HS256"
-    JWT_EXPIRE_MINUTES: int = 60
-
-    # External APIs (stubs for now)
-    VOICE_API_URL: str = "http://localhost:8001/voice"
-    FACILITY_API_URL: str = "https://overpass-api.de/api/interpreter"
-    ROUTING_API_URL: str = "https://api.openrouteservice.org"
-    MESSAGING_API_URL: str = "http://localhost:8002/messaging"
-
-    # Groq LLM API
-    # NOTE: "llama-3.3-70b-versatile" is not available on this Groq account
-    # (404 model_not_found). "openai/gpt-oss-120b" is Groq's flagship
-    # replacement and is what this key has access to.
-    GROQ_API_KEY: str = ""  # Set via GROQ_API_KEY env var or .env file
+    JWT_EXPIRE_MINUTES: int = Field(60, ge=1, le=1440)
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    GROQ_API_KEY: str = ""
     GROQ_MODEL: str = "openai/gpt-oss-120b"
-
-    # App settings
+    LLM_TIMEOUT_SECONDS: float = Field(25, ge=1, le=60)
+    OVERPASS_URL: str = "https://overpass.private.coffee/api/interpreter"
+    OSM_MAP_FALLBACK_URL: str = "https://api.openstreetmap.org/api/0.6/map.json"
+    HOSPITAL_SEARCH_TIMEOUT_SECONDS: float = Field(25, ge=1, le=60)
+    ENABLE_LLM: bool = False
     APP_NAME: str = "MaaHifazat AI"
-    APP_VERSION: str = "1.0.0"
-    DEBUG: bool = True
+    APP_VERSION: str = "2.0.0"
+    REQUIRE_MODELS: bool = True
+    FACILITY_DIRECTORY_PATH: Path | None = None
+    FACILITY_VERIFICATION_MAX_DAYS: int = Field(365, ge=1, le=3650)
+    OPENROUTESERVICE_API_KEY: str = ""
+    ROUTING_TIMEOUT_SECONDS: float = Field(8, ge=1, le=30)
+    FOLLOWUP_TIMEZONE: str = "Asia/Karachi"
 
-    class Config:
-        env_file = ".env"
-        env_file_encoding = "utf-8"
+    @model_validator(mode="after")
+    def production_requirements(self):
+        if self.APP_ENV == "production":
+            if "JWT_SECRET" not in self.model_fields_set or len(self.JWT_SECRET) < 32:
+                raise ValueError("Production requires an explicit JWT_SECRET of at least 32 characters")
+            if not self.DATABASE_URL.startswith("postgresql+asyncpg://"):
+                raise ValueError("Production requires a persistent PostgreSQL DATABASE_URL")
+            if self.DEMO_MODE or self.APP_DEBUG or "*" in self.CORS_ORIGINS:
+                raise ValueError("Production disallows demo/debug and wildcard CORS")
+        return self
 
 
 settings = Settings()

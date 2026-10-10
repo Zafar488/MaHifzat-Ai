@@ -1,0 +1,23 @@
+# Tested Python 3.11 serving/UI runtime. Includes artifact compatibility pins.
+streamlit==1.65.0
+fastapi==0.141.1
+uvicorn==0.52.4
+pandas==3.0.5
+numpy==2.4.6
+scikit-learn==1.9.0
+lightgbm==4.7.0
+joblib==1.6.0
+pyarrow==25.0.1
+pydantic==2.13.5
+pydantic-settings==2.15.0
+sqlalchemy==2.0.52
+aiosqlite==0.22.1
+python-jose[cryptography]==3.5.0
+bcrypt==5.0.0
+httpx==0.28.1
+python-multipart==0.0.32
+langgraph==1.2.11
+wfdb==4.3.1
+tzdata==2026.3
+# Legacy research smoke checks (not clinical serving)
+xgboost==3.2.0

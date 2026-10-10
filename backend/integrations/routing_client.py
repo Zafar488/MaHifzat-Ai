@@ -1,70 +1,34 @@
-"""Routing client — OpenRouteService API stub."""
-import httpx
-from typing import Dict, Any, Optional, Tuple
-from backend.config import settings
+"""Optional road routing. Only coordinates leave the app, after explicit consent."""
 import math
-
+import httpx
+from backend.config import settings
+from backend.integrations.facility_locator import haversine_km
 
 class RoutingClient:
-    """Client for travel time and route estimation."""
+    async def get_travel_time(self, origin, destination, mode="driving", consent=False, demo=False):
+        fallback = {"status": "estimate_only", "simulated": demo, "distance_km": round(haversine_km(origin, destination), 2),
+                    "distance_kind": "straight_line", "travel_time_minutes": None,
+                    "route_summary": "Straight-line distance; road distance and ETA unavailable", "mode": mode, "waypoints": []}
+        if not settings.OPENROUTESERVICE_API_KEY or not consent or demo:
+            return fallback
+        try:
+            async with httpx.AsyncClient(timeout=settings.ROUTING_TIMEOUT_SECONDS) as client:
+                response = await client.post("https://api.openrouteservice.org/v2/directions/driving-car/geojson",
+                    headers={"Authorization": settings.OPENROUTESERVICE_API_KEY},
+                    json={"coordinates": [[origin[1], origin[0]], [destination[1], destination[0]]]})
+                response.raise_for_status()
+                feature = response.json()["features"][0]
+                summary = feature["properties"]["summary"]
+                meters, seconds = float(summary["distance"]), float(summary["duration"])
+                points = feature["geometry"]["coordinates"]
+                if not all(math.isfinite(v) and v >= 0 for v in (meters, seconds)):
+                    raise ValueError("Invalid route summary")
+                return {"status": "routed", "simulated": False, "distance_km": round(meters/1000, 2),
+                        "distance_kind": "road", "travel_time_minutes": round(seconds/60, 1),
+                        "route_summary": "openrouteservice driving estimate; traffic and access may change",
+                        "mode": mode, "waypoints": points}
+        except (httpx.HTTPError, ValueError, KeyError, TypeError, IndexError):
+            return {**fallback, "status": "provider_failed", "route_summary": "Road provider failed; straight-line distance only"}
 
-    def __init__(self, base_url: str = None, api_key: str = None, timeout: float = 3.0):
-        self.base_url = base_url or settings.ROUTING_API_URL
-        self.api_key = api_key
-        self.timeout = timeout
-
-    async def get_travel_time(
-        self,
-        origin: Tuple[float, float],
-        destination: Tuple[float, float],
-        mode: str = "driving",
-    ) -> Dict[str, Any]:
-        """Estimate travel time between two points.
-
-        Args:
-            origin: (latitude, longitude)
-            destination: (latitude, longitude)
-            mode: driving, walking, ambulance
-        """
-        # STUB: Estimate based on straight-line distance
-        distance_km = self._haversine(origin, destination)
-
-        # Average speeds (km/h) by mode in KP road conditions
-        speeds = {"driving": 30, "walking": 4, "ambulance": 45}
-        speed = speeds.get(mode, 30)
-
-        travel_time_min = (distance_km / speed) * 60
-
-        return {
-            "distance_km": round(distance_km, 1),
-            "travel_time_minutes": round(travel_time_min, 0),
-            "mode": mode,
-            "route_summary": f"Via main road ({distance_km:.1f} km)",
-            "traffic_condition": "normal",
-        }
-
-    async def get_route(
-        self,
-        origin: Tuple[float, float],
-        destination: Tuple[float, float],
-    ) -> Dict[str, Any]:
-        """Get full route with waypoints."""
-        travel = await self.get_travel_time(origin, destination)
-        return {
-            **travel,
-            "waypoints": [
-                {"lat": origin[0], "lon": origin[1], "type": "start"},
-                {"lat": destination[0], "lon": destination[1], "type": "end"},
-            ],
-        }
-
-    @staticmethod
-    def _haversine(coord1: Tuple[float, float], coord2: Tuple[float, float]) -> float:
-        """Calculate distance between two lat/lon points in km."""
-        R = 6371  # Earth radius in km
-        lat1, lon1 = math.radians(coord1[0]), math.radians(coord1[1])
-        lat2, lon2 = math.radians(coord2[0]), math.radians(coord2[1])
-        dlat = lat2 - lat1
-        dlon = lon2 - lon1
-        a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
-        return R * 2 * math.asin(math.sqrt(a))
+    async def get_route(self, origin, destination, **kwargs):
+        return await self.get_travel_time(origin, destination, **kwargs)

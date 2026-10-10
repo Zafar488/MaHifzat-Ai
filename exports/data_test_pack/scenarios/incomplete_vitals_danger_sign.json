@@ -1,0 +1,49 @@
+{
+  "test_only": true,
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {
+      "age": 25,
+      "gestational_age_weeks": 30.0
+    },
+    "symptoms": [
+      {
+        "name": "Convulsions",
+        "severity": "severe"
+      }
+    ],
+    "ctg_features": null,
+    "ctg_source": null,
+    "provenance": "patient_reported",
+    "location": {
+      "latitude": 34.01,
+      "longitude": 71.53,
+      "source": "manual",
+      "share_for_discovery": false,
+      "share_for_routing": false
+    },
+    "allow_llm_processing": false,
+    "followup": {
+      "gestational_age_weeks": 30.0,
+      "completed_contact_weeks": [
+        12,
+        20,
+        26
+      ],
+      "missed_visits": 0,
+      "transport_barrier": false,
+      "phone_access": null
+    }
+  },
+  "expected": {
+    "scenario": "Incomplete vitals + danger sign",
+    "passed": true,
+    "rule_triage": "HIGH_RISK_EMERGENCY",
+    "emergency": true,
+    "status": "incomplete",
+    "followup_action": "emergency_assessment",
+    "maternal_prediction": "unknown",
+    "fetal_prediction": "not_assessed",
+    "audited_agents": 9
+  }
+}

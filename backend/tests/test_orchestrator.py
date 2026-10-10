@@ -1,135 +1,76 @@
-"""Integration tests for the LangGraph orchestrator workflow."""
 import pytest
-from backend.agents.orchestrator import run_workflow
+from backend.agents.orchestrator import run_workflow, NODES
+from backend.services.inference import ModelRegistry, CTG_FEATURES
 
-
-# ---------------------------------------------------------------------------
-# Helper: build a base state dict
-# ---------------------------------------------------------------------------
-
-def _make_state(
-    *,
-    systolic_bp: float = 120.0,
-    diastolic_bp: float = 80.0,
-    heart_rate: float = 76.0,
-    temperature_celsius: float = 37.0,
-    gestational_age_weeks: float = 32.0,
-    intake_complete: bool = True,
-    extra_vitals: dict | None = None,
-) -> dict:
-    """Build a minimal AgentState dict for orchestrator tests."""
-    vitals = {
-        "systolic_bp": systolic_bp,
-        "diastolic_bp": diastolic_bp,
-        "heart_rate": heart_rate,
-        "temperature_celsius": temperature_celsius,
-        "gestational_age_weeks": gestational_age_weeks,
-    }
-    if extra_vitals:
-        vitals.update(extra_vitals)
-
-    return {
-        "patient_id": "test-patient-001",
-        "case_id": "test-case-001",
-        "language": "en",
-        "channel": "app",
-        "vitals": vitals,
-        "symptoms": [],
-        "demographics": {"age": 30, "phone": "+923000000000"},
-        "intake_complete": intake_complete,
-        "emergency": False,
-        "audit_trail": [],
-        "errors": [],
-        "messages": [],
-    }
-
-
-# ---------------------------------------------------------------------------
-# Tests
-# ---------------------------------------------------------------------------
+def state(vitals=None):
+    return {"patient_id": "synthetic", "case_id": "synthetic-case", "vitals": vitals or {}, "symptoms": [], "audit_trail": [], "errors": [], "messages": []}
 
 
 @pytest.mark.asyncio
-async def test_normal_workflow():
-    """Run workflow with complete intake data and normal vitals.
-
-    Verifies:
-    - clinical_risk_result is populated
-    - no emergency
-    - flow completes through to reporting
-    """
-    state = _make_state()
-
-    result = await run_workflow(state)
-
-    # Intake should be complete
-    assert result.get("intake_complete") is True
-
-    # Clinical risk should have been assessed
-    assert result.get("clinical_risk_result") is not None
-    assert isinstance(result["clinical_risk_result"], dict)
-
-    # No emergency with normal vitals
-    assert result.get("emergency") is False
-
-    # Reporting should have been generated (normal flow goes through reporting)
-    assert result.get("reporting_result") is not None
-
-    # Audit trail should have entries from multiple nodes
-    audit = result.get("audit_trail", [])
-    assert len(audit) >= 3, f"Expected ≥3 audit entries, got {len(audit)}"
+async def test_missing_intake_still_triaged():
+    s = state({"systolic_bp": 180})
+    s["symptoms"] = [{"name": "convulsions", "severity": "severe"}]
+    result = await run_workflow(s)
+    assert result["emergency"] is True
+    assert result["status"] == "incomplete"
+    assert result["clinical_risk_result"]["who_red_flags"]["triggered_rules"]
+    assert result["communication_result"]["status"] == "not_sent"
 
 
 @pytest.mark.asyncio
-async def test_emergency_workflow():
-    """Run workflow with dangerous vitals (SBP=180, DBP=120).
-
-    Verifies:
-    - emergency=True is set
-    - smart_referral was triggered (referral_result populated)
-    """
-    state = _make_state(systolic_bp=180.0, diastolic_bp=120.0)
-
-    result = await run_workflow(state)
-
-    # Emergency should be flagged
-    assert result.get("emergency") is True
-
-    # Clinical risk should detect emergency
-    clinical = result.get("clinical_risk_result")
-    assert clinical is not None
-    assert clinical.get("is_emergency") is True
-
-    # Smart referral should have been triggered
-    referral = result.get("referral_result")
-    assert referral is not None
-    assert referral.get("urgency_level") == "emergency"
-
-    # Communication should have been sent
-    comm = result.get("communication_result")
-    assert comm is not None
-    assert comm.get("is_emergency_alert") is True
+async def test_top_level_ctg_runs_fetal_node():
+    r = ModelRegistry()
+    r.load_all()
+    s = state({"age": 30, "systolic_bp": 120, "diastolic_bp": 80, "blood_sugar_mmol_l": 7, "temperature_celsius": 37, "heart_rate": 76})
+    s["ctg_data"] = dict(zip(CTG_FEATURES, r._models["fetalwatch"]["known_input"]))
+    result = await run_workflow(s)
+    assert result["fetal_result"]["fetal_model_available"] is True
+    assert "fetal_monitoring" in [e["agent"] for e in result["audit_trail"]]
 
 
 @pytest.mark.asyncio
-async def test_incomplete_intake():
-    """Run workflow with intake_complete=False (missing required vitals).
+async def test_suspect_escalates_without_preterm_claim(monkeypatch):
+    r = ModelRegistry()
+    monkeypatch.setattr(r, "predict_fetal_health", lambda values: {"fetal_status": "suspect", "status": "experimental", "model_available": True, "probabilities": {}, "confidence": None})
+    s = state({"systolic_bp": 120})
+    s["ctg_data"] = {"LB": 130}
+    result = await run_workflow(s)
+    assert result["fetal_result"]["escalate"] is True
+    assert result["referral_result"]["urgency_level"] == "urgent"
+    assert result["fetal_result"]["preterm_risk"] == "disabled"
 
-    Verifies:
-    - Workflow stops early (END after patient_intake)
-    - clinical_risk_result is NOT populated
-    """
-    state = _make_state(intake_complete=False)
-    # Also remove required fields so patient_intake re-evaluates and finds them missing
-    state["vitals"] = {"systolic_bp": 120.0}  # missing diastolic_bp, heart_rate, etc.
 
-    result = await run_workflow(state)
-
-    # Intake should remain incomplete
-    assert result.get("intake_complete") is False
-
-    # Clinical risk should NOT have been reached
-    assert result.get("clinical_risk_result") is None
-
-    # Reporting should NOT have been reached
+@pytest.mark.asyncio
+async def test_node_error_stops_downstream(monkeypatch):
+    async def fail(s):
+        raise RuntimeError("Synthetic")
+    monkeypatch.setitem(NODES, "data_quality", fail)
+    result = await run_workflow(state({"systolic_bp": 120}))
+    assert result["status"] == "failed"
     assert result.get("reporting_result") is None
+
+
+@pytest.mark.asyncio
+async def test_malformed_input_rejected():
+    with pytest.raises(ValueError):
+        await run_workflow(state({"systolic_bp": "bad"}))
+
+@pytest.mark.asyncio
+async def test_model_execution_error_stops_workflow(monkeypatch):
+    r=ModelRegistry()
+    monkeypatch.setattr(r,"predict_maternal_risk",lambda _:{"risk_level":"unknown","status":"error","model_available":False,"probabilities":{},"confidence":None})
+    result=await run_workflow(state({"age":30,"systolic_bp":120,"diastolic_bp":80,"blood_sugar_mmol_l":7,"temperature_celsius":37,"heart_rate":76}))
+    assert result["status"]=="failed"
+    assert result.get("reporting_result") is None
+
+
+@pytest.mark.asyncio
+async def test_fetal_emergency_handover_does_not_offer_routine_care(monkeypatch):
+    r=ModelRegistry()
+    monkeypatch.setattr(r,"predict_fetal_health",lambda _:{"fetal_status":"pathological","status":"experimental","model_available":True,"probabilities":{},"confidence":None})
+    s=state({"age":30,"systolic_bp":120,"diastolic_bp":80,"blood_sugar_mmol_l":5.4,"temperature_celsius":37,"heart_rate":82})
+    s["ctg_data"]={"LB":125}
+    result=await run_workflow(s)
+    summary=result["clinician_result"]["case_summary_text"]
+    assert "Seek immediate emergency maternity assessment for the fetal concern" in summary
+    assert "Continue scheduled clinical care" not in summary

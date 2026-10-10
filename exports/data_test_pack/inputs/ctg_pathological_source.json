@@ -1,0 +1,23 @@
+{
+  "dataset": "uci_ctg.parquet",
+  "source_row_index": 240,
+  "ground_truth_NSP": 3,
+  "ground_truth_label": "pathological",
+  "model_prediction": {
+    "fetal_status": "pathological",
+    "probabilities": {
+      "normal": 6.179566498824703e-08,
+      "pathological": 0.9999992709160366,
+      "suspect": 6.672882983885963e-07
+    },
+    "confidence": null,
+    "model_available": true,
+    "status": "experimental",
+    "model_version": "experimental-v2-20261010",
+    "calibration": "uncalibrated class probabilities; not clinical confidence",
+    "intended_use": "UCI NSP fetal-state classification research; not preterm prediction",
+    "clinical_validation": "not established",
+    "out_of_training_range_features": []
+  },
+  "selection": "Correctly classified saved holdout row, selected for functional testing only; not a new accuracy evaluation."
+}

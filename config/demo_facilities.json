@@ -1,0 +1,37 @@
+{
+  "facilities": [
+    {
+      "facility_id": "demo-clinic",
+      "name": "DEMO Village clinic",
+      "latitude": 34.08,
+      "longitude": 71.39,
+      "has_maternity": false,
+      "has_emergency": false,
+      "has_nicu": false,
+      "source": "Fictional hackathon scenario",
+      "simulated": true
+    },
+    {
+      "facility_id": "demo-maternity",
+      "name": "DEMO District maternity hospital",
+      "latitude": 34.035,
+      "longitude": 71.48,
+      "has_maternity": true,
+      "has_emergency": true,
+      "has_nicu": false,
+      "source": "Fictional hackathon scenario",
+      "simulated": true
+    },
+    {
+      "facility_id": "demo-newborn",
+      "name": "DEMO Regional maternity & newborn centre",
+      "latitude": 34.01,
+      "longitude": 71.55,
+      "has_maternity": true,
+      "has_emergency": true,
+      "has_nicu": true,
+      "source": "Fictional hackathon scenario",
+      "simulated": true
+    }
+  ]
+}

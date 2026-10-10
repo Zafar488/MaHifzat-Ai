@@ -1,0 +1,41 @@
+Report 2: Location and hospital referral
+
+Patient and case
+Case ID: d6af8cad-6d84-4c65-8979-eb2dc9d50491
+Patient ID: 84018b4c-7f65-4e4e-a21b-799b16780d78
+Name: Synthetic report verification case
+Contact: Not recorded / unknown
+Urgency: routine
+Provenance: patient_reported
+Generated UTC: 2026-10-10T14:07:49.315904+00:00
+
+Current recorded position
+Latitude: 34.01
+Longitude: 71.53
+Location source: manual
+Captured at: Not recorded / unknown
+GPS accuracy: Not recorded / unknown
+Discovery consent: No
+Road-routing consent: No
+
+Required services and ranking
+Services needed: Maternity
+Referral status: no_matching_facility
+Ranking basis: Not recorded / unknown
+Search coverage: Not recorded / unknown
+Limited search coverage: No
+Verified required services are matched before travel distance. Map-tag candidates require direct confirmation.
+
+No hospital candidate available
+Contact maternity/emergency services manually. Emergency assessment must not wait for GPS, an API or this report.
+
+Transfer handover
+Continue scheduled clinical care and seek help for new symptoms.
+Share this report and the original measurements with a qualified maternity clinician.
+Arrange appropriate transport and a companion with the health worker; confirm the receiving service.
+Record any new or worsening symptoms and seek clinical help. Do not use these experimental model labels to prescribe treatment or decide a delivery plan.
+Share Report 1 with the receiving clinician. Road ETA is an estimate; straight-line distance does not describe the road route.
+
+Clinical review
+Pending qualified clinician review. This report cannot guarantee safety of mother or baby and does not prescribe treatment.
+Emergency care must not wait for the language model or software approval.

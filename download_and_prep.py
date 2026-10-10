@@ -1,13 +1,5 @@
-"""
-download_and_prep.py
-====================
-Production-ready data fetching and cleaning pipeline for:
-  1. CareReach        – Medical Appointment No-Shows
-  2. GestationInsight  – Gestational Diabetes / Maternal Risk
-  3. OncoTrace         – Breast Cancer (Wisconsin Diagnostic)
-
-Each dataset is downloaded (with graceful fallbacks), clinically
-feature-engineered, and saved as Parquet for fast I/O.
+"""Research dataset preparation. Download failure does not silently substitute synthetic data.
+Proxy targets and engineered features do not establish obstetric outcomes.
 """
 
 import os
@@ -21,13 +13,16 @@ from typing import Tuple
 import numpy as np
 import pandas as pd
 from pathlib import Path
+from datetime import datetime, timezone
+import hashlib
 from sklearn.preprocessing import LabelEncoder, RobustScaler
 from sklearn.model_selection import train_test_split
 
 warnings.filterwarnings("ignore")
 
-DATA_DIR = Path("g:/hackthon/data")
-ARTIFACTS_DIR = Path("g:/hackthon/artifacts")
+PROJECT_ROOT = Path(__file__).resolve().parent
+DATA_DIR = PROJECT_ROOT / "data"
+ARTIFACTS_DIR = PROJECT_ROOT / "artifacts"
 
 # ────────────────────────────────────────────────────────────
 #  Utility helpers
@@ -43,6 +38,15 @@ def _try_url_download(url: str, **kwargs) -> pd.DataFrame | None:
         print(f"  [FAIL] URL download failed: {exc}")
         return None
 
+
+def _save_prepared(df, out, source, synthetic):
+    out.parent.mkdir(parents=True,exist_ok=True)
+    df.to_parquet(out,index=False)
+    manifest={"dataset":out.name,"sha256":hashlib.sha256(out.read_bytes()).hexdigest(),
+              "rows":len(df),"source":source,"synthetic":synthetic,
+              "prepared_at":datetime.now(timezone.utc).isoformat(),
+              "intended_use":"Research only; target population/outcome limitations apply"}
+    out.with_suffix(".provenance.json").write_text(json.dumps(manifest,indent=2),encoding="utf-8")
 
 def _print_summary(name: str, df: pd.DataFrame, target_col: str) -> None:
     """Print a concise dataset summary."""
@@ -83,8 +87,6 @@ def _generate_synthetic_carereach(n: int = 110_000) -> pd.DataFrame:
     appointment = scheduled + pd.to_timedelta(appt_offsets, unit="D")
 
     # ~20 % no-show rate (realistic)
-    no_show_prob = 0.15 + 0.10 * scholarship_prob_offset(scholarships, ages)
-    no_show = rng.choice(["Yes", "No"], size=n, p=None)  # placeholder
     no_show = np.where(rng.random(n) < 0.20, "Yes", "No")
 
     neighbourhoods = rng.choice(
@@ -149,9 +151,11 @@ def engineer_carereach_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def prepare_carereach() -> pd.DataFrame:
+def prepare_carereach(allow_synthetic=False) -> pd.DataFrame:
     """Download → clean → engineer → save CareReach dataset."""
     df = None
+    source = "kaggle:joniarroba/noshowappointments"
+    synthetic = False
 
     # Primary: try Kaggle via opendatasets / kagglehub
     try:
@@ -169,12 +173,16 @@ def prepare_carereach() -> pd.DataFrame:
         for url in CARE_REACH_URLS:
             df = _try_url_download(url)
             if df is not None:
+                source = url
                 break
 
     # Final fallback: synthetic
     if df is None:
+        if not allow_synthetic:
+            raise RuntimeError("CareReach download unavailable; synthetic fallback requires explicit allow_synthetic=True")
         print("  [WARN] Using synthetic CareReach dataset (110 k records)")
         df = _generate_synthetic_carereach()
+        source, synthetic = "explicit seeded synthetic CareReach", True
 
     # Standardise column names (Kaggle uses "No-show" or "NoShow")
     rename_map = {}
@@ -186,7 +194,7 @@ def prepare_carereach() -> pd.DataFrame:
 
     df = engineer_carereach_features(df)
     out = DATA_DIR / "carereach_prepared.parquet"
-    df.to_parquet(out, index=False)
+    _save_prepared(df,out,source,synthetic)
     print(f"  [OK] Saved -> {out}")
     _print_summary("CareReach", df, "target")
     return df
@@ -254,16 +262,20 @@ def _create_multiclass_target(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def prepare_gestation() -> pd.DataFrame:
+def prepare_gestation(allow_synthetic=False) -> pd.DataFrame:
     """Download → clean → engineer → save GestationInsight dataset."""
     df = None
+    source, synthetic = PIMA_URL, False
 
     # Try Pima dataset
     df = _try_url_download(PIMA_URL, header=None, names=PIMA_COLS)
 
     if df is None:
         # Fallback: generate synthetic Pima-like data
+        if not allow_synthetic:
+            raise RuntimeError("Pima download unavailable; synthetic fallback requires explicit allow_synthetic=True")
         print("  [WARN] Using synthetic Pima-like dataset")
+        source, synthetic = "explicit seeded synthetic Pima-like data", True
         rng = np.random.default_rng(7)
         n = 768
         df = pd.DataFrame({
@@ -291,7 +303,7 @@ def prepare_gestation() -> pd.DataFrame:
             pass  # non-critical
 
     out = DATA_DIR / "gestation_prepared.parquet"
-    df.to_parquet(out, index=False)
+    _save_prepared(df,out,source,synthetic)
     print(f"  [OK] Saved -> {out}")
     _print_summary("GestationInsight", df, "target")
     return df
@@ -341,10 +353,10 @@ def _generate_synthetic_oncotrace(n: int = 569) -> pd.DataFrame:
         row = {
             "id": 84000000 + i,
             "diagnosis": d,
-            "radius_mean": np.random.normal(*p["radius"]),
-            "texture_mean": np.random.normal(*p["texture"]),
-            "perimeter_mean": np.random.normal(*p["perimeter"]),
-            "area_mean": np.random.normal(*p["area"]),
+            "radius_mean": rng.normal(*p["radius"]),
+            "texture_mean": rng.normal(*p["texture"]),
+            "perimeter_mean": rng.normal(*p["perimeter"]),
+            "area_mean": rng.normal(*p["area"]),
         }
         # Fill remaining 26 features with plausible random values
         for feat in ONCOTRACE_COLS[6:]:
@@ -393,9 +405,10 @@ def engineer_oncotrace_features(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def prepare_oncotrace() -> pd.DataFrame:
+def prepare_oncotrace(allow_synthetic=False) -> pd.DataFrame:
     """Download → clean → engineer → save OncoTrace dataset."""
     df = None
+    source, synthetic = ONCOTRACE_URL, False
 
     # Primary: UCI direct download
     df = _try_url_download(ONCOTRACE_URL, header=None, names=ONCOTRACE_COLS)
@@ -405,24 +418,35 @@ def prepare_oncotrace() -> pd.DataFrame:
         try:
             from sklearn.datasets import load_breast_cancer
             bunch = load_breast_cancer(as_frame=True)
-            df = bunch.frame.rename(columns={"target": "target_sklearn"})
+            mapping = {}
+            for col in bunch.feature_names:
+                if col.startswith("mean "): mapped = col[5:].replace(" ", "_") + "_mean"
+                elif col.startswith("worst "): mapped = col[6:].replace(" ", "_") + "_worst"
+                elif col.endswith(" error"): mapped = col[:-6].replace(" ", "_") + "_se"
+                else: mapped = col
+                mapping[col] = mapped
+            df = bunch.frame.rename(columns={**mapping, "target": "target_sklearn"})
             # Reconstruct diagnosis column
             df["diagnosis"] = df["target_sklearn"].map({0: "M", 1: "B"})
             df = df.drop(columns=["target_sklearn"])
             df.insert(0, "id", range(1, len(df) + 1))
+            source = "sklearn.datasets.load_breast_cancer (UCI WDBC)"
             print("  [OK] Loaded via sklearn.datasets.load_breast_cancer")
         except Exception:
             pass
 
     # Final fallback: synthetic
     if df is None:
+        if not allow_synthetic:
+            raise RuntimeError("WDBC download unavailable; synthetic fallback requires explicit allow_synthetic=True")
         print("  [WARN] Using synthetic OncoTrace dataset")
         df = _generate_synthetic_oncotrace()
+        source, synthetic = "explicit seeded synthetic WDBC-like data", True
 
     df = engineer_oncotrace_features(df)
 
     out = DATA_DIR / "oncotrace_prepared.parquet"
-    df.to_parquet(out, index=False)
+    _save_prepared(df,out,source,synthetic)
     print(f"  [OK] Saved -> {out}")
     _print_summary("OncoTrace", df, "target")
     return df

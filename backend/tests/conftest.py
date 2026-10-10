@@ -1,26 +1,27 @@
-"""Shared fixtures for backend integration tests."""
-import pytest
+"""Synthetic identities and in-memory DB. Never opens the user database."""
+import os
+os.environ["APP_ENV"] = "test"
+os.environ["ENABLE_LLM"] = "false"
+os.environ["DEMO_MODE"] = "false"
+os.environ["DATABASE_URL"] = "sqlite+aiosqlite://"
 import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-
-from backend.db.models import Base
+from backend.db.models import Base, User
 from backend.api.main import app
 from backend.api.deps import get_db
+from backend.api.auth import _hash_password
+from backend.services.inference import ModelRegistry
 
-
-# ---------------------------------------------------------------------------
-# Test database setup (in-memory SQLite)
-# ---------------------------------------------------------------------------
-
-TEST_DATABASE_URL = "sqlite+aiosqlite://"
-
-engine = create_async_engine(TEST_DATABASE_URL, echo=False)
+engine = create_async_engine("sqlite+aiosqlite://", echo=False)
+@event.listens_for(engine.sync_engine, "connect")
+def foreign_keys(conn, record):
+    conn.execute("PRAGMA foreign_keys=ON")
 TestSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
 async def override_get_db():
-    """Override the get_db dependency to use the test database."""
     async with TestSessionLocal() as session:
         try:
             yield session
@@ -30,38 +31,36 @@ async def override_get_db():
             raise
 
 
-# Override the dependency
-app.dependency_overrides[get_db] = override_get_db
-
-
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
-
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture
 async def async_client():
-    """Yield an async HTTP client for testing FastAPI endpoints."""
-    # Create tables before each test
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://test") as client:
+    async with TestSessionLocal() as session:
+        for role in ("admin", "clinician", "lhw", "patient"):
+            session.add(User(id="test-" + role, username=role, full_name="Synthetic " + role, role=role, hashed_password=_hash_password("Synthetic-test-pass!")))
+        await session.commit()
+    app.dependency_overrides[get_db] = override_get_db
+    ModelRegistry().load_all()
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
         yield client
-
-    # Drop tables after each test
+    app.dependency_overrides.clear()
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
 
 
-@pytest_asyncio.fixture(scope="function")
-async def auth_headers(async_client: AsyncClient):
-    """Get JWT auth headers by logging in with test credentials (admin/admin)."""
-    response = await async_client.post(
-        "/api/auth/login",
-        data={"username": "admin", "password": "admin"},
-    )
-    assert response.status_code == 200, f"Login failed: {response.text}"
-    token = response.json()["access_token"]
-    return {"Authorization": f"Bearer {token}"}
+async def login_as(client, role):
+    r = await client.post("/api/auth/login", data={"username": role, "password": "Synthetic-test-pass!"})
+    assert r.status_code == 200
+    return {"Authorization": "Bearer " + r.json()["access_token"]}
+
+
+@pytest_asyncio.fixture
+async def auth_headers(async_client):
+    return await login_as(async_client, "admin")
+
+
+@pytest_asyncio.fixture
+async def patient_id(async_client, auth_headers):
+    r = await async_client.post("/api/patients", json={"name": "Synthetic Patient", "age": 30}, headers=auth_headers)
+    assert r.status_code == 201, r.text
+    return r.json()["patient_id"]

@@ -1,0 +1,15 @@
+{
+  "status": "research_prediction",
+  "model": "gestationinsight",
+  "label": "2",
+  "probabilities": {
+    "0": 2.5816963061366703e-05,
+    "1": 0.11046376027584397,
+    "2": 0.8895104227610947
+  },
+  "model_version": "research-only-v2-20261010",
+  "intended_use": "Pima diabetes proxy is not an observed pregnancy-complication outcome.",
+  "care_decision_use": false,
+  "clinical_validation": "not established",
+  "warning": "Dataset-specific research output; it must not determine obstetric referral or treatment."
+}

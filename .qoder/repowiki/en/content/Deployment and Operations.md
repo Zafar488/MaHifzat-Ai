@@ -10,7 +10,17 @@
 - [auth.py](file://backend/api/auth.py)
 - [requirements-backend.txt](file://requirements-backend.txt)
 - [requirements.txt](file://requirements.txt)
+- [vercel.json](file://vercel.json)
+- [index.py](file://api/index.py)
 </cite>
+
+## Update Summary
+**Changes Made**
+- Added Vercel serverless deployment section with configuration details
+- Updated environment configuration section to include Vercel-specific settings
+- Enhanced deployment options to include serverless architecture
+- Added Python path configuration for Vercel runtime
+- Updated troubleshooting guide with serverless-specific issues
 
 ## Table of Contents
 1. [Introduction](#introduction)
@@ -25,7 +35,7 @@
 10. [Appendices](#appendices)
 
 ## Introduction
-This document provides production-grade deployment and operations guidance for MaaHifazat AI, an AI-powered maternal and fetal health platform. It covers containerization with Docker, orchestration with Kubernetes, cloud deployment options, environment configuration, secret management, scaling for high availability, monitoring and logging, backup and disaster recovery, database maintenance, system administration, security hardening, network configuration, compliance considerations, model updates, system upgrades, incident response, offline deployment strategies, and troubleshooting.
+This document provides production-grade deployment and operations guidance for MaaHifazat AI, an AI-powered maternal and fetal health platform. It covers containerization with Docker, orchestration with Kubernetes, cloud deployment options including Vercel serverless deployment, environment configuration, secret management, scaling for high availability, monitoring and logging, backup and disaster recovery, database maintenance, system administration, security hardening, network configuration, compliance considerations, model updates, system upgrades, incident response, offline deployment strategies, and troubleshooting.
 
 ## Project Structure
 MaaHifazat AI is a FastAPI-based backend that:
@@ -34,6 +44,7 @@ MaaHifazat AI is a FastAPI-based backend that:
 - Provides authentication via JWT and role-based access control
 - Integrates external services (voice, messaging, routing, facility lookup) via configurable endpoints
 - Persists clinical records, referrals, audit logs, model versions, and files to a relational database
+- Supports Vercel serverless deployment with proper Python path configuration
 
 ```mermaid
 graph TB
@@ -45,6 +56,8 @@ API --> DB["Database Engine<br/>SQLAlchemy Async"]
 API --> Models["Model Registry<br/>ML Inference"]
 Models --> Artifacts["Artifacts Dir<br/>joblib models"]
 API --> External["External APIs<br/>voice, messaging, routing, facilities"]
+Vercel["Vercel Runtime"] --> Entrypoint["api/index.py<br/>Python Path Setup"]
+Entrypoint --> MainApp["backend.api.main.app"]
 ```
 
 **Diagram sources**
@@ -54,12 +67,16 @@ API --> External["External APIs<br/>voice, messaging, routing, facilities"]
 - [engine.py:10-18](file://backend/db/engine.py#L10-L18)
 - [inference.py:51-101](file://backend/services/inference.py#L51-L101)
 - [config.py:7-54](file://backend/config.py#L7-L54)
+- [index.py:1-12](file://api/index.py#L1-L12)
+- [vercel.json:1-30](file://vercel.json#L1-L30)
 
 **Section sources**
 - [main.py:1-135](file://backend/api/main.py#L1-L135)
-- [config.py:1-55](file://backend/config.py#L1-L55)
+- [config.py:1-59](file://backend/config.py#L1-L59)
 - [engine.py:1-37](file://backend/db/engine.py#L1-L37)
 - [inference.py:1-141](file://backend/services/inference.py#L1-L141)
+- [index.py:1-12](file://api/index.py#L1-L12)
+- [vercel.json:1-30](file://vercel.json#L1-L30)
 
 ## Core Components
 - Application entrypoint and lifecycle management: initializes DB and loads models on startup; exposes health endpoint and global exception handling.
@@ -67,14 +84,16 @@ API --> External["External APIs<br/>voice, messaging, routing, facilities"]
 - Database: async SQLAlchemy engine and session management; auto-creates tables at startup.
 - Authentication: JWT-based login and role enforcement; MVP user store for development.
 - Inference service: singleton ModelRegistry that loads multiple ML artifacts and provides prediction helpers with fallbacks.
+- **Vercel Serverless Support**: Dedicated entrypoint with Python path configuration for serverless runtime compatibility.
 
 **Section sources**
 - [main.py:22-64](file://backend/api/main.py#L22-L64)
 - [main.py:83-115](file://backend/api/main.py#L83-L115)
-- [config.py:7-54](file://backend/config.py#L7-L54)
+- [config.py:7-59](file://backend/config.py#L7-L59)
 - [engine.py:10-37](file://backend/db/engine.py#L10-L37)
 - [auth.py:65-115](file://backend/api/auth.py#L65-L115)
 - [inference.py:51-141](file://backend/services/inference.py#L51-L141)
+- [index.py:1-12](file://api/index.py#L1-L12)
 
 ## Architecture Overview
 The runtime architecture centers around a single FastAPI process that:
@@ -83,6 +102,7 @@ The runtime architecture centers around a single FastAPI process that:
 - Enforces authentication and authorization via JWT
 - Calls external integrations as configured
 - Logs structured information and exposes a health check
+- **Supports both traditional server deployment and Vercel serverless architecture**
 
 ```mermaid
 sequenceDiagram
@@ -91,6 +111,7 @@ participant A as "FastAPI App"
 participant D as "DB Engine"
 participant M as "Model Registry"
 participant E as "External APIs"
+participant V as "Vercel Runtime"
 C->>A : GET /api/health
 A->>D : init_db() (startup only)
 A->>M : load_all() (startup only)
@@ -102,6 +123,7 @@ C->>A : Clinical request (with token)
 A->>E : Optional calls (voice/messaging/routing)
 A->>D : Persist records (patients, referrals, audit)
 A-->>C : Response with results
+Note over V : Vercel handles routing,<br/>serverless execution,<br/>and scaling automatically
 ```
 
 **Diagram sources**
@@ -110,6 +132,7 @@ A-->>C : Response with results
 - [auth.py:125-146](file://backend/api/auth.py#L125-L146)
 - [engine.py:33-37](file://backend/db/engine.py#L33-L37)
 - [inference.py:68-101](file://backend/services/inference.py#L68-L101)
+- [index.py:1-12](file://api/index.py#L1-L12)
 
 ## Detailed Component Analysis
 
@@ -117,6 +140,7 @@ A-->>C : Response with results
 - Startup runs database initialization and model loading; failures are logged but do not block startup in development mode.
 - Global exception handler returns structured JSON errors and logs stack traces.
 - Health endpoint reports overall status and per-model availability.
+- **Vercel Compatibility**: The application uses lifespan context manager which works seamlessly with serverless environments.
 
 ```mermaid
 flowchart TD
@@ -127,6 +151,7 @@ Ready --> |Yes| Serve["Serve Requests"]
 Ready --> |No| LogWarn["Log warnings (non-fatal)"]
 Serve --> Health["GET /api/health"]
 Health --> Return["Return status + models"]
+Note at bottom: Works on both<br/>traditional servers and<br/>Vercel serverless
 ```
 
 **Diagram sources**
@@ -140,6 +165,7 @@ Health --> Return["Return status + models"]
 ### Configuration and Secrets
 - Settings class centralizes project paths, model artifact locations, database URL, JWT parameters, external API URLs, LLM provider keys, and app flags.
 - Supports .env file for environment-specific overrides.
+- **Vercel Integration**: Uses relative paths that work across different deployment environments including Vercel's temporary filesystem.
 - Production recommendations:
   - Replace default JWT secret with a strong, rotated secret
   - Use HTTPS-only CORS origins and restrict methods/headers
@@ -148,12 +174,13 @@ Health --> Return["Return status + models"]
   - Disable DEBUG in production
 
 **Section sources**
-- [config.py:7-54](file://backend/config.py#L7-L54)
+- [config.py:7-59](file://backend/config.py#L7-L59)
 
 ### Database and Data Model
 - Uses async SQLAlchemy with a session factory and table creation on startup.
 - Data model includes patients, clinical records, referrals, agent states, audit logs, model versions, and file records.
 - Audit log schema supports tracking agent actions, inputs/outputs summaries, confidence, duration, and errors.
+- **Serverless Consideration**: SQLite database path is configured to work with Vercel's temporary filesystem.
 
 ```mermaid
 erDiagram
@@ -225,6 +252,7 @@ class ModelRegistry {
 - The application depends on FastAPI, Uvicorn, SQLAlchemy async, Pydantic Settings, JWT libraries, and HTTP clients.
 - ML inference relies on joblib-loaded models and optional preprocessors/encoders.
 - External integrations are configured via URLs and keys.
+- **Vercel Dependencies**: Uses @vercel/python runtime with specific build configurations.
 
 ```mermaid
 graph LR
@@ -240,17 +268,21 @@ Ext --> Voice["Voice API"]
 Ext --> Msg["Messaging API"]
 Ext --> Route["Routing API"]
 Ext --> Fac["Facility API"]
+Vercel["@vercel/python"] --> Runtime["Serverless Runtime"]
+Runtime --> App
 ```
 
 **Diagram sources**
 - [requirements-backend.txt:1-15](file://requirements-backend.txt#L1-L15)
 - [requirements.txt:1-15](file://requirements.txt#L1-L15)
 - [config.py:31-42](file://backend/config.py#L31-L42)
+- [vercel.json:1-30](file://vercel.json#L1-L30)
 
 **Section sources**
 - [requirements-backend.txt:1-15](file://requirements-backend.txt#L1-L15)
 - [requirements.txt:1-15](file://requirements.txt#L1-L15)
 - [config.py:31-42](file://backend/config.py#L31-L42)
+- [vercel.json:1-30](file://vercel.json#L1-L30)
 
 ## Performance Considerations
 - Concurrency: Run behind a process manager like Uvicorn workers to utilize multi-core systems.
@@ -259,8 +291,10 @@ Ext --> Fac["Facility API"]
 - I/O: External API calls should use timeouts and retries; consider caching where appropriate.
 - Logging: Enable structured logging and avoid excessive debug output in production.
 - Scaling: Horizontal scaling requires stateless app instances and shared storage for artifacts and database.
-
-[No sources needed since this section provides general guidance]
+- **Vercel Optimization**: 
+  - Lambda size limit of 50MB configured for optimal performance
+  - Cold start optimization through efficient model loading
+  - Automatic scaling based on request volume
 
 ## Troubleshooting Guide
 Common operational issues and resolutions:
@@ -280,18 +314,22 @@ Common operational issues and resolutions:
   - Validate URLs and keys in settings
   - Implement retries and circuit breakers for resilience
   - Monitor latency and error rates
+- **Vercel-Specific Issues**:
+  - Python path configuration problems in serverless environment
+  - Environment variable access in Vercel runtime
+  - File system limitations in temporary directories
+  - Build time vs runtime dependencies
 
 **Section sources**
 - [main.py:22-45](file://backend/api/main.py#L22-L45)
 - [main.py:83-115](file://backend/api/main.py#L83-L115)
-- [config.py:7-54](file://backend/config.py#L7-L54)
+- [config.py:7-59](file://backend/config.py#L7-L59)
 - [engine.py:33-37](file://backend/db/engine.py#L33-L37)
 - [auth.py:65-115](file://backend/api/auth.py#L65-L115)
+- [index.py:1-12](file://api/index.py#L1-L12)
 
 ## Conclusion
-MaaHifazat AI’s backend is designed for straightforward deployment with clear configuration, robust startup routines, and comprehensive health reporting. For production, prioritize secure secrets management, hardened network configuration, scalable infrastructure, and thorough monitoring and logging. Follow the operational procedures below to maintain reliability, compliance, and performance in healthcare environments.
-
-[No sources needed since this section summarizes without analyzing specific files]
+MaaHifazat AI's backend is designed for straightforward deployment with clear configuration, robust startup routines, and comprehensive health reporting. The addition of Vercel serverless deployment support enables flexible hosting options while maintaining the same API surface. For production, prioritize secure secrets management, hardened network configuration, scalable infrastructure, and thorough monitoring and logging. Follow the operational procedures below to maintain reliability, compliance, and performance in healthcare environments.
 
 ## Appendices
 
@@ -309,8 +347,6 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
   - Pin dependency versions for reproducibility
   - Mount artifacts and data directories as volumes or bake them into images based on update cadence
 
-[No sources needed since this section provides general guidance]
-
 ### Orchestration with Kubernetes
 - Deployments:
   - Define a Deployment with replicas for horizontal scaling
@@ -326,8 +362,6 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - Example resources:
   - Deployment, Service, ConfigMap, Secret, Ingress manifests tailored to your cluster
 
-[No sources needed since this section provides general guidance]
-
 ### Cloud Platform Deployment Options
 - Managed containers:
   - AWS ECS/Fargate, Google Cloud Run, Azure Container Instances
@@ -340,7 +374,32 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - Networking:
   - VPC/VNet isolation, private subnets, WAF, and firewall rules
 
-[No sources needed since this section provides general guidance]
+### Vercel Serverless Deployment
+- **Configuration**:
+  - `vercel.json` defines build processes for Python backend and static frontend
+  - Maximum Lambda size set to 50MB for model artifacts
+  - Route configuration directs `/api/*` requests to Python backend
+  - Static assets served from built frontend distribution
+- **Python Path Setup**:
+  - Entry point `api/index.py` configures Python path for module imports
+  - Uses `sys.path.insert()` to make project root importable
+  - Exports FastAPI app instance for Vercel runtime
+- **Environment Variables**:
+  - Configure in Vercel dashboard or `.env` file
+  - Supports all standard environment variables used by the application
+- **Deployment Process**:
+  - Push to Git repository connected to Vercel
+  - Automatic builds and deployments triggered by commits
+  - Preview deployments for testing before production rollout
+- **Benefits**:
+  - Zero-config serverless deployment
+  - Automatic scaling and SSL termination
+  - Built-in CDN for static assets
+  - Easy environment variable management
+
+**Section sources**
+- [vercel.json:1-30](file://vercel.json#L1-L30)
+- [index.py:1-12](file://api/index.py#L1-L12)
 
 ### Environment Configuration and Secret Management
 - Use .env for local development; switch to environment variables or secret managers in production
@@ -349,10 +408,14 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
   - VOICE_API_URL, FACILITY_API_URL, ROUTING_API_URL, MESSAGING_API_URL
   - GROQ_API_KEY, GROQ_MODEL
   - APP_NAME, APP_VERSION, DEBUG
+- **Vercel Configuration**:
+  - Set environment variables in Vercel project settings
+  - Use separate environments for development, staging, and production
+  - Leverage Vercel's built-in secret management
 - Rotate secrets regularly and enforce least privilege access
 
 **Section sources**
-- [config.py:7-54](file://backend/config.py#L7-L54)
+- [config.py:7-59](file://backend/config.py#L7-L59)
 
 ### Scaling and High Availability
 - Horizontal scaling:
@@ -364,8 +427,10 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
   - Configure HPA based on CPU/memory or custom metrics
 - Database HA:
   - Use managed HA databases with backups and replication
-
-[No sources needed since this section provides general guidance]
+- **Vercel Auto-Scaling**:
+  - Automatic scaling based on request volume
+  - No manual intervention required for traffic spikes
+  - Pay-per-use pricing model
 
 ### Monitoring and Logging
 - Structured logging:
@@ -378,6 +443,10 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
   - /api/health indicates service and model availability
 - Alerting:
   - Set alerts for error spikes, model unavailability, and high latency
+- **Vercel Monitoring**:
+  - Built-in analytics and performance metrics
+  - Custom logging integration with popular platforms
+  - Error tracking and debugging tools
 
 **Section sources**
 - [main.py:83-115](file://backend/api/main.py#L83-L115)
@@ -393,8 +462,6 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - DR plan:
   - Define RTO/RPO targets
   - Document failover procedures and validation steps
-
-[No sources needed since this section provides general guidance]
 
 ### Database Maintenance Tasks
 - Schema migrations:
@@ -447,8 +514,6 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - Regular risk assessments and audits
 - Incident response and breach notification procedures
 
-[No sources needed since this section provides general guidance]
-
 ### Operational Procedures
 - Model updates:
   - Stage new artifacts in a versioned directory
@@ -479,8 +544,6 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - Monitoring:
   - Provide local dashboards or logs for field staff
 
-[No sources needed since this section provides general guidance]
-
 ### Troubleshooting Common Operational Issues
 - Models not loading:
   - Verify artifact paths and file existence
@@ -494,9 +557,15 @@ MaaHifazat AI’s backend is designed for straightforward deployment with clear 
 - External API failures:
   - Validate endpoints and keys
   - Implement retries and fallbacks
+- **Vercel-Specific Troubleshooting**:
+  - Check Python path configuration in serverless environment
+  - Verify environment variables are properly set in Vercel dashboard
+  - Monitor cold start times and optimize model loading
+  - Debug file system access in temporary directories
 
 **Section sources**
 - [inference.py:103-130](file://backend/services/inference.py#L103-L130)
 - [auth.py:65-115](file://backend/api/auth.py#L65-L115)
 - [engine.py:10-37](file://backend/db/engine.py#L10-L37)
 - [config.py:31-42](file://backend/config.py#L31-L42)
+- [index.py:1-12](file://api/index.py#L1-L12)

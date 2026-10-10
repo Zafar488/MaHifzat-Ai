@@ -1,1320 +1,607 @@
+"""MaaHifazat AI: End-to-end clinical maternal care application backed by FastAPI.
+Unified dashboard structured into exactly TWO main sections:
+- Section A: Risk Assessment (Four expandable input groups, Output 1: Bilingual Reports, Output 2: Hospital Report & Map)
+- Section B: Pregnancy Helper (Clinical RAG, DuckDuckGo search, danger signs, citations, assessment sharing)
+With English/Urdu bilingual support, RTL layout, and numeral normalization.
 """
-MaaHifazat AI — Maternal & Fetal Health Risk Assessment
-Professional Streamlit Web Application
-"""
-
-import streamlit as st
-import joblib
-import numpy as np
-import pandas as pd
 import json
-import os
-import asyncio
 import uuid
+from datetime import date
 from pathlib import Path
+import pandas as pd
+import streamlit as st
+import streamlit.components.v1 as components
+from pydantic import ValidationError
 
-# ─────────────────────────────────────────────
-# Page configuration
-# ─────────────────────────────────────────────
-st.set_page_config(
-    page_title="MaaHifazat AI",
-    page_icon="🤰",
-    layout="wide",
-    initial_sidebar_state="expanded",
-)
+from ui.api_client import APIClient, APIError
+from backend.schemas.assessment import WorkflowRequest
+from backend.schemas.patient import PatientCreate
+from backend.services.reporting import recommended_care_actions
+from ui.i18n import apply_language_styles, normalize_numerals, t
+from ui.pregnancy_helper_view import render_pregnancy_helper
+from app_demo_scenarios import SCENARIOS
 
-# ─────────────────────────────────────────────
-# Custom CSS – medical teal/blue theme
-# ─────────────────────────────────────────────
-st.markdown(
-    """
-<style>
-/* Import Google Font */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+ROOT = Path(__file__).resolve().parent
+st.set_page_config(page_title="MaaHifazat AI", page_icon="🤱", layout="wide")
 
-/* Base */
-html, body, [class*="css"]  {
-    font-family: 'Inter', sans-serif;
-}
+gps_component = components.declare_component("patient_geolocation", path=str(ROOT / "ui/geolocation"))
 
-/* Hide default Streamlit menu & footer */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
 
-/* Sidebar gradient */
-section[data-testid="stSidebar"] {
-    background: linear-gradient(180deg, #0e4d64 0%, #137a8a 100%);
-    color: white;
-}
-section[data-testid="stSidebar"] .stRadio label,
-section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label {
-    color: white !important;
-    font-weight: 500;
-    font-size: 1rem;
-}
-section[data-testid="stSidebar"] .stRadio [role="radiogroup"] label[data-baseweb="radio"]:hover {
-    background: rgba(255,255,255,0.1);
-    border-radius: 6px;
-}
+def api():
+    return APIClient(st.session_state.get("token"))
 
-/* Metric cards */
-div[data-testid="stMetric"] {
-    background: linear-gradient(135deg, #e0f7fa 0%, #ffffff 100%);
-    border: 1px solid #b2ebf2;
-    border-radius: 12px;
-    padding: 14px 18px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-}
-div[data-testid="stMetric"] label {
-    color: #00695c !important;
-    font-weight: 600 !important;
-}
 
-/* Custom info box */
-.info-box {
-    background: #e0f2f1;
-    border-left: 5px solid #00897b;
-    padding: 12px 16px;
-    border-radius: 6px;
-    margin: 8px 0;
-    font-size: 0.95rem;
-}
-
-/* Risk level badges */
-.risk-normal, .risk-low {
-    background: #1b5e20;
-    color: #fff;
-    padding: 6px 18px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    display: inline-block;
-}
-.risk-suspect, .risk-mid {
-    background: #e65100;
-    color: #fff;
-    padding: 6px 18px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    display: inline-block;
-}
-.risk-pathological, .risk-high {
-    background: #b71c1c;
-    color: #fff;
-    padding: 6px 18px;
-    border-radius: 20px;
-    font-weight: 700;
-    font-size: 1.1rem;
-    display: inline-block;
-}
-
-/* Model card */
-.model-card {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: 14px;
-    padding: 22px 24px;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
-    margin-bottom: 16px;
-}
-.model-card h3 {
-    margin-top: 0;
-    color: #00695c;
-}
-.model-card .badge {
-    display: inline-block;
-    background: #e0f2f1;
-    color: #00695c;
-    padding: 3px 10px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin-right: 6px;
-}
-
-/* Footer */
-.app-footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: #0e4d64;
-    color: #b2ebf2;
-    text-align: center;
-    padding: 8px 0;
-    font-size: 0.82rem;
-    z-index: 999;
-}
-</style>
-""",
-    unsafe_allow_html=True,
-)
-
-# ─────────────────────────────────────────────
-# Paths
-# ─────────────────────────────────────────────
-BASE_DIR = Path(__file__).resolve().parent
-ARTIFACTS = BASE_DIR / "artifacts"
-FW_MODEL_PATH = ARTIFACTS / "fetalwatch" / "best_model.joblib"
-MG_MODEL_PATH = ARTIFACTS / "maternalguard" / "best_model.joblib"
-PG_MODEL_PATH = ARTIFACTS / "pretermguard" / "best_model.joblib"
-MG_LE_PATH    = ARTIFACTS / "maternalguard" / "label_encoder.joblib"
-FW_RESULTS    = ARTIFACTS / "fetalwatch" / "results.json"
-MG_RESULTS    = ARTIFACTS / "maternalguard" / "results.json"
-PG_RESULTS    = ARTIFACTS / "pretermguard" / "results.json"
-PLOTS_DIR     = BASE_DIR / "notebooks" / "plots"
-
-# ─────────────────────────────────────────────
-# Model loading helpers
-# ─────────────────────────────────────────────
-@st.cache_resource(show_spinner="Loading FetalWatch model…")
-def load_fetalwatch():
-    if not FW_MODEL_PATH.exists():
-        st.error("FetalWatch model artifact not found. Please train the model first.")
+def call(method, path, **kwargs):
+    try:
+        return api().request(method, path, **kwargs)
+    except APIError as exc:
+        if exc.status_code == 401 and st.session_state.get("token"):
+            st.session_state.clear()
+            st.rerun()
+        st.error(str(exc))
         return None
-    return joblib.load(FW_MODEL_PATH)
 
 
-@st.cache_resource(show_spinner="Loading MaternalGuard model…")
-def load_maternalguard():
-    if not MG_MODEL_PATH.exists():
-        st.error("MaternalGuard model artifact not found. Please train the model first.")
-        return None, None
-    if not MG_LE_PATH.exists():
-        st.error("MaternalGuard label encoder not found. Please train the model first.")
-        return None, None
-    model = joblib.load(MG_MODEL_PATH)
-    le    = joblib.load(MG_LE_PATH)
-    return model, le
+def render_referral(referral, location=None, lang="en"):
+    is_ur = (lang == "ur")
+    st.subheader("2 · " + ("قریبی باصلاحیت ہسپتال اور نقشہ" if is_ur else "Reach a capable hospital"))
+    st.write(referral.get("reason", "Referral not yet planned"))
+    if referral.get("coverage_limited"):
+        st.warning(referral.get("discovery_reason", "Hospital search coverage is limited."))
+    facilities = referral.get("ranked_facilities", [])
+    if not facilities:
+        st.warning(
+            "کوئی مطابقت رکھنے والا ہسپتال دستیاب نہیں۔ زچگی کی ہنگامی صورت حال میں دستی طور پر ہسپتال سے رابطہ کریں۔"
+            if is_ur else
+            "No matching hospital candidate available. Contact maternity services manually; emergency care must not wait."
+        )
+        return
+    if referral.get("simulated"):
+        st.warning("DEMO: fictional facilities and coordinates. These are not real care destinations.")
+    selected = referral["selected_facility"]
+    st.write("**" + ("تجویز کردہ ہسپتال: " if is_ur else "Suggested candidate: ") + "**" + selected["name"])
+    columns = st.columns(3)
+    columns[0].metric("Distance (فاصلہ)", f"{selected['distance_km']:.2f} km")
+    columns[1].metric("Distance type", selected["distance_kind"].replace("_", " "))
+    eta = selected.get("travel_time_minutes")
+    columns[2].metric("Road ETA (تخمینی وقت)", f"{eta:.0f} min" if eta is not None else "Unavailable")
+
+    if not selected.get("capabilities_verified") and not referral.get("simulated"):
+        st.warning(
+            "ہسپتال نقشے پر موجود ہے؛ زچگی، ایمرجنسی اور نوزائیدہ بچوں کے این آئی سی یو کی سہولیات کی براہ راست تصدیق ضروری ہے۔"
+            if is_ur else
+            "Actual mapped hospital; maternity, emergency and NICU capabilities require direct confirmation. This is a tentative referral candidate."
+        )
+
+    def service(f, key):
+        if f.get("capabilities_verified") or f.get("simulated"):
+            return str(f.get(key))
+        value = (f.get("reported_services") or {}).get(key)
+        return "Reported yes" if value is True else "Reported no" if value is False else "Unknown"
+
+    rows = [{
+        "Facility": f["name"],
+        "Maternity": service(f, "has_maternity"),
+        "Emergency": service(f, "has_emergency"),
+        "Newborn/NICU": service(f, "has_nicu"),
+        "Distance km": f"{f['distance_km']:.2f}",
+        "Distance type": f["distance_kind"],
+        "ETA min": f"{f['travel_time_minutes']:.0f}" if f.get("travel_time_minutes") is not None else "—",
+        "Availability": f["availability"],
+        "Confirmation needed": f["requires_availability_confirmation"]
+    } for f in facilities]
+    st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+
+    points = [{"lat": f["latitude"], "lon": f["longitude"]} for f in facilities]
+    if location:
+        points.append({"lat": location["latitude"], "lon": location["longitude"]})
+    st.map(pd.DataFrame(points))
+
+    if selected.get("directions_url"):
+        st.link_button(
+            "🗺️ گوگل میپس پر راستہ کھولیں (Open Google Maps Directions)" if is_ur else "Open directions (shares coordinates with Google Maps)",
+            selected["directions_url"]
+        )
+    st.caption("Confirm service availability and acceptance by phone. Road ETA is an estimate; straight-line distance is not road distance.")
+
+    # Supplementary Public Hospital Search via DuckDuckGo (No PII sent)
+    with st.expander("🌐 " + ("ڈک ڈک گو پر عوامی ہسپتال کی اضافی معلومات (DuckDuckGo Public Search)" if is_ur else "Supplementary Public Hospital Information via DuckDuckGo")):
+        st.caption("Live search for public hospital contacts and departments. No patient health information is sent.")
+        hosp_query = st.text_input("Hospital search query", value=f"{selected['name']} hospital emergency maternity contact", key="hosp_q_input")
+        if st.button("Search Public Hospital Web Info", key="search_ddg_hosp"):
+            with st.spinner("Searching public medical listings..."):
+                ddg_data = call("POST", "/helper/search", json={"query": hosp_query})
+                if ddg_data and ddg_data.get("results"):
+                    for item in ddg_data["results"]:
+                        st.markdown(f"• **{item.get('title')}**: {item.get('snippet')} ([Web Link]({item.get('url')}))")
+                else:
+                    st.info("No supplementary public web listings found for this facility.")
+
+    if referral.get("excluded_facilities"):
+        with st.expander("Why nearer facilities were excluded"):
+            st.dataframe(pd.DataFrame(referral["excluded_facilities"]), hide_index=True)
 
 
-@st.cache_resource(show_spinner="Loading PretermGuard model…")
-def load_pretermguard():
-    if not PG_MODEL_PATH.exists():
-        st.error("PretermGuard model artifact not found. Please train the model first.")
-        return None
-    return joblib.load(PG_MODEL_PATH)
+def render_result(result, case=None, lang="en"):
+    is_ur = (lang == "ur")
+    if result.get("provenance") == "demo":
+        st.warning("SYNTHETIC DEMO CASE · This case is for the hackathon demonstration.")
+    clinical = result.get("clinical_risk_result") or {}
+    safety = clinical.get("who_red_flags") or {}
+    maternal = clinical.get("maternal_risk") or {}
+    fetal = result.get("fetal_result") or {}
+    referral = result.get("referral_result") or {}
+    anc = result.get("anc_result") or {}
+    communication = result.get("communication_result") or {}
+    location = result.get("location") or {}
+    urgency_lvl = referral.get("urgency_level", "routine")
+
+    # Primary Clinical Urgency Banner
+    if result.get("emergency"):
+        st.error(t("danger_alert_banner", lang))
+    elif urgency_lvl == "urgent":
+        st.warning(t("prompt_alert_banner", lang))
+    else:
+        st.success(t("routine_care_banner", lang))
+
+    cols = st.columns(4)
+    cols[0].metric("Rule Triage", safety.get("triage_level", "Unknown"))
+    cols[1].metric("Maternal Model", maternal.get("risk_level", "Unknown").title())
+    f_stat = fetal.get("fetal_status", "not_assessed")
+    cols[2].metric("Fetal Model", f_stat.replace("_", " ").title() if f_stat != "not_assessed" else "Not assessed")
+    cols[3].metric("Urgency Level", urgency_lvl.title())
+
+    # Explicit Action: Share with Pregnancy Helper
+    st.markdown("---")
+    sc1, sc2 = st.columns([3, 1])
+    sc1.info("💡 " + ("آپ اس طبی جائزے کے حقائق سیکشن 'ب — رہنما برائے حمل' کے ساتھ شیئر کر سکتے ہیں۔" if is_ur else "Share this assessment's verified findings with Section B — Pregnancy Helper to discuss guidance."))
+    if sc2.button("💬 " + ("ہیلپر کے ساتھ شیئر کریں" if is_ur else "Share with Helper"), key="share_helper_btn", use_container_width=True):
+        st.session_state["shared_assessment"] = result
+        st.success(t("assessment_shared", lang))
+
+    # Output 1: Prominent Two Bilingual Reports (English & Urdu Script)
+    st.divider()
+    st.markdown("### 📋 " + ("آؤٹ پٹ ۱ — دو طرفہ طبی رپورٹس (Output 1: Assessment & Next-Step Reports)" if is_ur else "Output 1 — Assessment and Next-Step Reports"))
+    from ui.report_view import render_two_reports
+    render_two_reports(result)
+
+    st.divider()
+    st.markdown("### 🏥 " + ("آؤٹ پٹ ۲ — ہسپتال رپورٹ اور تفصیلی کلینیکل کارڈز (Output 2: Hospital & Clinical Triage)" if is_ur else "Output 2 — Hospital Report & Clinical Triage Cards"))
+
+    # CARD 1 & CARD 2: Mother's Assessment & Safety Alerts
+    c1, c2 = st.columns(2)
+    with c1:
+        st.markdown("#### 👩 1. Mother’s Assessment")
+        v_data = result.get("vitals", {})
+        m_row = st.columns(3)
+        m_row[0].metric("Systolic BP", f"{v_data.get('systolic_bp', '—')} mmHg")
+        m_row[1].metric("Diastolic BP", f"{v_data.get('diastolic_bp', '—')} mmHg")
+        m_row[2].metric("Heart Rate", f"{v_data.get('heart_rate', '—')} bpm")
+        m_row2 = st.columns(3)
+        m_row2[0].metric("Blood Sugar", f"{v_data.get('blood_sugar_mmol_l', '—')} mmol/L")
+        m_row2[1].metric("Temperature", f"{v_data.get('temperature_celsius', '—')} °C")
+        m_row2[2].metric("Maternal Risk", maternal.get("risk_level", "Unknown").title())
+        if maternal.get("probabilities"):
+            st.caption("Class probabilities: " + ", ".join(f"{k}: {v:.2f}" for k, v in maternal["probabilities"].items()))
+        st.caption("MaternalGuard experimental pipeline · Uncalibrated probabilities.")
+
+    with c2:
+        st.markdown("#### 🛡️ 2. Safety Alerts & Reasons")
+        for reason in safety.get("clinical_rationale", []):
+            st.write("• " + reason)
+        for action in recommended_care_actions(urgency_lvl, safety):
+            st.info(action)
+        if result.get("missing_fields"):
+            st.warning("Missing measured vitals: " + ", ".join(result["missing_fields"]))
+
+    # CARD 3 & CARD 4: Baby's Assessment & Suggested Hospital
+    c3, c4 = st.columns(2)
+    with c3:
+        st.markdown("#### 👶 3. Baby’s Assessment")
+        f_cols = st.columns(2)
+        f_cols[0].metric("Fetal Status", f_stat.replace("_", " ").title() if f_stat != "not_assessed" else "Not assessed")
+        f_cols[1].metric("Fetal Movement", "Reduced" if v_data.get("fetal_movement_present") is False else "Normal" if v_data.get("fetal_movement_present") is True else "Unknown")
+        if f_stat == "not_assessed":
+            st.info("Fetal CTG assessment not performed. Movement safety information is still evaluated.")
+        else:
+            if fetal.get("probabilities"):
+                st.caption("CTG probabilities: " + ", ".join(f"{k}: {v:.2f}" for k, v in fetal["probabilities"].items()))
+            st.caption("FetalWatch measured CTG classifier.")
+
+    with c4:
+        st.markdown("#### 🏥 4. Suggested Hospital & Routing")
+        selected = referral.get("selected_facility")
+        if selected:
+            h_cols = st.columns(3)
+            h_cols[0].metric("Hospital", selected.get("name", "Unknown"))
+            h_cols[1].metric("Distance", f"{selected.get('distance_km', 0):.2f} km")
+            eta = selected.get("travel_time_minutes")
+            h_cols[2].metric("Road ETA", f"{eta:.0f} min" if eta is not None else "Unavailable")
+            if selected.get("phone"):
+                st.write(f"📞 Contact: {selected['phone']}")
+            if selected.get("directions_url"):
+                st.link_button("🗺️ Open Google Maps Directions", selected["directions_url"])
+        else:
+            st.warning(referral.get("reason", "No hospital candidate available."))
+
+    render_referral(referral, location, lang=lang)
+
+    # CARD 5 & CARD 6: Follow-up & Notification Status
+    c5, c6 = st.columns(2)
+    with c5:
+        st.markdown("#### 📅 5. Follow-up Recommendation")
+        anc_cols = st.columns(3)
+        anc_cols[0].metric("Outreach Priority", anc.get("priority", "Unknown").title())
+        anc_cols[1].metric("Suggested Action", anc.get("recommended_action", "Unknown").replace("_", " ").title())
+        anc_cols[2].metric("Next Appointment", anc.get("next_appointment_date") or "Needs scheduling")
+        if anc.get("risk_factors"):
+            st.write("Barriers: " + "; ".join(anc["risk_factors"]))
+        st.caption(anc.get("reason", ""))
+
+    with c6:
+        st.markdown("#### 💬 6. Notification Status")
+        st.info("Prepared Message: " + communication.get("draft_message", "No message draft available"))
+        st.caption(f"Channel: {communication.get('recommended_channel', 'app').title()} · Draft prepared locally for health worker.")
+
+    # CARD 7 & CARD 8: Doctor Handover & Audit Trail
+    st.markdown("#### 📋 7. Doctor Handover & Audit Trail")
+    summary = (result.get("clinician_result") or {}).get("case_summary_text") or (result.get("reporting_result") or {}).get("narrative", "Report unavailable")
+    st.text(summary)
+    d_cols = st.columns(2)
+    d_cols[0].download_button("Download clinician handover", summary, f"handover-{result.get('case_id','case')}.txt", "text/plain")
+    d_cols[1].download_button("Download case JSON", json.dumps(result, indent=2), f"case-{result.get('case_id','case')}.json", "application/json")
+
+    assistance = (result.get("clinician_result") or {}).get("ai_assistance") or {}
+    if assistance.get("llm_generated"):
+        with st.expander("AI Roman Urdu Explanation & Clinician Follow-up Questions", expanded=False):
+            st.write("**Family Roman Urdu:** " + assistance.get("explanation_roman_urdu", ""))
+            st.write("**Clinician Context:** " + assistance.get("clinician_context", ""))
+            for q in assistance.get("followup_questions", []):
+                st.write("• " + q)
+            st.caption(f"Groq · {assistance.get('model', '')} · Clinician review required.")
+
+    with st.expander("Nine-Agent LangGraph Audit Trail", expanded=False):
+        st.dataframe(pd.DataFrame(result.get("audit_trail", [])), hide_index=True, width="stretch")
+
+    with st.expander("Data Quality & Research Models Evidence", expanded=False):
+        st.json({"maternal": maternal, "fetal": fetal, "quality": result.get("data_quality_result"), "research": result.get("research_results")})
+    for err in result.get("errors", []):
+        st.error(f"{err['agent']}: {err['error']}")
 
 
-def load_results(path: Path) -> dict:
-    if path.exists():
-        with open(path, encoding="utf-8") as f:
-            return json.load(f)
-    return {}
+def review_controls(case_id, result, review_status="pending"):
+    role = st.session_state["user"]["role"]
+    if role not in ("clinician", "admin"):
+        st.info("An assigned clinician or admin must review this case.")
+        return
+    if review_status != "pending":
+        st.success("Review decision: " + review_status)
+        if review_status == "approved" and st.button("Complete reviewed case", key="complete_" + case_id):
+            updated = call("POST", f"/agents/cases/{case_id}/resume")
+            if updated:
+                st.success("Reviewed case completed. Care delivery remains tracked separately.")
+        return
+    st.subheader("Clinician decision")
+    fac = (result.get("referral_result") or {}).get("selected_facility") or {}
+    with st.form("review_" + case_id):
+        decision = st.selectbox("Decision", ["approved", "rejected"])
+        notes = st.text_area("Clinical review notes")
+        create = st.checkbox("Create referral after confirming facility services and acceptance")
+        name = st.text_input("Confirmed facility name", value=fac.get("name", ""))
+        urgency = st.selectbox(
+            "Referral urgency", ["routine", "urgent", "emergency"],
+            index=["routine", "urgent", "emergency"].index((result.get("referral_result") or {}).get("urgency_level", "routine"))
+        )
+        submitted = st.form_submit_button("Save review decision")
+    if submitted:
+        if not notes.strip():
+            st.error("Add review notes.")
+        else:
+            reviewed = call("POST", f"/agents/cases/{case_id}/review", json={
+                "decision": decision, "notes": notes, "create_referral": create, "facility_name": name or None, "urgency": urgency
+            })
+            if reviewed:
+                st.success("Decision saved. Open Saved cases to complete or track the referral.")
 
 
-# ─────────────────────────────────────────────
-# Sidebar navigation
-# ─────────────────────────────────────────────
-st.sidebar.markdown(
-    "<h2 style='text-align:center; color:white; margin-bottom:4px;'>🤰 MaaHifazat AI</h2>"
-    "<p style='text-align:center; color:#b2ebf2; font-size:0.85rem; margin-top:0;'>Maternal & Fetal Health</p>",
-    unsafe_allow_html=True,
+# ─────────────────────────────────────────────────────────────────────────────
+# APPLICATION LIFECYCLE & AUTHENTICATION
+# ─────────────────────────────────────────────────────────────────────────────
+try:
+    health = APIClient().request("GET", "/health")
+except APIError as exc:
+    st.title("MaaHifazat AI")
+    st.error(str(exc))
+    st.code(".venv\\Scripts\\python.exe scripts/start_app.py")
+    st.stop()
+
+if "token" not in st.session_state:
+    from ui.auth_view import render_auth
+    render_auth(health.get("demo_mode", False))
+    st.stop()
+
+# Set and apply active language & styles
+current_lang = st.session_state.get("language", "en")
+apply_language_styles(current_lang)
+is_ur = (current_lang == "ur")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# SIDEBAR CONTROLS & BILINGUAL SWITCH
+# ─────────────────────────────────────────────────────────────────────────────
+st.sidebar.title("🤱 MaaHifazat AI")
+st.sidebar.caption("Rural Maternal Care · Algo Titans")
+
+user = st.session_state["user"]
+role_label = {"patient": "Patient (مریضہ)", "lhw": "Lady Health Worker (ایل ایچ ڈبلیو)", "clinician": "Clinician (ڈاکٹر/کلینیشن)", "admin": "Administrator"}.get(user["role"], user["role"])
+st.sidebar.markdown(f"**👤 {user['full_name']}**\n\n`< {role_label} >`", unsafe_allow_html=True)
+
+# Language Toggle
+lang_choice = st.sidebar.radio(
+    "🌐 Language / زبان",
+    ["English", "اردو"],
+    index=0 if current_lang != "ur" else 1,
+    horizontal=True
 )
+new_lang = "ur" if lang_choice == "اردو" else "en"
+if new_lang != current_lang:
+    st.session_state["language"] = new_lang
+    try:
+        api().request("PUT", "/auth/preferences", json={"language": new_lang, "email_notifications": True, "sms_notifications": False})
+    except Exception:
+        pass
+    st.rerun()
+
+if st.sidebar.button("🚪 " + ("لاگ آؤٹ (Sign out)" if is_ur else "Sign out"), use_container_width=True):
+    call("POST", "/auth/logout")
+    st.session_state.clear()
+    st.rerun()
+
+if health.get("demo_mode"):
+    st.sidebar.warning("DEMO MODE · Synthetic cases and fictional facilities")
+
+staff = user["role"] in ("lhw", "clinician", "admin")
+
+# ─────────────────────────────────────────────────────────────────────────────
+# EXACTLY TWO MAIN SECTIONS NAVIGATION + SUPPORTING PANELS
+# ─────────────────────────────────────────────────────────────────────────────
 st.sidebar.markdown("---")
-NAV_OPTIONS = ["🏠 Home / Dashboard", "🫀 FetalWatch — Fetal Risk", "🤱 MaternalGuard — Maternal Risk", "👶 PretermGuard — Preterm Birth Risk", "🤖 MaaHifazat AI Agents", "📊 Model Performance"]
-page = st.sidebar.radio("Navigation", NAV_OPTIONS, label_visibility="collapsed")
-st.sidebar.markdown("---")
-st.sidebar.markdown(
-    "<div style='text-align:center; color:#b2ebf2; font-size:0.78rem; margin-top:12px;'>"
-    "⚠️ AI screening tool only.<br>Always consult a healthcare professional."
-    "</div>",
-    unsafe_allow_html=True,
+st.sidebar.markdown("### " + ("معاون پینلز (Supporting Panels)" if is_ur else "Supporting Panels"))
+supporting_view = st.sidebar.selectbox(
+    "Supporting Panel",
+    ["None (Main Sections)", "📁 Patient History & Saved Cases", "📅 ANC Follow-up Queue", "📊 Model Evidence & Capabilities"] + (["👥 Team Accounts"] if user["role"] == "admin" else []),
+    format_func=lambda x: {
+        "None (Main Sections)": "دو اہم سیکشنز (Two Main Sections)" if is_ur else "Two Main Sections",
+        "📁 Patient History & Saved Cases": "📁 مریضہ کا ریکارڈ اور محفوظ کیسز" if is_ur else "📁 Patient History & Saved Cases",
+        "📅 ANC Follow-up Queue": "📅 قبل از ولادت فالو اپ کیو" if is_ur else "📅 ANC Follow-up Queue",
+        "📊 Model Evidence & Capabilities": "📊 ماڈل کی تحقیقی بنیاد" if is_ur else "📊 Model Evidence & Capabilities",
+        "👥 Team Accounts": "👥 عملے کے اکاؤنٹس" if is_ur else "👥 Team Accounts"
+    }.get(x, x)
 )
 
-# ─────────────────────────────────────────────
-# Feature definitions
-# ─────────────────────────────────────────────
-FW_FEATURES = [
-    "LB", "AC", "FM", "UC", "DL", "DS", "DP",
-    "ASTV", "MSTV", "ALTV", "MLTV",
-    "Width", "Min", "Max", "Nmax", "Nzeros",
-    "Mode", "Mean", "Median", "Variance", "Tendency",
-]
-
-CTG_DISPLAY = {
-    "LB":       ("Baseline FHR (bpm)",        100,  180, 130,  1),
-    "AC":       ("Accelerations",               0,   20,   3,  1),
-    "FM":       ("Fetal Movements",             0,  500,  50,  1),
-    "UC":       ("Uterine Contractions",        0,   20,   5,  1),
-    "DL":       ("Light Decelerations",         0,   10,   1,  1),
-    "DS":       ("Severe Decelerations",        0,    5,   0,  1),
-    "DP":       ("Prolonged Decelerations",     0,    5,   0,  1),
-    "ASTV":     ("Abnormal STV (%)",            0,  100,  40,  1),
-    "MSTV":     ("Mean STV",                  0.0, 10.0, 1.5, 0.1),
-    "ALTV":     ("Abnormal LTV (%)",            0,  100,  20,  1),
-    "MLTV":     ("Mean LTV",                  0.0, 50.0, 8.0, 0.1),
-    "Width":    ("Histogram Width",             0,  200,  70,  1),
-    "Min":      ("Histogram Min",              50,  200,  70,  1),
-    "Max":      ("Histogram Max",             100,  250, 180,  1),
-    "Nmax":     ("Histogram Peaks",             0,   20,   5,  1),
-    "Nzeros":   ("Histogram Zeros",             0,   15,   2,  1),
-    "Mode":     ("Histogram Mode",             60,  200, 135,  1),
-    "Mean":     ("Histogram Mean",             60,  200, 135,  1),
-    "Median":   ("Histogram Median",           60,  200, 140,  1),
-    "Variance": ("Histogram Variance",          0,  200,  15,  1),
-    "Tendency": ("Histogram Tendency",       -1.0,  1.0, 0.0, 0.1),
-}
-
-MG_FEATURES = ["Age", "SystolicBP", "DiastolicBP", "BS", "BodyTemp", "HeartRate"]
-
-MATERNAL_DISPLAY = {
-    "Age":        ("Age (years)",         10,   70,  25,    1),
-    "SystolicBP": ("Systolic BP (mmHg)",  70,  200, 120,   1),
-    "DiastolicBP":("Diastolic BP (mmHg)", 40,  130,  80,   1),
-    "BS":         ("Blood Sugar (mmol/L)",0.0, 20.0, 7.0, 0.1),
-    "BodyTemp":   ("Body Temperature (°F)",95.0,105.0,98.6,0.1),
-    "HeartRate":  ("Heart Rate (bpm)",    40,  120,  72,   1),
-}
-
-# ─────────────────────────────────────────────
-# Clinical recommendations
-# ─────────────────────────────────────────────
-FW_RECOMMENDATIONS = {
-    "Normal": (
-        "✅ **Clinical Status: Reassuring**\n\n"
-        "• Continue routine antenatal care and monitoring.\n"
-        "• No immediate intervention required.\n"
-        "• Repeat CTG as per standard protocol (weekly or as clinically indicated)."
-    ),
-    "Suspect": (
-        "⚠️ **Clinical Status: Suspicious — Requires Close Monitoring**\n\n"
-        "• Increase surveillance frequency (at least twice weekly CTG).\n"
-        "• Consider additional biophysical profile (BPP) assessment.\n"
-        "• Evaluate maternal condition and address reversible factors.\n"
-        "• Prepare contingency plan if condition deteriorates."
-    ),
-    "Pathological": (
-        "🚨 **Clinical Status: Pathological — Urgent Action Required**\n\n"
-        "• **Immediate obstetric review is mandatory.**\n"
-        "• Consider urgent delivery if fetal distress confirmed.\n"
-        "• Continuous CTG monitoring until delivery decision made.\n"
-        "• Notify senior obstetrician and neonatal team.\n"
-        "• Document all findings and actions taken."
-    ),
-}
-
-MG_RECOMMENDATIONS = {
-    "low risk": (
-        "✅ **Risk Level: Low Risk**\n\n"
-        "• Continue routine antenatal visits.\n"
-        "• Maintain healthy lifestyle and balanced nutrition.\n"
-        "• Regular BP and blood sugar monitoring as per schedule."
-    ),
-    "mid risk": (
-        "⚠️ **Risk Level: Moderate Risk — Enhanced Surveillance**\n\n"
-        "• Increase antenatal visit frequency.\n"
-        "• Closely monitor blood pressure and blood glucose.\n"
-        "• Consider nutritional counselling and lifestyle modification.\n"
-        "• Watch for warning signs: headache, visual disturbance, reduced fetal movements."
-    ),
-    "high risk": (
-        "🚨 **Risk Level: High Risk — Immediate Attention Required**\n\n"
-        "• Refer to senior obstetrician / maternal-fetal medicine specialist.\n"
-        "• Initiate intensive monitoring protocol.\n"
-        "• Evaluate for preeclampsia, GDM, or other complications.\n"
-        "• Develop a detailed birth and emergency plan.\n"
-        "• Consider hospital admission if clinically indicated."
-    ),
-}
-
-PG_RECOMMENDATIONS = {
-    "Normal": (
-        "✅ **Preterm Risk: Low — Reassuring CTG Pattern**\n\n"
-        "• CTG pattern indicates normal fetal status.\n"
-        "• Continue routine antenatal monitoring.\n"
-        "• No specific preterm risk indicators detected.\n"
-        "• Repeat CTG as per standard protocol."
-    ),
-    "Suspect": (
-        "⚠️ **Preterm Risk: Moderate — Ambiguous CTG Pattern**\n\n"
-        "• CTG pattern shows some non-reassuring features.\n"
-        "• Increase surveillance frequency (at least twice weekly CTG).\n"
-        "• Consider biophysical profile (BPP) assessment.\n"
-        "• Evaluate for risk factors: cervical shortening, maternal stress, infection.\n"
-        "• Prepare contingency plan if condition deteriorates."
-    ),
-    "Pathological": (
-        "🚨 **Preterm Risk: High — Abnormal CTG Pattern**\n\n"
-        "• CTG pattern suggests elevated preterm/fetal distress risk.\n"
-        "• **Immediate clinical evaluation recommended.**\n"
-        "• Consider tocolytic therapy assessment if preterm labor suspected.\n"
-        "• Continuous CTG monitoring until delivery decision made.\n"
-        "• Notify senior obstetrician and neonatal team.\n"
-        "• Consider corticosteroid administration for fetal lung maturity if <34 weeks."
-    ),
-}
-
-# ─────────────────────────────────────────────
-# Utility helpers
-# ─────────────────────────────────────────────
-def risk_badge(label: str) -> str:
-    mapping = {
-        "Normal":       "risk-normal",
-        "Suspect":      "risk-suspect",
-        "Pathological": "risk-pathological",
-        "low risk":     "risk-low",
-        "mid risk":     "risk-mid",
-        "high risk":    "risk-high",
-    }
-    cls = mapping.get(label, "risk-normal")
-    return f'<span class="{cls}">{label.upper()}</span>'
-
-
-def prob_bar_chart(probs: list | np.ndarray, classes: list) -> st:
-    df = pd.DataFrame({"Class": classes, "Probability": probs})
-    df = df.sort_values("Probability", ascending=True)
-    st.bar_chart(df.set_index("Class"), horizontal=True, color="#00897b")
-
-
-# ═════════════════════════════════════════════
-# PAGE 1 — HOME / DASHBOARD
-# ═════════════════════════════════════════════
-if "Home" in page:
-    st.markdown(
-        "<h1 style='text-align:center; color:#00695c;'>🤰 MaaHifazat AI</h1>"
-        "<h3 style='text-align:center; color:#00838f; font-weight:500;'>"
-        "Maternal & Fetal Health Risk Assessment</h3>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-    st.markdown(
-        """
-        <div class='info-box'>
-        <strong>MaaHifazat AI</strong> is an intelligent clinical decision-support system that leverages
-        machine learning to assess maternal and fetal health risks. Built on validated CTG
-        (Cardiotocography) signals and maternal vital signs, it provides real-time, evidence-based
-        risk stratification to assist healthcare professionals in timely intervention and care planning.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # Load results for dashboard
-    fw_res = load_results(FW_RESULTS)
-    mg_res = load_results(MG_RESULTS)
-    pg_res = load_results(PG_RESULTS)
-    fw_best = fw_res.get("best_model", "RandomForest")
-    fw_data = fw_res.get(fw_best, {})
-    mg_best_name = mg_res.get("best_model", "LightGBM")
-    mg_models = mg_res.get("models", {})
-    mg_data = mg_models.get(mg_best_name, {})
-    pg_best = pg_res.get("best_model", "LightGBM")
-    pg_data = pg_res.get(pg_best, {})
-
-    st.subheader("🧠 Model Cards")
-    col1, col2, col3 = st.columns(3, gap="large")
-    with col1:
-        st.markdown(
-            f"""<div class='model-card'>
-            <h3>🫀 FetalWatch</h3>
-            <p><strong>Algorithm:</strong> <span class='badge'>{fw_best}</span>
-            <span class='badge'>CTG Analysis</span></p>
-            <p style='color:#555;'>Predicts fetal condition from 21 cardiotocography features.
-            Classes: <b>Normal</b>, <b>Suspect</b>, <b>Pathological</b></p>
-            <p><b>Dataset:</b> UCI CTG (2,129 records)</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-    with col2:
-        st.markdown(
-            f"""<div class='model-card'>
-            <h3>🤱 MaternalGuard</h3>
-            <p><strong>Algorithm:</strong> <span class='badge'>{mg_best_name}</span>
-            <span class='badge'>Vital Signs</span></p>
-            <p style='color:#555;'>Predicts maternal risk from 6 vital-sign features.
-            Classes: <b>Low Risk</b>, <b>Mid Risk</b>, <b>High Risk</b></p>
-            <p><b>Dataset:</b> UCI Maternal Health (400 records)</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-    with col3:
-        st.markdown(
-            f"""<div class='model-card'>
-            <h3>👶 PretermGuard</h3>
-            <p><strong>Algorithm:</strong> <span class='badge'>{pg_best}</span>
-            <span class='badge'>CTG Analysis</span></p>
-            <p style='color:#555;'>Assesses preterm birth / fetal distress risk from 21 CTG features.
-            Classes: <b>Normal</b>, <b>Suspect</b>, <b>Pathological</b></p>
-            <p><b>Dataset:</b> UCI CTG — CLASS target (1,016 records)</p>
-            </div>""",
-            unsafe_allow_html=True,
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.subheader("📈 Key Metrics at a Glance")
-    m1, m2, m3, m4, m5, m6 = st.columns(6)
-    m1.metric("FetalWatch — Macro F1", f"{fw_data.get('macro_f1', 0.929):.4f}")
-    m2.metric("FetalWatch — AUROC", f"{fw_data.get('auroc_ovr_macro', 0.986):.4f}")
-    m3.metric("MaternalGuard — Macro F1", f"{mg_data.get('macro_f1', 0.863):.4f}")
-    m4.metric("MaternalGuard — AUROC", f"{mg_data.get('auroc_ovr', 0.966):.3f}")
-    m5.metric("PretermGuard — Macro F1", f"{pg_data.get('macro_f1', 0.853):.4f}")
-    m6.metric("PretermGuard — AUROC", f"{pg_data.get('auroc_ovr_macro', 0.956):.3f}")
-
-
-# ═════════════════════════════════════════════
-# PAGE 2 — FETALWATCH PREDICTION
-# ═════════════════════════════════════════════
-elif "FetalWatch" in page:
-    st.markdown(
-        "<h2 style='color:#00695c;'>🫀 FetalWatch — Fetal Risk Prediction</h2>"
-        "<p style='color:#555;'>Enter 21 CTG (Cardiotocography) features below to predict fetal condition.</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-
-    fw_model = load_fetalwatch()
-
-    with st.form("fetalwatch_form"):
-        st.subheader("CTG Feature Inputs")
-        feature_values = {}
-        # Group 1: Signal features
-        st.markdown("**Signal Features**")
-        cols = st.columns(4)
-        signal_feats = ["LB", "AC", "FM", "UC", "DL", "DS", "DP"]
-        for i, feat in enumerate(signal_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int):
-                    feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"fw_{feat}")
-                else:
-                    feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"fw_{feat}")
-
-        # Group 2: Variability features
-        st.markdown("**Variability Features**")
-        cols = st.columns(4)
-        var_feats = ["ASTV", "MSTV", "ALTV", "MLTV"]
-        for i, feat in enumerate(var_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int) or step >= 1:
-                    feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"fw_{feat}")
-                else:
-                    feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"fw_{feat}")
-
-        # Group 3: Histogram features
-        st.markdown("**Histogram Features**")
-        cols = st.columns(4)
-        hist_feats = ["Width", "Min", "Max", "Nmax", "Nzeros", "Mode", "Mean", "Median", "Variance", "Tendency"]
-        for i, feat in enumerate(hist_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int) or step >= 1:
-                    feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"fw_{feat}")
-                else:
-                    feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"fw_{feat}")
-
-        predict_fw = st.form_submit_button("🔍 Predict Fetal Risk", use_container_width=True)
-
-    if predict_fw:
-        if fw_model is None:
-            st.error("Model not available. Please ensure model artifacts are trained.")
-        else:
-            try:
-                input_arr = np.array([[feature_values[f] for f in FW_FEATURES]])
-                input_df  = pd.DataFrame(input_arr, columns=FW_FEATURES)
-
-                prediction  = fw_model.predict(input_df)[0]
-                probas      = fw_model.predict_proba(input_df)[0]
-                classes     = list(fw_model.classes_)
-
-                st.markdown("---")
-                st.subheader("🔬 Prediction Result")
-
-                badge = risk_badge(prediction)
-                st.markdown(f"#### Predicted Class: {badge}", unsafe_allow_html=True)
-                confidence = max(probas) * 100
-                st.metric("Model Confidence", f"{confidence:.1f}%")
-
-                st.markdown("**Prediction Probabilities**")
-                prob_bar_chart(probas, classes)
-
-                st.markdown("---")
-                st.subheader("📋 Clinical Recommendation")
-                st.markdown(FW_RECOMMENDATIONS.get(prediction, "No recommendation available."))
-
-                # Show input summary
-                with st.expander("📊 View Input Summary"):
-                    st.dataframe(input_df.T.rename(columns={0: "Value"}), use_container_width=True)
-
-            except Exception as e:
-                st.error(f"Prediction failed: {e}. Ensure the model is compatible with the 21-feature input.")
-
-
-# ═════════════════════════════════════════════
-# PAGE 3 — MATERNALGUARD PREDICTION
-# ═════════════════════════════════════════════
-elif "MaternalGuard" in page:
-    st.markdown(
-        "<h2 style='color:#00695c;'>🤱 MaternalGuard — Maternal Risk Prediction</h2>"
-        "<p style='color:#555;'>Enter 6 maternal vital-sign features to assess risk level.</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-
-    mg_model, mg_le = load_maternalguard()
-
-    with st.form("maternalguard_form"):
-        st.subheader("Maternal Vital Signs")
-        mat_values = {}
-        cols = st.columns(3)
-        for i, feat in enumerate(MG_FEATURES):
-            label, lo, hi, default, step = MATERNAL_DISPLAY[feat]
-            with cols[i % 3]:
-                if feat == "BS":
-                    mat_values[feat] = st.number_input(label, min_value=float(lo), max_value=float(hi),
-                                                       value=float(default), step=float(step), key=f"mg_{feat}")
-                elif feat == "BodyTemp":
-                    mat_values[feat] = st.number_input(label, min_value=float(lo), max_value=float(hi),
-                                                       value=float(default), step=float(step), key=f"mg_{feat}")
-                else:
-                    mat_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"mg_{feat}")
-
-        predict_mg = st.form_submit_button("🔍 Predict Maternal Risk", use_container_width=True)
-
-    if predict_mg:
-        if mg_model is None or mg_le is None:
-            st.error("Model not available. Please ensure model artifacts are trained.")
-        else:
-            try:
-                input_arr = np.array([[mat_values[f] for f in MG_FEATURES]])
-                input_df  = pd.DataFrame(input_arr, columns=MG_FEATURES)
-
-                pred_idx  = mg_model.predict(input_df)[0]
-                probas    = mg_model.predict_proba(input_df)[0]
-
-                # Decode using label encoder
-                prediction = mg_le.inverse_transform([pred_idx])[0]
-                classes    = list(mg_le.inverse_transform(mg_model.classes_))
-
-                st.markdown("---")
-                st.subheader("🔬 Prediction Result")
-
-                badge = risk_badge(prediction)
-                st.markdown(f"#### Predicted Risk: {badge}", unsafe_allow_html=True)
-                confidence = max(probas) * 100
-                st.metric("Model Confidence", f"{confidence:.1f}%")
-
-                st.markdown("**Prediction Probabilities**")
-                prob_bar_chart(probas, classes)
-
-                st.markdown("---")
-                st.subheader("📋 Clinical Recommendation")
-                st.markdown(MG_RECOMMENDATIONS.get(prediction, "No recommendation available."))
-
-                with st.expander("📊 View Input Summary"):
-                    st.dataframe(input_df.T.rename(columns={0: "Value"}), use_container_width=True)
-
-            except Exception as e:
-                st.error(f"Prediction failed: {e}. Ensure the model is compatible with the 6-feature input.")
-
-
-# ═════════════════════════════════════════════
-# PAGE 4 — PRETERMGUARD PREDICTION
-# ═════════════════════════════════════════════
-elif "PretermGuard" in page:
-    st.markdown(
-        "<h2 style='color:#00695c;'>👶 PretermGuard — Preterm Birth Risk Prediction</h2>"
-        "<p style='color:#555;'>Enter 21 CTG (Cardiotocography) features below to assess preterm birth / fetal distress risk.</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-
-    pg_model = load_pretermguard()
-
-    with st.form("pretermguard_form"):
-        st.subheader("CTG Feature Inputs")
-        pg_feature_values = {}
-
-        # Group 1: Signal features
-        st.markdown("**Signal Features**")
-        cols = st.columns(4)
-        signal_feats = ["LB", "AC", "FM", "UC", "DL", "DS", "DP"]
-        for i, feat in enumerate(signal_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int):
-                    pg_feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"pg_{feat}")
-                else:
-                    pg_feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"pg_{feat}")
-
-        # Group 2: Variability features
-        st.markdown("**Variability Features**")
-        cols = st.columns(4)
-        var_feats = ["ASTV", "MSTV", "ALTV", "MLTV"]
-        for i, feat in enumerate(var_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int) or step >= 1:
-                    pg_feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"pg_{feat}")
-                else:
-                    pg_feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"pg_{feat}")
-
-        # Group 3: Histogram features
-        st.markdown("**Histogram Features**")
-        cols = st.columns(4)
-        hist_feats = ["Width", "Min", "Max", "Nmax", "Nzeros", "Mode", "Mean", "Median", "Variance", "Tendency"]
-        for i, feat in enumerate(hist_feats):
-            label, lo, hi, default, step = CTG_DISPLAY[feat]
-            with cols[i % 4]:
-                if isinstance(step, int) or step >= 1:
-                    pg_feature_values[feat] = st.slider(label, int(lo), int(hi), int(default), int(step), key=f"pg_{feat}")
-                else:
-                    pg_feature_values[feat] = st.slider(label, float(lo), float(hi), float(default), float(step), key=f"pg_{feat}")
-
-        predict_pg = st.form_submit_button("🔍 Predict Preterm Risk", use_container_width=True)
-
-    if predict_pg:
-        if pg_model is None:
-            st.error("Model not available. Please ensure model artifacts are trained.")
-        else:
-            try:
-                input_arr = np.array([[pg_feature_values[f] for f in FW_FEATURES]])
-                input_df  = pd.DataFrame(input_arr, columns=FW_FEATURES)
-
-                prediction  = pg_model.predict(input_df)[0]
-                probas      = pg_model.predict_proba(input_df)[0]
-                classes     = list(pg_model.classes_)
-
-                st.markdown("---")
-                st.subheader("🔬 Prediction Result")
-
-                badge = risk_badge(prediction)
-                st.markdown(f"#### Predicted Class: {badge}", unsafe_allow_html=True)
-                confidence = max(probas) * 100
-                st.metric("Model Confidence", f"{confidence:.1f}%")
-
-                st.markdown("**Prediction Probabilities**")
-                prob_bar_chart(probas, classes)
-
-                st.markdown("---")
-                st.subheader("📋 Clinical Recommendation")
-                st.markdown(PG_RECOMMENDATIONS.get(prediction, "No recommendation available."))
-
-                # Show input summary
-                with st.expander("📊 View Input Summary"):
-                    st.dataframe(input_df.T.rename(columns={0: "Value"}), use_container_width=True)
-
-            except Exception as e:
-                st.error(f"Prediction failed: {e}. Ensure the model is compatible with the 21-feature input.")
-
-
-# ═════════════════════════════════════════════
-# PAGE 6 — AI AGENT WORKFLOW (LangGraph)
-# ═════════════════════════════════════════════
-elif "AI Agents" in page:
-    # --- Async helper -------------------------------------------------
-    def _run_async(coro):
-        """Run an async coroutine from sync Streamlit context."""
-        try:
-            loop = asyncio.get_event_loop()
-            if loop.is_running():
-                import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    return pool.submit(asyncio.run, coro).result()
-            return loop.run_until_complete(coro)
-        except RuntimeError:
-            return asyncio.run(coro)
-
-    # --- Quick-test scenario presets ----------------------------------
-    SCENARIOS = {
-        "Normal Pregnancy": {
-            "age": 26, "gestational_week": 28, "systolic_bp": 118,
-            "diastolic_bp": 76, "blood_sugar": 5.2, "body_temp": 98.4,
-            "heart_rate": 74, "spo2": 98, "symptoms": [],
-            "include_ctg": False,
-        },
-        "High Risk Emergency": {
-            "age": 34, "gestational_week": 34, "systolic_bp": 180,
-            "diastolic_bp": 120, "blood_sugar": 9.8, "body_temp": 101.2,
-            "heart_rate": 110, "spo2": 93, "symptoms": ["headache", "blurred vision", "swelling", "bleeding"],
-            "include_ctg": False,
-        },
-        "Fetal Distress": {
-            "age": 30, "gestational_week": 36, "systolic_bp": 145,
-            "diastolic_bp": 95, "blood_sugar": 7.5, "body_temp": 99.0,
-            "heart_rate": 92, "spo2": 96, "symptoms": ["reduced fetal movement"],
-            "include_ctg": True,
-        },
-    }
-
-    PATHOLOGICAL_CTG = {
-        "LB": 155, "AC": 0, "FM": 5, "UC": 12, "DL": 6, "DS": 4, "DP": 3,
-        "ASTV": 85, "MSTV": 0.5, "ALTV": 65, "MLTV": 2.0, "Width": 42,
-        "Min": 60, "Max": 165, "Nmax": 8, "Nzeros": 10, "Mode": 155,
-        "Mean": 150, "Median": 152, "Variance": 8, "Tendency": -0.8,
-    }
-
-    # --- Sidebar: quick test scenarios --------------------------------
-    with st.sidebar:
-        st.markdown("---")
-        st.markdown("<p style='color:white; font-weight:600;'>⚡ Quick Test Scenarios</p>", unsafe_allow_html=True)
-        if st.button("🟢 Normal Pregnancy", key="scenario_normal"):
-            st.session_state["agent_scenario"] = "Normal Pregnancy"
-            st.rerun()
-        if st.button("🔴 High Risk Emergency", key="scenario_emergency"):
-            st.session_state["agent_scenario"] = "High Risk Emergency"
-            st.rerun()
-        if st.button("🟠 Fetal Distress", key="scenario_fetal"):
-            st.session_state["agent_scenario"] = "Fetal Distress"
-            st.rerun()
-
-    # --- Page header --------------------------------------------------
-    st.markdown(
-        "<h2 style='color:#00695c;'>🤖 MaaHifazat AI — Multi-Agent Assessment</h2>"
-        "<p style='color:#555;'>Runs the full LangGraph workflow: 9 AI agents perform intake, risk assessment, "
-        "fetal monitoring, ANC follow-up, referral, communication, and clinician review — powered by Groq LLM.</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-
-    # --- Load scenario if selected ------------------------------------
-    active_scenario = st.session_state.get("agent_scenario", None)
-    preset = SCENARIOS.get(active_scenario, {})
-
-    # --- Patient Input Form -------------------------------------------
-    with st.form("agent_workflow_form"):
-        st.subheader("👤 Patient Information")
-        col1, col2, col3, col4 = st.columns(4)
-        with col1:
-            patient_name = st.text_input("Name", value=preset.get("name", ""), key="ai_name")
-        with col2:
-            patient_age = st.number_input("Age (years)", 10, 60, value=preset.get("age", 25), key="ai_age")
-        with col3:
-            gestational_week = st.number_input("Gestational Week", 4, 44, value=preset.get("gestational_week", 28), key="ai_gw")
-        with col4:
-            language = st.selectbox("Language", ["en", "ur", "ps"], index=0, key="ai_lang",
-                                    format_func=lambda x: {"en": "English", "ur": "Urdu", "ps": "Pashto"}[x])
-
-        st.subheader("📍 Location")
-        col1, col2 = st.columns(2)
-        with col1:
-            latitude = st.number_input("Latitude", value=34.0080, format="%.4f", key="ai_lat")
-        with col2:
-            longitude = st.number_input("Longitude", value=71.5785, format="%.4f", key="ai_lon")
-
-        st.subheader("🩺 Vitals")
-        col1, col2, col3 = st.columns(3)
-        with col1:
-            systolic_bp = st.number_input("Systolic BP (mmHg)", 60, 220, value=preset.get("systolic_bp", 120), key="ai_sbp")
-            blood_sugar = st.number_input("Blood Sugar (mmol/L)", 0.0, 25.0, value=float(preset.get("blood_sugar", 5.5)), step=0.1, key="ai_bs")
-        with col2:
-            diastolic_bp = st.number_input("Diastolic BP (mmHg)", 30, 140, value=preset.get("diastolic_bp", 80), key="ai_dbp")
-            body_temp = st.number_input("Body Temp (°F)", 95.0, 106.0, value=float(preset.get("body_temp", 98.6)), step=0.1, key="ai_temp")
-        with col3:
-            heart_rate = st.number_input("Heart Rate (bpm)", 30, 180, value=preset.get("heart_rate", 72), key="ai_hr")
-            spo2 = st.number_input("SpO2 (%)", 70, 100, value=preset.get("spo2", 98), key="ai_spo2")
-
-        SYMPTOM_OPTIONS = ["headache", "blurred vision", "swelling", "bleeding",
-                           "reduced fetal movement", "fever", "abdominal pain"]
-        default_symptoms = preset.get("symptoms", [])
-        symptoms = st.multiselect("Symptoms", options=SYMPTOM_OPTIONS,
-                                  default=[s for s in default_symptoms if s in SYMPTOM_OPTIONS],
-                                  key="ai_symptoms")
-
-        st.subheader("🫀 CTG Data (Optional)")
-        include_ctg = st.checkbox("Include CTG features for fetal monitoring", value=preset.get("include_ctg", False), key="ai_ctg")
-        ctg_features = {}
-        if include_ctg:
-            use_sample = st.checkbox("📋 Use Pathological Sample CTG Data", value=preset.get("include_ctg", False), key="ai_ctg_sample")
-            st.markdown("*Enter 21 CTG features or use the sample data button above.*")
-            cols = st.columns(4)
-            for i, (feat, (label, lo, hi, default, step)) in enumerate(CTG_DISPLAY.items()):
-                with cols[i % 4]:
-                    val = PATHOLOGICAL_CTG.get(feat, default) if use_sample else default
-                    if step >= 1:
-                        ctg_features[feat] = st.number_input(label, value=int(val), key=f"ai_ctg_{feat}")
-                    else:
-                        ctg_features[feat] = st.number_input(label, value=float(val), step=float(step), key=f"ai_ctg_{feat}")
-
-        run_workflow_btn = st.form_submit_button("🚀 Run Full Assessment", use_container_width=True)
-
-    # --- Execute workflow ---------------------------------------------
-    if run_workflow_btn:
-        # Build initial state
-        patient_id = f"P-{uuid.uuid4().hex[:8].upper()}"
-        case_id = f"C-{uuid.uuid4().hex[:8].upper()}"
-
-        initial_state = {
-            "patient_id": patient_id,
-            "case_id": case_id,
-            "language": language,
-            "channel": "app",
-            "demographics": {
-                "name": patient_name,
-                "age": patient_age,
-                "gestational_age_weeks": gestational_week,
-                "latitude": latitude,
-                "longitude": longitude,
-            },
-            "vitals": {
-                "systolic_bp": systolic_bp,
-                "diastolic_bp": diastolic_bp,
-                "heart_rate": heart_rate,
-                "temperature_celsius": body_temp,
-                "blood_sugar": blood_sugar,
-                "spo2": spo2,
-                "gestational_age_weeks": gestational_week,
-                # Also include keys the models expect
-                "SystolicBP": systolic_bp,
-                "DiastolicBP": diastolic_bp,
-                "HeartRate": heart_rate,
-                "BodyTemp": body_temp,
-                "BS": blood_sugar,
-                "Age": patient_age,
-            },
-            "symptoms": symptoms,
-            "intake_complete": True,
-            "emergency": False,
-            "audit_trail": [],
-            "errors": [],
-        }
-
-        if include_ctg and ctg_features:
-            initial_state["ctg_data"] = ctg_features
-
-        # Import and run the REAL workflow
-        try:
-            from backend.agents.orchestrator import run_workflow as _run_wf
-
-            with st.spinner("🧠 Running 9 AI agents — intake, risk assessment, fetal monitoring, referral, communication, review…"):
-                result = _run_async(_run_wf(initial_state))
-
-            st.session_state["agent_result"] = result
-            st.session_state["agent_patient_id"] = patient_id
-            st.session_state["agent_case_id"] = case_id
-
-        except Exception as e:
-            st.error(f"Workflow execution failed: {e}")
-            import traceback
-            with st.expander("🔍 View Traceback"):
-                st.code(traceback.format_exc())
-
-    # --- Display Results -----------------------------------------------
-    result = st.session_state.get("agent_result")
-    if result is not None:
-        st.markdown("---")
-        pid = st.session_state.get("agent_patient_id", "N/A")
-        cid = st.session_state.get("agent_case_id", "N/A")
-        st.markdown(f"**Patient ID:** `{pid}` &nbsp;|&nbsp; **Case ID:** `{cid}`")
-
-        is_emergency = result.get("emergency", False)
-
-        # ---- Emergency Banner ----
-        if is_emergency:
-            st.markdown(
-                """<div style='background:#b71c1c; color:white; padding:18px 24px; border-radius:10px;
-                    font-size:1.2rem; font-weight:700; text-align:center; margin:12px 0;
-                    animation: pulse 1.5s infinite;'>
-                🚨 EMERGENCY ALERT — Immediate medical attention required! 🚨
-                </div>
-                <style>
-                @keyframes pulse {
-                    0% { box-shadow: 0 0 0 0 rgba(183,28,28,0.7); }
-                    70% { box-shadow: 0 0 0 15px rgba(183,28,28,0); }
-                    100% { box-shadow: 0 0 0 0 rgba(183,28,28,0); }
-                }
-                </style>""",
-                unsafe_allow_html=True,
-            )
-
-        # ---- 1. Risk Assessment ----
-        clinical_risk = result.get("clinical_risk_result") or {}
-        with st.expander("🩺 Risk Assessment", expanded=True):
-            if clinical_risk:
-                maternal = clinical_risk.get("maternal_risk") or {}
-                risk_level = maternal.get("risk_level", "unknown")
-                risk_map = {
-                    "high risk": ("🔴", "risk-high"),
-                    "mid risk": ("🟠", "risk-mid"),
-                    "low risk": ("🟢", "risk-low"),
-                }
-                emoji, cls = risk_map.get(risk_level.lower() if isinstance(risk_level, str) else "", ("⚪", "risk-normal"))
-                st.markdown(f"#### {emoji} Maternal Risk: <span class='{cls}'>{risk_level.upper()}</span>", unsafe_allow_html=True)
-
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Risk Level", risk_level)
-                c2.metric("Confidence", f"{maternal.get('confidence', 0):.1%}")
-                c3.metric("WHO Triage", clinical_risk.get("who_red_flags", {}).get("triage_level", "N/A"))
-
-                # LLM Risk Summary
-                risk_summary = clinical_risk.get("risk_summary", "")
-                if risk_summary:
-                    st.markdown("**AI-Generated Risk Summary:**")
-                    st.info(risk_summary)
-                    if clinical_risk.get("llm_generated"):
-                        st.caption("✅ Generated by Groq LLM")
-
-                # WHO Red Flags
-                who = clinical_risk.get("who_red_flags") or {}
-                triggered = who.get("triggered_rules", [])
-                if triggered:
-                    st.markdown("**⚠️ WHO Red Flags Triggered:**")
-                    for rule in triggered:
-                        st.warning(f"• {rule}")
-                actions = who.get("recommended_actions", [])
-                if actions:
-                    st.markdown("**Recommended Actions:**")
-                    for act in actions:
-                        st.markdown(f"- {act}")
-            else:
-                st.info("No clinical risk assessment was performed.")
-
-        # ---- 2. Fetal Health ----
-        fetal = result.get("fetal_result") or {}
-        if fetal.get("fetal_status") and fetal["fetal_status"] != "not_assessed":
-            with st.expander("🫀 Fetal Health Assessment", expanded=True):
-                status = fetal.get("fetal_status", "unknown")
-                status_colors = {"normal": "🟢", "suspect": "🟠", "pathological": "🔴"}
-                icon = status_colors.get(status.lower(), "⚪")
-                st.markdown(f"#### {icon} Fetal Status: **{status.upper()}**")
-
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Fetal Status", status)
-                c2.metric("Fetal Confidence", f"{fetal.get('fetal_confidence', 0):.1%}")
-                c3.metric("Preterm Risk", fetal.get("preterm_risk", "N/A"))
-
-                if fetal.get("escalate"):
-                    st.warning("⚠️ Escalation recommended based on fetal/preterm assessment.")
-
-        # ---- 3. ANC Follow-up ----
-        anc = result.get("anc_result") or {}
-        if anc:
-            with st.expander("📅 ANC Follow-up", expanded=False):
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Missed Visit Risk", f"{anc.get('missed_visit_risk', 0):.3f}")
-                c2.metric("Priority", anc.get("priority", "N/A"))
-                c3.metric("Action", anc.get("recommended_action", "N/A"))
-
-                risk_factors = anc.get("risk_factors", [])
-                if risk_factors:
-                    st.markdown("**Risk Factors:** " + ", ".join(risk_factors))
-
-        # ---- 4. Referral ----
-        referral = result.get("referral_result") or {}
-        if referral.get("selected_facility"):
-            with st.expander("🏥 Referral", expanded=False):
-                fac = referral["selected_facility"]
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Facility", fac.get("name", "N/A"))
-                c2.metric("Distance (km)", f"{fac.get('distance_km', 'N/A')}")
-                c3.metric("Travel Time", f"{referral.get('estimated_travel_time_min', 'N/A')} min")
-
-                st.markdown(f"**Urgency:** {referral.get('urgency_level', 'N/A').upper()}")
-                caps = referral.get("capabilities_needed", {})
-                if caps:
-                    needed = [k for k, v in caps.items() if v]
-                    st.markdown(f"**Capabilities Needed:** {', '.join(needed)}")
-
-        # ---- 5. Communication ----
-        comm = result.get("communication_result") or {}
-        if comm:
-            with st.expander("📱 Communication & Messages", expanded=False):
-                c1, c2, c3 = st.columns(3)
-                c1.metric("Messages Sent", comm.get("messages_sent", 0))
-                c2.metric("All Delivered", "Yes" if comm.get("all_delivered") else "No")
-                c3.metric("Channel", comm.get("channel_used", "N/A"))
-
-                if comm.get("is_emergency_alert"):
-                    st.error("🚨 Emergency alert was dispatched")
-
-                # Show delivery details
-                delivery = comm.get("delivery_status", [])
-                if delivery:
-                    st.markdown("**Message Delivery Log:**")
-                    for i, msg in enumerate(delivery):
-                        recipient = msg.get("recipient", "N/A")
-                        status = msg.get("status", "unknown")
-                        channel = msg.get("channel", "N/A")
-                        icon = "✅" if status == "delivered" else "❌"
-                        st.markdown(f"{icon} Message {i+1}: **{status}** via {channel} → {recipient}")
-
-                if comm.get("llm_generated"):
-                    st.caption("✅ Messages generated by Groq LLM")
-
-        # ---- 6. Case Summary (Clinician Review) ----
-        clinician = result.get("clinician_result") or {}
-        if clinician:
-            with st.expander("📋 Case Summary — Clinician Review", expanded=True):
-                if clinician.get("requires_immediate_attention"):
-                    st.error("⚠️ This case requires **immediate attention**")
-
-                risk_indicators = clinician.get("risk_indicators", [])
-                if risk_indicators:
-                    st.markdown("**Risk Indicators:**")
-                    for ri in risk_indicators:
-                        st.warning(f"• {ri}")
-
-                case_text = clinician.get("case_summary_text", "")
-                if case_text:
-                    st.markdown("**AI-Generated Case Summary:**")
-                    st.info(case_text)
-                    if clinician.get("llm_generated"):
-                        st.caption("✅ Generated by Groq LLM")
-
-                st.markdown(f"**Review Status:** {clinician.get('status', 'N/A')}")
-
-        # ---- 7. Audit Trail ----
-        audit = result.get("audit_trail", [])
-        if audit:
-            with st.expander(f"🕐 Audit Trail ({len(audit)} entries)", expanded=False):
-                audit_df = pd.DataFrame(audit)
-                if "timestamp" in audit_df.columns:
-                    audit_df = audit_df.sort_values("timestamp")
-                st.dataframe(audit_df, use_container_width=True, hide_index=True)
-
-        # ---- Errors ----
-        errors = result.get("errors", [])
-        if errors:
-            with st.expander(f"⚠️ Errors ({len(errors)})", expanded=True):
-                for err in errors:
-                    agent = err.get("agent", "unknown")
-                    msg = err.get("error", str(err))
-                    st.error(f"**{agent}**: {msg}")
-
-
-# ═════════════════════════════════════════════
-# PAGE 5 — MODEL PERFORMANCE
-# ═════════════════════════════════════════════
-elif "Performance" in page:
-    st.markdown(
-        "<h2 style='color:#00695c;'>📊 Model Performance Dashboard</h2>"
-        "<p style='color:#555;'>Comprehensive evaluation metrics for all prediction models.</p>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("---")
-
-    fw_res = load_results(FW_RESULTS)
-    mg_res = load_results(MG_RESULTS)
-    pg_res = load_results(PG_RESULTS)
-
-    # ── FetalWatch Performance ──
-    st.subheader("🫀 FetalWatch Performance")
-    fw_best_name = fw_res.get("best_model", "RandomForest")
-    fw_data = fw_res.get(fw_best_name, {})
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Best Model", fw_best_name)
-    m2.metric("Macro F1-Score", f"{fw_data.get('macro_f1', 0):.4f}")
-    m3.metric("AUROC (OVR Macro)", f"{fw_data.get('auroc_ovr_macro', 0):.4f}")
-    report = fw_data.get("classification_report", {})
-    m4.metric("Overall Accuracy", f"{report.get('accuracy', 0):.4f}")
-
-    per_class = fw_data.get("per_class", {})
-    if per_class:
-        st.markdown("**Per-Class Metrics**")
-        rows = []
-        for cls, metrics in per_class.items():
-            rows.append({
-                "Class": cls,
-                "Precision": f"{metrics['precision']:.4f}",
-                "Recall":    f"{metrics['recall']:.4f}",
-                "F1-Score":  f"{metrics['f1-score']:.4f}",
-            })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-    # Plot images
-    fw_plots = ["fw_roc_curves.png", "fw_confusion_matrix.png", "fw_feature_importance.png", "fw_calibration.png"]
-    fw_plot_paths = [PLOTS_DIR / p for p in fw_plots]
-    available_fw_plots = [p for p in fw_plot_paths if p.exists()]
-    if available_fw_plots:
-        st.markdown("**Diagnostic Plots**")
-        cols = st.columns(2, gap="large")
-        for i, p in enumerate(available_fw_plots):
-            with cols[i % 2]:
-                st.image(str(p), caption=p.stem.replace("fw_", "").replace("_", " ").title(),
-                         use_container_width=True)
-
-    st.markdown("---")
-
-    # ── MaternalGuard Performance ──
-    st.subheader("🤱 MaternalGuard Performance")
-    mg_best_name = mg_res.get("best_model", "LightGBM")
-    mg_models = mg_res.get("models", {})
-    mg_data = mg_models.get(mg_best_name, {})
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Best Model", mg_best_name)
-    m2.metric("Macro F1-Score", f"{mg_data.get('macro_f1', 0):.4f}")
-    m3.metric("AUROC (OVR)", f"{mg_data.get('auroc_ovr', 0):.3f}")
-    mg_report = mg_data.get("per_class", {})
-    # Compute macro precision/recall from per-class
-    if mg_report:
-        precisions = [v["precision"] for v in mg_report.values()]
-        recalls    = [v["recall"] for v in mg_report.values()]
-        m4.metric("Macro Precision", f"{np.mean(precisions):.4f}")
-
-    if mg_report:
-        st.markdown("**Per-Class Metrics**")
-        rows = []
-        for cls, metrics in mg_report.items():
-            rows.append({
-                "Class": cls,
-                "Precision": f"{metrics['precision']:.4f}",
-                "Recall":    f"{metrics['recall']:.4f}",
-                "F1-Score":  f"{metrics['f1-score']:.4f}",
-                "Support":   int(metrics.get("support", 0)),
-            })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-    # Feature importance
-    feat_imp = mg_res.get("feature_importance", {})
-    if feat_imp:
-        st.markdown("**Feature Importance (LightGBM Split Count)**")
-        fi_df = pd.DataFrame({"Feature": feat_imp.keys(), "Importance": feat_imp.values()})
-        fi_df = fi_df.sort_values("Importance", ascending=True)
-        st.bar_chart(fi_df.set_index("Feature"), color="#00897b")
-
-    st.markdown("---")
-
-    # ── PretermGuard Performance ──
-    st.subheader("👶 PretermGuard Performance")
-    pg_best_name = pg_res.get("best_model", "LightGBM")
-    pg_best_data = pg_res.get(pg_best_name, {})
-
-    m1, m2, m3, m4 = st.columns(4)
-    m1.metric("Best Model", pg_best_name)
-    m2.metric("Macro F1-Score", f"{pg_best_data.get('macro_f1', 0):.4f}")
-    m3.metric("AUROC (OVR Macro)", f"{pg_best_data.get('auroc_ovr_macro', 0):.4f}")
-    pg_report = pg_best_data.get("classification_report", {})
-    m4.metric("Overall Accuracy", f"{pg_report.get('accuracy', 0):.4f}")
-
-    pg_per_class = pg_best_data.get("per_class", {})
-    if pg_per_class:
-        st.markdown("**Per-Class Metrics**")
-        rows = []
-        for cls, metrics in pg_per_class.items():
-            rows.append({
-                "Class": cls,
-                "Precision": f"{metrics['precision']:.4f}",
-                "Recall":    f"{metrics['recall']:.4f}",
-                "F1-Score":  f"{metrics['f1-score']:.4f}",
-            })
-        st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
-
-    # All-models comparison table
-    st.markdown("---")
-    st.subheader("📈 All Models Comparison")
-    comparison_rows = [
-        {"Model": f"FetalWatch ({fw_res.get('best_model', 'N/A')})", "Task": "Fetal Health", "Macro-F1": f"{fw_res.get(fw_res.get('best_model', ''), {}).get('macro_f1', 0):.4f}"},
-        {"Model": f"MaternalGuard ({mg_res.get('best_model', 'N/A')})", "Task": "Maternal Risk", "Macro-F1": f"{mg_res.get('models', {}).get(mg_res.get('best_model', ''), {}).get('macro_f1', 0):.4f}"},
-        {"Model": f"PretermGuard ({pg_res.get('best_model', 'N/A')})", "Task": "Preterm Risk", "Macro-F1": f"{pg_res.get(pg_res.get('best_model', ''), {}).get('macro_f1', 0):.4f}"},
+# Header Title
+st.title("🤱 " + ("ماں حفاظت اے آئی (MaaHifazat AI)" if is_ur else "MaaHifazat AI"))
+st.caption(
+    "طبی نگہداشت برائے حاملہ خواتین و کلینیکل فیصلہ سازی · کسی بھی ایمرجنسی کی صورت میں فوری ہسپتال رجوع فرمائیں۔"
+    if is_ur else
+    "Maternal care dashboard · Observations and model results require clinical interpretation. Emergency care must not wait."
+)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# ROUTING: MAIN SECTIONS VS SUPPORTING PANELS
+# ─────────────────────────────────────────────────────────────────────────────
+if supporting_view == "None (Main Sections)":
+    # Prominent Primary Navigation for EXACTLY TWO MAIN SECTIONS
+    section_options = [
+        "A — Risk Assessment" if not is_ur else "الف — خطرات کا جائزہ (Risk Assessment)",
+        "B — Pregnancy Helper" if not is_ur else "ب — رہنما برائے حمل (Pregnancy Helper)"
     ]
-    st.dataframe(pd.DataFrame(comparison_rows), use_container_width=True, hide_index=True)
-
-    # ── Model Training ──
-    st.markdown("---")
-    st.subheader("🔧 Retrain Models")
-    st.markdown(
-        "<p style='color:#555;'>Trigger model retraining from the app. "
-        "Training runs <code>scripts/run_models.py</code> with the correct data path and updates the artifacts on disk.</p>",
-        unsafe_allow_html=True,
+    active_section = st.radio(
+        "Navigation",
+        section_options,
+        horizontal=True,
+        label_visibility="collapsed"
     )
 
-    with st.form("train_models_form"):
-        tc1, tc2 = st.columns([2, 1])
-        with tc1:
-            train_fw = st.checkbox("FetalWatch (CTG fetal risk)", value=True, key="tr_fw")
-            train_mg = st.checkbox("MaternalGuard (maternal vitals risk)", value=True, key="tr_mg")
-            train_cr = st.checkbox("CareReach (ANC missed-visit risk)", value=False, key="tr_cr")
-            train_gi = st.checkbox("GestationInsight (gestational complications)", value=False, key="tr_gi")
-        with tc2:
-            n_trials = st.number_input("Optuna trials", 1, 50, value=5, step=1, key="tr_trials")
+    st.markdown("---")
 
-        train_btn = st.form_submit_button("🚀 Start Training", use_container_width=True)
+    # ─────────────────────────────────────────────────────────────────────────
+    # SECTION A — RISK ASSESSMENT
+    # ─────────────────────────────────────────────────────────────────────────
+    if active_section.startswith("A") or active_section.startswith("الف"):
+        st.subheader("🛡️ " + ("الف — خطرات کا جائزہ اور کلینیکل سفارشات" if is_ur else "Section A — Maternal & Fetal Risk Assessment"))
+        st.caption(
+            "چار توسیعی گروپس: مریضہ کی تفصیلات، ماں کی صحت، بچے کی جانچ، اور معائنے کا شیڈول۔"
+            if is_ur else
+            "Four expandable input groups covering patient history, mother vitals, baby movements/CTG, and follow-up care."
+        )
 
-    if train_btn:
-        if not (train_fw or train_mg or train_cr or train_gi):
-            st.warning("Select at least one model to train.")
+        # Template & Draft Controls
+        ctrl1, ctrl2, ctrl3 = st.columns([2, 1, 1])
+        use_template = ctrl1.toggle("Use a pre-filled clinical test template", value=False)
+        if use_template:
+            scenario = ctrl1.selectbox("Clinical scenario template", list(SCENARIOS))
+            preset = dict(SCENARIOS.get(scenario, {}))
+            preset.update({"storing": True, "discover": True, "routing": True, "allow_ai": True, "run_research": True, "latitude": 34.015000, "longitude": 71.525000})
+            demo = False
+            key = scenario + "-template"
         else:
-            import subprocess, sys as _sys
+            demo = health.get("demo_mode")
+            scenario = "Measured patient"
+            preset = {}
+            if st.session_state.get("case_draft"):
+                preset = dict(st.session_state["case_draft"])
+            key = "measured-patient"
 
-            # Build a small inline script that calls run_all_models() and
-            # dumps the JSON-serialisable results to stdout so we can
-            # capture them here.  Optuna / lightgbm logs are suppressed.
-            _script = (
-                "import sys, os, json\n"
-                "os.environ['PYTHONIOENCODING']='utf-8'\n"
-                f"sys.path.insert(0, {str(BASE_DIR)!r})\n"
-                "from scripts.run_models import run_all_models\n"
-                f"results = run_all_models(n_trials={n_trials}, "
-                f"train_fetalwatch={train_fw}, train_maternalguard={train_mg}, "
-                f"train_carereach={train_cr}, train_gestation={train_gi}, verbose=False)\n"
-                # Serialise numpy floats/ints for JSON
-                "def _ser(o):\n"
-                "    import numpy as _np\n"
-                "    if isinstance(o, (_np.floating, float)): return float(o)\n"
-                "    if isinstance(o, (_np.integer, int)): return int(o)\n"
-                "    if isinstance(o, _np.ndarray): return o.tolist()\n"
-                "    return str(o)\n"
-                "print(json.dumps(results, default=_ser))\n"
-            )
+        if ctrl2.button("💾 " + ("ڈرافٹ محفوظ کریں" if is_ur else "Save Draft"), key="btn_save_draft"):
+            st.session_state["case_draft"] = preset
+            st.success(t("draft_saved", current_lang))
 
-            output_placeholder = st.empty()
-            with st.spinner("⏳ Training models — this may take several minutes…"):
-                proc = subprocess.run(
-                    [_sys.executable, "-c", _script],
-                    capture_output=True, text=True, cwd=str(BASE_DIR),
-                    env={**os.environ, "PYTHONIOENCODING": "utf-8"},
-                )
+        if st.session_state.get("case_draft") and ctrl3.button("🔄 " + ("ڈرافٹ بحال کریں" if is_ur else "Restore Draft"), key="btn_restore_draft"):
+            preset = dict(st.session_state["case_draft"])
+            st.info("Draft loaded into the form.")
 
-            if proc.returncode != 0:
-                st.error("Training failed:")
-                with st.expander("🔍 View stderr"):
-                    st.code(proc.stderr[-3000:] if proc.stderr else "(no stderr)")
-            else:
-                st.success("✅ Training complete! Artifacts updated.")
-                try:
-                    # Last stdout line is the JSON blob
-                    json_line = proc.stdout.strip().splitlines()[-1]
-                    train_results = json.loads(json_line)
+        # Patient Profile Selection
+        patients = call("GET", "/patients") or []
+        options = {"Register a new patient": None, **{p["name"] + " · " + p["patient_id"][:8]: p for p in patients}}
+        if not staff and patients:
+            options = {p["name"] + " · " + p["patient_id"][:8]: p for p in patients}
+        chosen = st.selectbox("Patient profile (مریضہ کی پروفائل)", list(options))
+        patient = options[chosen]
 
-                    # Show per-model highlights
-                    if train_fw and "fetalwatch" in train_results:
-                        fw_r = train_results["fetalwatch"]
-                        best = max(fw_r, key=lambda k: fw_r[k].get("macro_f1", 0))
-                        st.info(f"🫀 **FetalWatch** — Best: `{best}`, Macro-F1: `{fw_r[best].get('macro_f1', 0):.4f}`")
+        # Location Setup
+        gps = st.session_state.get("current_location")
+        if not demo:
+            fresh_gps = gps_component(key="gps", default=None)
+            gps = fresh_gps or gps
+            if gps and (gps["latitude"], gps["longitude"], gps.get("captured_at")) != st.session_state.get("last_gps"):
+                st.session_state[key + "_latitude"] = gps["latitude"]
+                st.session_state[key + "_longitude"] = gps["longitude"]
+                st.session_state["gps_value"] = gps
+                st.session_state["last_gps"] = (gps["latitude"], gps["longitude"], gps.get("captured_at"))
 
-                    if train_mg and "maternalguard" in train_results:
-                        mg_r = train_results["maternalguard"]
-                        st.info(f"🤱 **MaternalGuard** — Best: `{mg_r.get('best_model')}`, Macro-F1: `{mg_r.get('best_macro_f1', 0):.4f}`")
+        if demo and preset.get("ctg"):
+            st.caption("Fetal demo uses a selected internal held-out pathological case correctly classified by the model.")
 
-                    if train_cr and "carereach" in train_results:
-                        cr_r = train_results["carereach"]
-                        status = "✅" if cr_r.get("returncode") == 0 else "❌"
-                        st.info(f"📅 **CareReach** — {status} return code: {cr_r.get('returncode')}")
+        from ui.assessment_form import render_assessment_form
+        if demo and st.button("Load held-out fetal example"):
+            example = call("GET", "/analytics/models/demo-ctg")
+            if example:
+                st.session_state["demo_ctg_json"] = json.dumps(example["features"], indent=2)
+                st.rerun()
 
-                    if train_gi and "gestation_insight" in train_results:
-                        gi_r = train_results["gestation_insight"]
-                        status = "✅" if gi_r.get("returncode") == 0 else "❌"
-                        st.info(f"🤰 **GestationInsight** — {status} return code: {gi_r.get('returncode')}")
+        # Render Assessment Form
+        try:
+            submission = render_assessment_form(patient, preset, key, demo, gps, staff)
+            if submission:
+                payload = submission["payload"]
+                changes = submission["profile"]
+                if patient is None:
+                    patient = api().request("POST", "/patients", json={**changes, "location": "Synthetic demo village" if demo else "Manually recorded / GPS"})
+                    payload["patient_id"] = patient["patient_id"]
+                else:
+                    profile = {field: patient[field] for field in PatientCreate.model_fields if field in patient}
+                    profile.update(changes)
+                    if any(profile[field] != patient.get(field) for field in profile):
+                        patient = api().request("PUT", f"/patients/{patient['patient_id']}", json=profile)
 
-                    # Artifact status
-                    artifacts = train_results.get("artifacts", {})
-                    if artifacts:
-                        st.markdown("**Artifact Status:**")
-                        art_rows = [{"Artifact": k, "Status": "✅ Present" if v else "❌ Missing"} for k, v in artifacts.items()]
-                        st.dataframe(pd.DataFrame(art_rows), use_container_width=True, hide_index=True)
+                with st.spinner("Running the nine-agent assessment and generating both reports..."):
+                    response = api().request("POST", "/agents/run" if staff else "/care/assess", json=payload)
+                st.session_state["last_result"] = response["result"]
+                st.session_state["last_case"] = payload["case_id"]
+                st.session_state["last_submission_key"] = key
+                st.success("Case saved. Mother/baby care and hospital referral reports generated.")
+        except (ValueError, ValidationError, APIError) as exc:
+            st.error(str(exc))
 
-                except Exception as parse_err:
-                    st.warning(f"Could not parse training output: {parse_err}")
-                    with st.expander("🔍 Raw stdout"):
-                        st.code(proc.stdout[-2000:] if proc.stdout else "")
+        # Show Output Reports & Hospital Referral
+        if st.session_state.get("last_result") and st.session_state.get("last_submission_key") == key:
+            render_result(st.session_state["last_result"], lang=current_lang)
+            review_controls(st.session_state["last_case"], st.session_state["last_result"])
 
-                st.caption("💡 Refresh the page to see updated metrics in the performance tables above.")
+    # ─────────────────────────────────────────────────────────────────────────
+    # SECTION B — PREGNANCY HELPER
+    # ─────────────────────────────────────────────────────────────────────────
+    elif active_section.startswith("B") or active_section.startswith("ب"):
+        render_pregnancy_helper(call, lang=current_lang)
 
+# ─────────────────────────────────────────────────────────────────────────────
+# SUPPORTING PANELS (COLLAPSIBLE / MODULAR)
+# ─────────────────────────────────────────────────────────────────────────────
+elif supporting_view == "📁 Patient History & Saved Cases":
+    st.subheader("📁 " + ("مریضہ کا ریکارڈ اور محفوظ شدہ کیسز" if is_ur else "Patient History & Saved Cases"))
+    patients = call("GET", "/patients") or []
+    if not patients:
+        st.info("Run a new assessment to create the first patient.")
+    else:
+        selected = st.selectbox("Patient", patients, format_func=lambda p: p["name"] + " · " + p["patient_id"][:8])
+        history = call("GET", f"/patients/{selected['patient_id']}/assessments") or []
+        if not history:
+            st.info("No saved assessments yet.")
+        else:
+            encounter = st.selectbox("Saved case", history, format_func=lambda h: f"{h['created_at']} · {h['triage_level']} · {(h['case_id'] or '')[:8]}")
+            if encounter["case_id"]:
+                saved = call("GET", f"/agents/cases/{encounter['case_id']}")
+                if saved:
+                    render_result(saved["result"], saved, lang=current_lang)
+                    review_controls(encounter["case_id"], saved["result"], saved["review_status"])
+    referrals = call("GET", "/referrals") or []
+    if referrals:
+        st.subheader("Track referrals")
+        st.dataframe(pd.DataFrame(referrals)[["id", "facility_name", "urgency_level", "status"]], hide_index=True)
+        referral = st.selectbox("Referral", referrals, format_func=lambda r: r["facility_name"] + " · " + r["status"])
+        with st.form("transition_referral"):
+            status = st.selectbox("New status", ["accepted", "in_transit", "completed", "cancelled"])
+            if st.form_submit_button("Record referral progress"):
+                changed = call("PUT", f"/referrals/{referral['id']}/status", json={"status": status})
+                if changed:
+                    st.success("Referral progress saved.")
 
-# ─────────────────────────────────────────────
-# Footer (rendered on every page)
-# ─────────────────────────────────────────────
-st.markdown("<br><br>", unsafe_allow_html=True)
-st.markdown(
-    """<div class='app-footer'>
-    ⚠️ <strong>Disclaimer:</strong> This is an AI-based screening tool and does NOT replace professional medical diagnosis.
-    Always consult a qualified healthcare professional for clinical decisions. &nbsp;|&nbsp;
-    MaaHifazat AI © 2026
-    </div>""",
-    unsafe_allow_html=True,
-)
+elif supporting_view == "📅 ANC Follow-up Queue":
+    from ui.reminders import render_due_reminders
+    render_due_reminders(call)
+    st.subheader("ANC outreach queue")
+    tasks = call("GET", "/followups") or []
+    if not tasks:
+        st.info("Follow-up tasks appear after a saved assessment.")
+    else:
+        patients = {p["patient_id"]: p["name"] for p in call("GET", "/patients") or []}
+        rows = [{"Patient": patients.get(t["patient_id"], t["patient_id"]), "Priority": t["priority"], "Action": t["action"],
+                 "Due": t["due_date"], "Status": t["status"], "Case": t["case_id"]} for t in tasks]
+        st.dataframe(pd.DataFrame(rows), hide_index=True, width="stretch")
+        pending = [t for t in tasks if t["status"] == "pending"]
+        if pending and staff:
+            task = st.selectbox("Pending task", pending, format_func=lambda t: f"{patients.get(t['patient_id'], t['patient_id'])} · {t['action']} · {t['priority']}")
+            with st.form("resolve_task"):
+                notes = st.text_area("Record actual call, visit or scheduling outcome")
+                status = st.selectbox("Task outcome", ["completed", "cancelled"])
+                if st.form_submit_button("Save task outcome"):
+                    saved = call("PUT", f"/followups/{task['id']}", json={"status": status, "notes": notes})
+                    if saved:
+                        st.success("Outcome recorded.")
+    profiles = call("GET", "/patients") or []
+    if profiles:
+        contact = st.selectbox("Contact patient / care team", profiles, format_func=lambda p: p["name"])
+        if contact.get("phone"):
+            from ui.contact_actions import render_contacts
+            render_contacts(contact["phone"], "Please contact your maternity care team to arrange the due pregnancy checkup.", key="followup")
+    st.caption("App reminders refresh while this page is open. SMS/WhatsApp composers and direct calls are user-operated; delivery is tracked locally.")
+
+elif supporting_view == "📊 Model Evidence & Capabilities":
+    from ui.model_workspace import render_workbench
+    render_workbench(call)
+    evidence = call("GET", "/analytics/models/evidence")
+    if evidence:
+        st.subheader("Clinical assessment pipelines")
+        st.dataframe(pd.DataFrame(evidence["supported"]), hide_index=True, width="stretch")
+        st.subheader("Clinical outcome limitations")
+        st.dataframe(pd.DataFrame(evidence["disabled"]), hide_index=True, width="stretch")
+        st.info("Holdout scores measure agreement with dataset labels. They do not establish clinical accuracy in rural Pakistan.")
+        st.caption("All five executable tasks appear above with their actual target. Obstetric outcome validation is shown separately.")
+        audit = ROOT / "docs/model_audit.json"
+        if audit.exists():
+            st.download_button("Download model and dataset audit", audit.read_text(encoding="utf-8"), "model_audit.json", "application/json")
+
+elif supporting_view == "👥 Team Accounts" and user["role"] == "admin":
+    st.subheader("Create a clinician or health-worker account")
+    with st.form("team_account"):
+        username = st.text_input("Team username")
+        full_name = st.text_input("Team member name")
+        password = st.text_input("Initial team password", type="password")
+        role = st.selectbox("Role", ["clinician", "lhw"])
+        if st.form_submit_button("Create team account"):
+            created = call("POST", "/auth/users", json={"username": username, "full_name": full_name, "password": password, "role": role})
+            if created:
+                st.success("Account created. User ID: " + created["user_id"])
+    st.subheader("Assign access to a patient")
+    patients = call("GET", "/patients") or []
+    if patients:
+        with st.form("assign_team"):
+            patient = st.selectbox("Patient to assign", patients, format_func=lambda p: p["name"])
+            user_id = st.text_input("Team user ID")
+            if st.form_submit_button("Assign staff access"):
+                result = call("POST", f"/patients/{patient['patient_id']}/assign", json={"user_id": user_id, "is_owner": False})
+                if result:
+                    st.success("Staff access assigned.")
+
+st.divider()
+st.caption("MaaHifazat AI · Algo Titans · Measurements and reported symptoms require qualified clinical interpretation.")

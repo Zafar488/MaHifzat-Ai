@@ -1,0 +1,114 @@
+Report 1: Mother and baby care
+
+Patient and case
+Case ID: d6af8cad-6d84-4c65-8979-eb2dc9d50491
+Patient ID: 84018b4c-7f65-4e4e-a21b-799b16780d78
+Name: Synthetic report verification case
+Contact: Not recorded / unknown
+Urgency: routine
+Provenance: patient_reported
+Generated UTC: 2026-10-10T14:07:49.315904+00:00
+
+Mother's measured observations and safety
+Age: 30.0 years
+Pregnancy age: 28.0 weeks
+Systolic BP: 120.0 mmHg
+Diastolic BP: 80.0 mmHg
+Heart rate: 80.0 bpm
+Temperature: 37.0 °C
+Blood glucose: 6.0 mmol/L
+Breathing rate: Not recorded / unknown
+Vaginal bleeding: Not recorded / unknown
+Headache severity: Not recorded / unknown
+Vision disturbance: Not recorded / unknown
+Upper abdominal pain: Not recorded / unknown
+Convulsions: Not recorded / unknown
+Foul-smelling discharge: Not recorded / unknown
+Consciousness: Not recorded / unknown
+Fetal movement flag: Not recorded / unknown
+Measured at: 2026-10-10T12:00:00+05:00
+Glucose test type: random
+Rule triage: LOW_RISK
+Triggered danger signs: None recorded
+Missing measurements: None recorded
+Reported symptoms: None recorded
+
+Pregnancy history and available tests
+Expected delivery date: Not recorded / unknown
+Dating source: ultrasound
+Previous pregnancies: 2
+Previous births: 1
+Previous complications: None recorded
+Existing conditions: None recorded
+History notes (original text): Not recorded / unknown
+Additional symptoms (original text; not structured triage): Not recorded / unknown
+Other tests (original text): Not recorded / unknown
+BMI: 25.0 kg/m²
+Skinfold thickness: 20.0 mm
+Insulin: 100.0 µU/mL
+Dataset-specific family-history score: 0.3
+
+Baby and prediction evidence
+Movements started: Yes
+Movements less/different than usual: No
+Concern first noticed: Not recorded / unknown
+Fetal notes (original text): Not recorded / unknown
+Maternal model category: low risk
+Maternal model version: experimental-v2-20261010
+Fetal CTG category: normal
+Fetal model version: experimental-v2-20261010
+Maternal class probabilities (uncalibrated): high risk: 0.0001, low risk: 0.7548, mid risk: 0.2451
+Fetal class probabilities (uncalibrated): normal: 0.9998, pathological: 0.0002, suspect: 0.0000
+Compatible measured CTG features were assessed.
+Experimental labels are not diagnoses or calibrated confidence. No local clinical validation established.
+
+Optional research evidence — does not determine care
+Model: pretermguard
+Research target: CTG pattern CLASS (not preterm birth)
+Status: research_prediction
+Dataset label: CTG pattern class 7
+Version: ctg-patterns-v3-20261010
+Research probabilities (uncalibrated): CTG pattern class 1: 0.0000, CTG pattern class 2: 0.0000, CTG pattern class 3: 0.0000, CTG pattern class 4: 0.0000, CTG pattern class 5: 0.0000, CTG pattern class 6: 0.0000, CTG pattern class 7: 1.0000, CTG pattern class 8: 0.0000, CTG pattern class 9: 0.0000, CTG pattern class 10: 0.0000
+Research note (source text): Not recorded / unknown
+Model: gestationinsight
+Research target: Pima-derived research label
+Status: research_prediction
+Dataset label: 0
+Version: research-only-v2-20261010
+Research probabilities (uncalibrated): 0: 0.9996, 1: 0.0000, 2: 0.0004
+Research note (source text): Training-defined SBP estimate is DBP+40, not measured BP. Glucose converted to mg/dL. Previous pregnancies + current pregnancy used. Pima proxy is not a pregnancy outcome.
+Model: carereach
+Research target: General appointment no-show label
+Status: research_prediction
+Dataset label: 1
+Version: research-only-v2-20261010
+Research probabilities (uncalibrated): 0: 0.2904, 1: 0.7096
+Research note (source text): Booking delay is booking-to-appointment days, not days since the last visit. General appointment dataset proxy; not ANC clinical risk.
+These targets are not validated pregnancy outcomes; they do not change urgency, follow-up or destination.
+
+Next actions and prevention of delay
+Continue scheduled clinical care and seek help for new symptoms.
+Share this report and the original measurements with a qualified maternity clinician.
+Arrange appropriate transport and a companion with the health worker; confirm the receiving service.
+Record any new or worsening symptoms and seek clinical help. Do not use these experimental model labels to prescribe treatment or decide a delivery plan.
+
+Appointments and follow-up
+Priority: routine
+Action: reminder
+Appointment booked on: 2026-10-10
+Last completed checkup: 2026-09-26
+Next appointment: 2026-10-17
+Estimated pregnancy age at appointment: 29.0 weeks
+Next reminder: 2026-10-16
+Completed contact weeks: 12, 20, 26
+Missed visits: 0
+Transport barrier: No
+Phone access: Not recorded / unknown
+Reminder previously sent: No
+Preferred channel: app
+Notification consent: No
+A task/draft is not proof of a sent message or completed visit.
+
+Clinical review
+Pending qualified clinician review. This report cannot guarantee safety of mother or baby and does not prescribe treatment.
+Emergency care must not wait for the language model or software approval.

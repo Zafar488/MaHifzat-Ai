@@ -1,0 +1,496 @@
+{
+  "datasets": {
+    "carereach_prepared.parquet": {
+      "rows": 110527,
+      "columns": [
+        "PatientId",
+        "AppointmentID",
+        "Gender",
+        "ScheduledDay",
+        "AppointmentDay",
+        "Age",
+        "Neighbourhood",
+        "Scholarship",
+        "Hipertension",
+        "Diabetes",
+        "Alcoholism",
+        "Handcap",
+        "SMS_received",
+        "No-show",
+        "booking_delta_days",
+        "age_group",
+        "appointment_dow",
+        "sms_x_delta",
+        "comorbidity_count",
+        "target"
+      ],
+      "null_cells": 3547,
+      "sha256": "4da6fd93035b24011cc728621cbf135b8fb2ed4305f09ef0836f342d6209d752",
+      "infinite_numeric_cells": 0,
+      "source_provenance": "No local acquisition manifest; origin cannot be certified from row count"
+    },
+    "gestation_prepared.parquet": {
+      "rows": 768,
+      "columns": [
+        "Pregnancies",
+        "Glucose",
+        "BloodPressure",
+        "SkinThickness",
+        "Insulin",
+        "BMI",
+        "DiabetesPedigreeFunction",
+        "Age",
+        "Outcome",
+        "SBP_estimated",
+        "MAP",
+        "pulse_pressure",
+        "bmi_class",
+        "glucose_tolerance_idx",
+        "age_parity_interaction",
+        "insulin_glucose_ratio",
+        "target"
+      ],
+      "null_cells": 11,
+      "sha256": "51c653d0b0bf66284c1299286501fbe108d71ca809615185d736e8e6dbd167bc",
+      "infinite_numeric_cells": 0,
+      "source_provenance": "No local acquisition manifest; origin cannot be certified from row count"
+    },
+    "oncotrace_prepared.parquet": {
+      "rows": 569,
+      "columns": [
+        "diagnosis",
+        "radius_mean",
+        "texture_mean",
+        "perimeter_mean",
+        "area_mean",
+        "smoothness_mean",
+        "compactness_mean",
+        "concavity_mean",
+        "concave_points_mean",
+        "symmetry_mean",
+        "fractal_dimension_mean",
+        "radius_se",
+        "texture_se",
+        "perimeter_se",
+        "area_se",
+        "smoothness_se",
+        "compactness_se",
+        "concavity_se",
+        "concave_points_se",
+        "symmetry_se",
+        "fractal_dimension_se",
+        "radius_worst",
+        "texture_worst",
+        "perimeter_worst",
+        "area_worst",
+        "smoothness_worst",
+        "compactness_worst",
+        "concavity_worst",
+        "concave_points_worst",
+        "symmetry_worst",
+        "fractal_dimension_worst",
+        "target",
+        "volume_mean",
+        "volume_worst",
+        "shape_irregularity",
+        "texture_entropy",
+        "malignancy_risk_idx",
+        "concavity_perimeter",
+        "compactness_ratio"
+      ],
+      "null_cells": 0,
+      "sha256": "d1f448ca2b7414f708c1218659b8fc79ef7a23dac052dfe7dc635cbdc40ed5a5",
+      "infinite_numeric_cells": 0,
+      "source_provenance": "No local acquisition manifest; origin cannot be certified from row count"
+    },
+    "uci_ctg.parquet": {
+      "rows": 2126,
+      "columns": [
+        "LB",
+        "AC",
+        "FM",
+        "UC",
+        "DL",
+        "DS",
+        "DP",
+        "ASTV",
+        "MSTV",
+        "ALTV",
+        "MLTV",
+        "Width",
+        "Min",
+        "Max",
+        "Nmax",
+        "Nzeros",
+        "Mode",
+        "Mean",
+        "Median",
+        "Variance",
+        "Tendency",
+        "CLASS",
+        "NSP"
+      ],
+      "null_cells": 0,
+      "sha256": "28ce62995eb5f357470a6ef977bedcda6e266253e85d1524f6e0b429fe2092ab",
+      "infinite_numeric_cells": 0,
+      "unique_feature_groups": 2111,
+      "duplicate_feature_rows": 15,
+      "conflicting_label_groups": 2,
+      "labels": {
+        "1": 1655,
+        "2": 295,
+        "3": 176
+      }
+    },
+    "uci_maternal.parquet": {
+      "rows": 1014,
+      "columns": [
+        "Age",
+        "SystolicBP",
+        "DiastolicBP",
+        "BS",
+        "BodyTemp",
+        "HeartRate",
+        "RiskLevel"
+      ],
+      "null_cells": 0,
+      "sha256": "7a87dab5ad2883339f2944b78427b526a11d5f1329f57c316e448735fd74ead4",
+      "infinite_numeric_cells": 0,
+      "unique_feature_groups": 416,
+      "duplicate_feature_rows": 598,
+      "conflicting_label_groups": 35,
+      "labels": {
+        "low risk": 406,
+        "mid risk": 336,
+        "high risk": 272
+      }
+    }
+  },
+  "supported": {
+    "maternalguard": {
+      "algorithm": "LGBMClassifier",
+      "model_version": "experimental-v2-20261010",
+      "test_rows": 177,
+      "test_macro_f1": 0.687058096941818,
+      "training_cv_macro_f1": 0.6335710405862917,
+      "train_test_group_overlap": 0,
+      "test_report": {
+        "high risk": {
+          "precision": 0.7894736842105263,
+          "recall": 0.8181818181818182,
+          "f1-score": 0.8035714285714286,
+          "support": 55.0
+        },
+        "low risk": {
+          "precision": 0.7142857142857143,
+          "recall": 0.8333333333333334,
+          "f1-score": 0.7692307692307693,
+          "support": 72.0
+        },
+        "mid risk": {
+          "precision": 0.5833333333333334,
+          "recall": 0.42,
+          "f1-score": 0.4883720930232558,
+          "support": 50.0
+        },
+        "accuracy": 0.711864406779661,
+        "macro avg": {
+          "precision": 0.6956975772765247,
+          "recall": 0.6905050505050506,
+          "f1-score": 0.687058096941818,
+          "support": 177.0
+        },
+        "weighted avg": {
+          "precision": 0.7006570097560285,
+          "recall": 0.711864406779661,
+          "f1-score": 0.700562986481394,
+          "support": 177.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          45,
+          3,
+          7
+        ],
+        [
+          4,
+          60,
+          8
+        ],
+        [
+          8,
+          21,
+          21
+        ]
+      ],
+      "classes": [
+        "high risk",
+        "low risk",
+        "mid risk"
+      ],
+      "clinical_validation": "Not established; repeated internal holdout, no local external validation"
+    },
+    "fetalwatch": {
+      "algorithm": "LGBMClassifier",
+      "model_version": "experimental-v2-20261010",
+      "test_rows": 426,
+      "test_macro_f1": 0.9246710292319188,
+      "training_cv_macro_f1": 0.8961717458365758,
+      "train_test_group_overlap": 0,
+      "test_report": {
+        "normal": {
+          "precision": 0.9756838905775076,
+          "recall": 0.9907407407407407,
+          "f1-score": 0.9831546707503829,
+          "support": 324.0
+        },
+        "pathological": {
+          "precision": 0.8378378378378378,
+          "recall": 0.96875,
+          "f1-score": 0.8985507246376812,
+          "support": 32.0
+        },
+        "suspect": {
+          "precision": 0.9666666666666667,
+          "recall": 0.8285714285714286,
+          "f1-score": 0.8923076923076924,
+          "support": 70.0
+        },
+        "accuracy": 0.9624413145539906,
+        "macro avg": {
+          "precision": 0.9267294650273374,
+          "recall": 0.9293540564373898,
+          "f1-score": 0.9246710292319188,
+          "support": 426.0
+        },
+        "weighted avg": {
+          "precision": 0.9638475540483332,
+          "recall": 0.9624413145539906,
+          "f1-score": 0.9618715374954655,
+          "support": 426.0
+        }
+      },
+      "confusion_matrix": [
+        [
+          321,
+          1,
+          2
+        ],
+        [
+          1,
+          31,
+          0
+        ],
+        [
+          7,
+          5,
+          58
+        ]
+      ],
+      "classes": [
+        "normal",
+        "pathological",
+        "suspect"
+      ],
+      "clinical_validation": "Not established; repeated internal holdout, no local external validation"
+    }
+  },
+  "legacy_smoke_checks": {
+    "maternalguard": {
+      "path": "artifacts\\maternalguard\\best_model.joblib",
+      "served": false,
+      "load_and_predict": "passed",
+      "sample_predictions": [
+        "0",
+        "0",
+        "0",
+        "0",
+        "0"
+      ],
+      "finite_normalized_probabilities": true,
+      "algorithm": "LGBMClassifier",
+      "reason_not_served": "Bare legacy estimator without the complete verified train-time preprocessing contract"
+    },
+    "fetalwatch": {
+      "path": "artifacts\\fetalwatch\\best_model.joblib",
+      "served": false,
+      "load_and_predict": "passed",
+      "sample_predictions": [
+        "2",
+        "2",
+        "2",
+        "2",
+        "2"
+      ],
+      "finite_normalized_probabilities": true,
+      "algorithm": "XGBClassifier",
+      "reason_not_served": "Bare legacy estimator without the complete verified train-time preprocessing contract"
+    },
+    "pretermguard": {
+      "path": "artifacts\\pretermguard\\best_model.joblib",
+      "served": false,
+      "load_and_predict": "passed",
+      "sample_predictions": [
+        "Suspect",
+        "Suspect",
+        "Suspect",
+        "Suspect",
+        "Suspect"
+      ],
+      "finite_normalized_probabilities": true,
+      "algorithm": "LGBMClassifier",
+      "reason_not_served": "No labelled preterm-birth outcome dataset or validated model."
+    },
+    "carereach": {
+      "path": "artifacts\\carereach\\best_model.joblib",
+      "served": false,
+      "load_and_predict": "failed",
+      "error_type": "AttributeError",
+      "reason_not_served": "General appointment cohort is not a validated ANC population."
+    },
+    "gestationinsight": {
+      "path": "artifacts\\gestationinsight\\best_model.joblib",
+      "served": false,
+      "load_and_predict": "passed",
+      "sample_predictions": [
+        "2",
+        "0",
+        "2",
+        "0",
+        "2"
+      ],
+      "finite_normalized_probabilities": true,
+      "algorithm": "LGBMClassifier",
+      "reason_not_served": "Pima diabetes proxy is not an observed pregnancy-complication outcome."
+    }
+  },
+  "research_rebuilds": {
+    "carereach": {
+      "load_and_predict": "passed",
+      "clinical_serving": false,
+      "test_macro_f1": 0.5626517036449267,
+      "train_test_group_overlap": 0,
+      "not_clinical_reason": "General appointment cohort is not a validated ANC population.",
+      "upstream_data_limitations": "Legacy prepared dataset lacks acquisition manifest. Gestation file was globally imputed and labels partly derived from input features; scores do not establish an obstetric outcome."
+    },
+    "gestationinsight": {
+      "load_and_predict": "passed",
+      "clinical_serving": false,
+      "test_macro_f1": 0.7423199023199024,
+      "train_test_group_overlap": 0,
+      "not_clinical_reason": "Pima diabetes proxy is not an observed pregnancy-complication outcome.",
+      "upstream_data_limitations": "Legacy prepared dataset lacks acquisition manifest. Gestation file was globally imputed and labels partly derived from input features; scores do not establish an obstetric outcome."
+    },
+    "pretermguard": {
+      "load_and_predict": "passed",
+      "clinical_serving": false,
+      "test_macro_f1": 0.8504266747038033,
+      "train_test_group_overlap": 0,
+      "not_clinical_reason": "CLASS denotes CTG patterns, not gestational age at birth or an observed preterm outcome.",
+      "upstream_data_limitations": "CLASS denotes CTG patterns, not gestational age at birth or an observed preterm outcome."
+    }
+  },
+  "physionet": {
+    "records_read": 15,
+    "records": [
+      {
+        "record": "1001",
+        "sampling_hz": 4,
+        "duration_minutes": 80.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1002",
+        "sampling_hz": 4,
+        "duration_minutes": 80.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1003",
+        "sampling_hz": 4,
+        "duration_minutes": 75.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1004",
+        "sampling_hz": 4,
+        "duration_minutes": 70.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1005",
+        "sampling_hz": 4,
+        "duration_minutes": 75.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1006",
+        "sampling_hz": 4,
+        "duration_minutes": 70.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1007",
+        "sampling_hz": 4,
+        "duration_minutes": 65.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1008",
+        "sampling_hz": 4,
+        "duration_minutes": 70.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1009",
+        "sampling_hz": 4,
+        "duration_minutes": 85.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1010",
+        "sampling_hz": 4,
+        "duration_minutes": 70.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1011",
+        "sampling_hz": 4,
+        "duration_minutes": 65.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1012",
+        "sampling_hz": 4,
+        "duration_minutes": 70.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1013",
+        "sampling_hz": 4,
+        "duration_minutes": 75.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1014",
+        "sampling_hz": 4,
+        "duration_minutes": 80.0,
+        "feature_extraction_finite": true
+      },
+      {
+        "record": "1015",
+        "sampling_hz": 4,
+        "duration_minutes": 80.0,
+        "feature_extraction_finite": true
+      }
+    ],
+    "served": false,
+    "reason": "Exploratory extraction uses heuristic variability/movement definitions; no established equivalence to UCI device features or independent clinical evaluation"
+  },
+  "limitations": [
+    "No prospective local clinical validation",
+    "No independently labelled preterm, gestational-complication or ANC population dataset",
+    "Legacy smoke checks demonstrate estimator execution only, not clinical correctness or independent accuracy"
+  ]
+}

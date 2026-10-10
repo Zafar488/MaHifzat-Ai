@@ -1,0 +1,16 @@
+{
+  "risk_level": "high risk",
+  "probabilities": {
+    "high risk": 0.9942800436343975,
+    "low risk": 3.82888784710125e-05,
+    "mid risk": 0.005681667487131427
+  },
+  "confidence": null,
+  "model_available": true,
+  "status": "experimental",
+  "model_version": "experimental-v2-20261010",
+  "calibration": "uncalibrated class probabilities; not clinical confidence",
+  "intended_use": "UCI maternal risk category research",
+  "clinical_validation": "not established",
+  "out_of_training_range_features": []
+}

@@ -1,0 +1,674 @@
+"""
+GestationInsight — Gestational Complications Risk Classifier
+Enterprise-grade ML pipeline for predicting gestational diabetes/preeclampsia risk.
+
+Target: 3-class (0=Low, 1=Moderate, 2=High) from gestation_prepared.parquet
+"""
+
+from __future__ import annotations
+
+import sys
+import os
+import warnings
+import json
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+import numpy as np
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold, train_test_split, cross_val_score
+from sklearn.preprocessing import RobustScaler, LabelEncoder
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import (
+    classification_report,
+    roc_auc_score,
+    f1_score,
+    confusion_matrix,
+)
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.impute import SimpleImputer
+from imblearn.combine import SMOTETomek
+import xgboost as xgb
+import lightgbm as lgb
+import optuna
+import joblib
+import shap
+
+PROJECT_ROOT = Path(__file__).resolve().parent
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+warnings.filterwarnings("ignore")
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+
+# ───────────────────────────────────────────────────────────────────────────
+# Constants
+# ───────────────────────────────────────────────────────────────────────────
+DATA_PATH = PROJECT_ROOT / "data" / "gestation_prepared.parquet"
+ARTIFACT_DIR = PROJECT_ROOT / "artifacts" / "gestationinsight"
+RANDOM_STATE = 42
+
+TARGET_COL = "target"
+DROP_COLS = ["Outcome"]  # original binary target — leak risk
+
+NUMERIC_FEATURES: List[str] = [
+    "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
+    "Insulin", "BMI", "DiabetesPedigreeFunction", "Age",
+    "MAP", "glucose_tolerance_idx", "age_parity_interaction",
+    "insulin_glucose_ratio", "SBP_estimated",
+]
+
+LABEL_MAP = {0: "Low", 1: "Moderate", 2: "High"}
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Helper utilities
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _sanitize(obj: Any) -> Any:
+    """Make nested dicts/lists JSON-serialisable (strip numpy types)."""
+    if isinstance(obj, (np.integer,)):
+        return int(obj)
+    if isinstance(obj, (np.floating,)):
+        return float(obj)
+    if isinstance(obj, np.ndarray):
+        return obj.tolist()
+    if isinstance(obj, dict):
+        return {_sanitize(k): _sanitize(v) for k, v in obj.items()}
+    if isinstance(obj, (list, tuple)):
+        return [_sanitize(v) for v in obj]
+    return obj
+
+
+def _macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Compute macro-averaged F1."""
+    report = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
+    return float(report["macro avg"]["f1-score"])
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Data loading
+# ═══════════════════════════════════════════════════════════════════════════
+
+def load_data(path: Path) -> pd.DataFrame:
+    """Load the prepared gestation parquet and print summary."""
+    print(f"\n[Step 1] Loading data from {path} ...")
+    df = pd.read_parquet(path)
+    print(f"  Shape: {df.shape[0]} rows × {df.shape[1]} columns")
+    print(f"  Columns: {df.columns.tolist()}")
+    null_counts = df.isnull().sum()
+    if null_counts.any():
+        print(f"  Nulls found:\n{null_counts[null_counts > 0].to_string()}")
+    print(f"  Target distribution:\n{df[TARGET_COL].value_counts().sort_index().to_string()}")
+    return df
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Preprocessing
+# ═══════════════════════════════════════════════════════════════════════════
+
+def build_preprocessor() -> RobustScaler:
+    """Build a RobustScaler preprocessor (imputation done in prepare_features)."""
+    return RobustScaler()
+
+
+def prepare_features(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.Series, List[str]]:
+    """Separate features/target and impute numeric nulls.
+
+    Returns (X_numeric, y, feature_names) where X is fully numeric.
+    """
+    df = df.copy()
+
+    # Select only numeric features (bmi_class was removed from parquet)
+    # Filter to features that actually exist in the dataframe
+    available_features = [f for f in NUMERIC_FEATURES if f in df.columns]
+    missing = set(NUMERIC_FEATURES) - set(available_features)
+    if missing:
+        print(f"  [WARN] Features not in data, skipped: {missing}")
+
+    numeric_df = df[available_features].copy()
+
+    # Impute numeric nulls with median
+    num_imputer = SimpleImputer(strategy="median")
+    X = pd.DataFrame(
+        num_imputer.fit_transform(numeric_df),
+        columns=available_features,
+        index=df.index,
+    )
+
+    feature_names = list(available_features)
+    y = df[TARGET_COL].copy()
+
+    # Log constant columns
+    for col in X.columns:
+        if X[col].nunique() <= 1:
+            print(f"  [INFO] Constant feature: {col} (value={X[col].iloc[0]})")
+
+    print(f"  Numeric features: {len(available_features)}")
+    print(f"  Total features: {X.shape[1]}")
+
+    return X, y, feature_names
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Stratified split + SMOTE-Tomek
+# ═══════════════════════════════════════════════════════════════════════════
+
+def split_and_balance(
+    X: np.ndarray, y: np.ndarray,
+) -> Dict[str, Any]:
+    """70/15/15 stratified split, then SMOTE-Tomek on training set.
+
+    Expects fully numeric X (numpy array or DataFrame) and integer y.
+    """
+    print("\n[Step 3] Stratified split (70/15/15) + SMOTE-Tomek ...")
+
+    # First split: 70% train, 30% temp
+    X_train, X_temp, y_train, y_temp = train_test_split(
+        X, y, test_size=0.30, random_state=RANDOM_STATE, stratify=y,
+    )
+    # Second split: 50/50 from temp → 15% val, 15% test
+    X_val, X_test, y_val, y_test = train_test_split(
+        X_temp, y_temp, test_size=0.50, random_state=RANDOM_STATE, stratify=y_temp,
+    )
+
+    # Convert to numpy arrays for SMOTE compatibility
+    X_train = np.asarray(X_train)
+    y_train = np.asarray(y_train)
+    X_val = np.asarray(X_val)
+    y_val = np.asarray(y_val)
+    X_test = np.asarray(X_test)
+    y_test = np.asarray(y_test)
+
+    print(f"  Before SMOTE — Train: {len(X_train)}, Val: {len(X_val)}, Test: {len(X_test)}")
+    unique, counts = np.unique(y_train, return_counts=True)
+    print(f"  Train class dist: {dict(zip(unique.astype(int), counts))}")
+
+    # SMOTE-Tomek on training data only
+    smote_tomek = SMOTETomek(random_state=RANDOM_STATE)
+    X_train_bal, y_train_bal = smote_tomek.fit_resample(X_train, y_train)
+
+    print(f"  After SMOTE-Tomek — Train: {len(X_train_bal)}")
+    unique, counts = np.unique(y_train_bal, return_counts=True)
+    print(f"  Train class dist: {dict(zip(unique.astype(int), counts))}")
+
+    return {
+        "X_train": X_train_bal, "y_train": y_train_bal,
+        "X_val": X_val, "y_val": y_val,
+        "X_test": X_test, "y_test": y_test,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Model evaluation
+# ═══════════════════════════════════════════════════════════════════════════
+
+def evaluate_model(
+    model: Any,
+    X_test: np.ndarray,
+    y_test: np.ndarray,
+    label: str,
+    le: LabelEncoder,
+) -> Dict[str, Any]:
+    """Run full evaluation on held-out test set and return metrics dict."""
+    y_pred = model.predict(X_test)
+
+    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    macro_f1 = float(report["macro avg"]["f1-score"])
+
+    # AUROC — one-vs-rest
+    auroc: Optional[float] = None
+    try:
+        y_prob = model.predict_proba(X_test)
+        n_classes = len(le.classes_)
+        y_test_bin = np.eye(n_classes)[y_test.astype(int)]
+        auroc = float(roc_auc_score(y_test_bin, y_prob, multi_class="ovr", average="macro"))
+    except Exception as exc:
+        print(f"  [WARN] AUROC computation failed for {label}: {exc}")
+
+    # Per-class metrics
+    per_class: Dict[str, Dict[str, float]] = {}
+    for idx, cls_name in enumerate(le.classes_):
+        cls_key = str(idx)
+        per_class[cls_name] = {
+            "precision": float(report.get(cls_key, {}).get("precision", 0.0)),
+            "recall": float(report.get(cls_key, {}).get("recall", 0.0)),
+            "f1-score": float(report.get(cls_key, {}).get("f1-score", 0.0)),
+        }
+
+    print(f"\n  [{label}] Test Evaluation:")
+    print(f"    Macro-F1 : {macro_f1:.4f}")
+    if auroc is not None:
+        print(f"    AUROC    : {auroc:.4f}")
+    print(classification_report(y_test, y_pred, target_names=[str(c) for c in le.classes_], zero_division=0))
+
+    return {
+        "macro_f1": macro_f1,
+        "auroc_ovr_macro": auroc,
+        "per_class": per_class,
+        "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Logistic Regression (baseline)
+# ═══════════════════════════════════════════════════════════════════════════
+
+def train_logistic_regression(
+    X_train: np.ndarray, y_train: np.ndarray,
+) -> Tuple[Any, Dict[str, Any]]:
+    """Train a multinomial Logistic Regression baseline."""
+    print("\n[Step 4a] Training Logistic Regression (baseline) ...")
+    lr = LogisticRegression(
+        C=1.0,
+        max_iter=2000,
+        multi_class="multinomial",
+        class_weight="balanced",
+        random_state=RANDOM_STATE,
+        solver="lbfgs",
+    )
+    lr.fit(X_train, y_train)
+    params = {"C": 1.0, "max_iter": 2000, "multi_class": "multinomial",
+              "class_weight": "balanced"}
+    return lr, params
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# XGBoost — Optuna HPO
+# ═══════════════════════════════════════════════════════════════════════════
+
+def train_xgboost(
+    X_train: np.ndarray, y_train: np.ndarray,
+    X_val: np.ndarray, y_val: np.ndarray,
+    n_classes: int,
+    n_trials: int = 20,
+) -> Tuple[Any, Dict[str, Any]]:
+    """Train XGBoost with Optuna hyper-parameter search."""
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+
+    def objective(trial: optuna.Trial) -> float:
+        params = {
+            "max_depth": trial.suggest_int("max_depth", 3, 8),
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+            "n_estimators": trial.suggest_int("n_estimators", 100, 500),
+            "min_child_weight": trial.suggest_int("min_child_weight", 1, 10),
+            "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
+            "objective": "multi:softprob",
+            "num_class": n_classes,
+            "eval_metric": "mlogloss",
+            "random_state": RANDOM_STATE,
+            "verbosity": 0,
+            "n_jobs": -1,
+        }
+        clf = xgb.XGBClassifier(**params)
+        scores = cross_val_score(
+            clf, X_train, y_train, cv=skf, scoring="f1_macro", n_jobs=1,
+        )
+        return float(scores.mean())
+
+    print(f"\n[Step 4b] XGBoost Optuna HPO ({n_trials} trials) ...")
+    study = optuna.create_study(
+        direction="maximize",
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=3),
+        study_name="gestationinsight_xgb",
+    )
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+
+    best_params = study.best_params
+    best_params.update({
+        "objective": "multi:softprob",
+        "num_class": n_classes,
+        "eval_metric": "mlogloss",
+        "random_state": RANDOM_STATE,
+        "verbosity": 0,
+        "n_jobs": -1,
+    })
+    print(f"  Best CV macro-F1: {study.best_value:.4f}")
+    print(f"  Best params: {best_params}")
+
+    best_model = xgb.XGBClassifier(**best_params)
+    best_model.fit(X_train, y_train, eval_set=[(X_val, y_val)], verbose=False)
+    return best_model, best_params
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LightGBM — Optuna HPO
+# ═══════════════════════════════════════════════════════════════════════════
+
+def train_lightgbm(
+    X_train: np.ndarray, y_train: np.ndarray,
+    X_val: np.ndarray, y_val: np.ndarray,
+    n_trials: int = 20,
+) -> Tuple[Any, Dict[str, Any]]:
+    """Train LightGBM with Optuna hyper-parameter search."""
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+
+    def objective(trial: optuna.Trial) -> float:
+        params = {
+            "num_leaves": trial.suggest_int("num_leaves", 15, 80),
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+            "n_estimators": trial.suggest_int("n_estimators", 100, 500),
+            "min_child_samples": trial.suggest_int("min_child_samples", 5, 40),
+            "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
+            "class_weight": "balanced",
+            "random_state": RANDOM_STATE,
+            "verbose": -1,
+            "n_jobs": -1,
+        }
+        clf = lgb.LGBMClassifier(**params)
+        scores = cross_val_score(
+            clf, X_train, y_train, cv=skf, scoring="f1_macro", n_jobs=1,
+        )
+        return float(scores.mean())
+
+    print(f"\n[Step 4c] LightGBM Optuna HPO ({n_trials} trials) ...")
+    study = optuna.create_study(
+        direction="maximize",
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=3),
+        study_name="gestationinsight_lgbm",
+    )
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+
+    best_params = study.best_params
+    best_params.update({
+        "class_weight": "balanced",
+        "random_state": RANDOM_STATE,
+        "verbose": -1,
+        "n_jobs": -1,
+    })
+    print(f"  Best CV macro-F1: {study.best_value:.4f}")
+    print(f"  Best params: {best_params}")
+
+    best_model = lgb.LGBMClassifier(**best_params)
+    best_model.fit(
+        X_train, y_train,
+        eval_set=[(X_val, y_val)],
+        callbacks=[
+            lgb.early_stopping(stopping_rounds=30, verbose=False),
+            lgb.log_evaluation(period=0),
+        ],
+    )
+    return best_model, best_params
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# SHAP analysis
+# ═══════════════════════════════════════════════════════════════════════════
+
+def generate_shap_plot(
+    model: Any,
+    model_name: str,
+    X_test: np.ndarray,
+    feature_names: List[str],
+    le: LabelEncoder,
+) -> None:
+    """Generate and save SHAP-based feature importance plot for the best model."""
+    print(f"\n[Step 6] Generating feature importance plot for {model_name} ...")
+
+    try:
+        # Extract feature importances from the model directly
+        if hasattr(model, "feature_importances_"):
+            importances = np.array(model.feature_importances_, dtype=float).flatten()
+        elif hasattr(model, "coef_"):
+            importances = np.abs(model.coef_).mean(axis=0).flatten()
+        else:
+            importances = np.zeros(len(feature_names))
+
+        if len(importances) != len(feature_names):
+            min_len = min(len(importances), len(feature_names))
+            importances = importances[:min_len]
+            names = feature_names[:min_len]
+        else:
+            names = list(feature_names)
+
+        sorted_idx = np.argsort(importances)[::-1]
+        top_n = int(min(15, len(names)))
+        top_idx = sorted_idx[:top_n]
+
+        bar_values = [float(importances[i]) for i in top_idx][::-1]
+        bar_labels = [str(names[i]) for i in top_idx][::-1]
+
+        # Render using PIL directly — no matplotlib involved
+        from PIL import Image, ImageDraw, ImageFont
+
+        img_w, bar_h, margin_l, margin_r, margin_t, margin_b = 1200, 32, 280, 80, 60, 40
+        img_h = margin_t + top_n * bar_h + margin_b
+        img = Image.new("RGB", (img_w, img_h), "white")
+        draw = ImageDraw.Draw(img)
+
+        # Title
+        try:
+            font_title = ImageFont.truetype("arial.ttf", 20)
+            font_label = ImageFont.truetype("arial.ttf", 14)
+        except Exception:
+            font_title = ImageFont.load_default()
+            font_label = ImageFont.load_default()
+
+        draw.text((margin_l, 15), f"Feature Importance — {model_name} (GestationInsight)",
+                  fill="black", font=font_title)
+
+        max_val = max(bar_values) if bar_values and max(bar_values) > 0 else 1.0
+        bar_area_w = img_w - margin_l - margin_r
+
+        for i in range(top_n):
+            y = margin_t + i * bar_h
+            # Label
+            draw.text((5, y + 6), bar_labels[i], fill="black", font=font_label)
+            # Bar
+            bw = int((bar_values[i] / max_val) * bar_area_w)
+            draw.rectangle([margin_l, y + 4, margin_l + bw, y + bar_h - 4],
+                           fill="#4682B4")
+            # Value text
+            draw.text((margin_l + bw + 5, y + 6), f"{bar_values[i]:.4f}",
+                      fill="gray", font=font_label)
+
+        shap_path = ARTIFACT_DIR / "shap_summary.png"
+        img.save(str(shap_path))
+        print(f"  [Saved] Feature importance plot → {shap_path}")
+    except Exception as exc:
+        print(f"  [WARN] SHAP generation failed: {exc}")
+        import traceback
+        traceback.print_exc()
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Feature importance
+# ═══════════════════════════════════════════════════════════════════════════
+
+def print_feature_importance(
+    model: Any, model_name: str, feature_names: List[str],
+) -> None:
+    """Print top feature importances from tree-based models."""
+    print(f"\n  Feature Importance ({model_name}):")
+    try:
+        if hasattr(model, "feature_importances_"):
+            importances = model.feature_importances_
+        elif hasattr(model, "coef_"):
+            importances = np.abs(model.coef_).mean(axis=0)
+        else:
+            print("    (not available for this model type)")
+            return
+
+        feat_imp = sorted(
+            zip(feature_names, importances),
+            key=lambda x: x[1], reverse=True,
+        )
+        print(f"    {'Feature':<30} {'Importance':>12}")
+        print(f"    {'-'*30} {'-'*12}")
+        for name, imp in feat_imp[:15]:
+            print(f"    {name:<30} {imp:>12.4f}")
+    except Exception as exc:
+        print(f"    [WARN] Could not extract importances: {exc}")
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Main pipeline
+# ═══════════════════════════════════════════════════════════════════════════
+
+def main() -> None:
+    """Execute the full GestationInsight training pipeline."""
+    t0 = time.time()
+
+    print("\n" + "=" * 70)
+    print("  GestationInsight — Gestational Complications Risk Classifier")
+    print("=" * 70)
+
+    # ── 1. Load data ──────────────────────────────────────────────────
+    df = load_data(DATA_PATH)
+
+    # ── 2. Prepare features & target (impute numerics) ────────────
+    print("\n[Step 2] Preparing features and target ...")
+    X, y, feature_names = prepare_features(df)
+
+    # Label encode target (already int 0/1/2, but create encoder for labels)
+    le = LabelEncoder()
+    le.fit([0, 1, 2])
+    n_classes = len(le.classes_)
+    print(f"  Classes: {le.classes_.tolist()} (n={n_classes})")
+    print(f"  Features: {X.shape[1]} total")
+
+    # ── 3. Stratified split + SMOTE-Tomek (all data is numeric now) ──
+    split = split_and_balance(X.values, y.values)
+    X_train_raw = split["X_train"]  # numpy, balanced
+    y_train_raw = split["y_train"]
+    X_val_raw = split["X_val"]
+    y_val_raw = split["y_val"]
+    X_test_raw = split["X_test"]
+    y_test_raw = split["y_test"]
+
+    # Encode target labels
+    y_train_enc = le.transform(y_train_raw)
+    y_val_enc = le.transform(y_val_raw)
+    y_test_enc = le.transform(y_test_raw)
+
+    # ── 3b. Scale (RobustScaler fit on train only — leak-safe) ──────
+    print("\n[Step 3b] Scaling with RobustScaler (fit on train only) ...")
+    preprocessor = RobustScaler()
+    X_train_proc = preprocessor.fit_transform(X_train_raw)
+    X_val_proc = preprocessor.transform(X_val_raw)
+    X_test_proc = preprocessor.transform(X_test_raw)
+
+    print(f"  Processed feature count: {X_train_proc.shape[1]}")
+    print(f"  Feature names: {feature_names}")
+
+    # ── 4. Train models ──────────────────────────────────────────────
+    results: Dict[str, Dict[str, Any]] = {}
+    trained_models: Dict[str, Any] = {}
+
+    # 4a. Logistic Regression
+    lr_model, lr_params = train_logistic_regression(X_train_proc, y_train_enc)
+    lr_metrics = evaluate_model(lr_model, X_test_proc, y_test_enc, "LogisticRegression", le)
+    results["LogisticRegression"] = {"params": lr_params, **lr_metrics}
+    trained_models["LogisticRegression"] = lr_model
+
+    # 4b. XGBoost
+    xgb_model, xgb_params = train_xgboost(
+        X_train_proc, y_train_enc, X_val_proc, y_val_enc, n_classes, n_trials=15,
+    )
+    xgb_metrics = evaluate_model(xgb_model, X_test_proc, y_test_enc, "XGBoost", le)
+    results["XGBoost"] = {"params": xgb_params, **xgb_metrics}
+    trained_models["XGBoost"] = xgb_model
+
+    # 4c. LightGBM
+    lgbm_model, lgbm_params = train_lightgbm(
+        X_train_proc, y_train_enc, X_val_proc, y_val_enc, n_trials=15,
+    )
+    lgbm_metrics = evaluate_model(lgbm_model, X_test_proc, y_test_enc, "LightGBM", le)
+    results["LightGBM"] = {"params": lgbm_params, **lgbm_metrics}
+    trained_models["LightGBM"] = lgbm_model
+
+    # ── 5. Comparison table ──────────────────────────────────────────
+    print("\n" + "=" * 70)
+    print("  MODEL COMPARISON")
+    print("=" * 70)
+    header = f"  {'Model':<22} {'Macro-F1':>10} {'AUROC(OVR)':>12}"
+    print(header)
+    print("  " + "-" * 46)
+    for name, m in results.items():
+        auroc_str = f"{m['auroc_ovr_macro']:.4f}" if m["auroc_ovr_macro"] is not None else "N/A"
+        print(f"  {name:<22} {m['macro_f1']:>10.4f} {auroc_str:>12}")
+
+    # ── 6. Select best model ──────────────────────────────────────────
+    best_name = max(results, key=lambda k: results[k]["macro_f1"])
+    best_model_obj = trained_models[best_name]
+    best_f1 = results[best_name]["macro_f1"]
+    best_auroc = results[best_name]["auroc_ovr_macro"]
+
+    print(f"\n  >> BEST MODEL: {best_name}  (Macro-F1={best_f1:.4f})")
+
+    # ── 7. Per-class metrics for best model ──────────────────────────
+    print("\n" + "=" * 70)
+    print("  PER-CLASS METRICS (Best Model)")
+    print("=" * 70)
+    for cls_name, cls_metrics in results[best_name]["per_class"].items():
+        print(f"    {cls_name:<12}  "
+              f"P={cls_metrics['precision']:.3f}  "
+              f"R={cls_metrics['recall']:.3f}  "
+              f"F1={cls_metrics['f1-score']:.3f}")
+
+    # ── 8. Feature importance ─────────────────────────────────────────
+    print_feature_importance(best_model_obj, best_name, feature_names)
+
+    # ── 9. SHAP ───────────────────────────────────────────────────────
+    ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+    generate_shap_plot(best_model_obj, best_name, X_test_proc, feature_names, le)
+
+    # ── 10. Save artifacts ────────────────────────────────────────────
+    print("\n[Step 7] Saving artifacts ...")
+
+    # Best model
+    model_path = ARTIFACT_DIR / "best_model.joblib"
+    joblib.dump(best_model_obj, model_path)
+    print(f"  [Saved] Best model ({best_name}) → {model_path}")
+
+    # Preprocessor
+    prep_path = ARTIFACT_DIR / "preprocessor.joblib"
+    joblib.dump(preprocessor, prep_path)
+    print(f"  [Saved] Preprocessor → {prep_path}")
+
+    # Label encoder
+    le_path = ARTIFACT_DIR / "label_encoder.joblib"
+    joblib.dump(le, le_path)
+    print(f"  [Saved] Label encoder → {le_path}")
+
+    # Metadata JSON
+    elapsed = time.time() - t0
+    metadata = {
+        "model_name": "GestationInsight",
+        "best_model": best_name,
+        "timestamp": datetime.now().isoformat(),
+        "dataset": str(DATA_PATH),
+        "n_samples": int(len(df)),
+        "n_features": int(X_train_proc.shape[1]),
+        "n_classes": n_classes,
+        "class_labels": le.classes_.tolist(),
+        "class_distribution": {LABEL_MAP[k]: int(v) for k, v in y.value_counts().sort_index().items()},
+        "split": {"train": 0.70, "val": 0.15, "test": 0.15},
+        "balancing": "SMOTE-Tomek",
+        "numeric_features": NUMERIC_FEATURES,
+        "feature_names_after_preprocessing": feature_names,
+        "macro_f1": best_f1,
+        "auroc_ovr": best_auroc,
+        "all_results": _sanitize(results),
+        "training_time_seconds": round(elapsed, 2),
+    }
+    # Make metadata JSON-serialisable
+    metadata = _sanitize(metadata)
+    meta_path = ARTIFACT_DIR / "metadata.json"
+    with open(meta_path, "w", encoding="utf-8") as fp:
+        json.dump(metadata, fp, indent=2, ensure_ascii=False)
+    print(f"  [Saved] Metadata → {meta_path}")
+
+    # ── Done ──────────────────────────────────────────────────────────
+    print("\n" + "=" * 70)
+    print(f"  Pipeline complete in {elapsed:.1f}s")
+    print(f"  Best model: {best_name}  |  Macro-F1: {best_f1:.4f}  |  AUROC: {best_auroc:.4f}")
+    print("=" * 70 + "\n")
+
+
+if __name__ == "__main__":
+    main()

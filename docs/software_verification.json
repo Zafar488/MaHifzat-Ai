@@ -1,0 +1,28 @@
+{
+  "date": "2026-10-10",
+  "backend_suite": {
+    "passed": 64,
+    "failed": 0,
+    "duration_seconds": 112.96,
+    "command": ".venv\\Scripts\\python.exe -m pytest backend/tests -q -p no:cacheprovider"
+  },
+  "running_demo": {
+    "api_readiness_http": 200,
+    "streamlit_health_http": 200,
+    "five_saved_scenarios": "docs/demo_verification.json"
+  },
+  "browser_checks": [
+    "Synthetic clinician sign-in",
+    "Maternal emergency form and persistent result",
+    "Selected held-out fetal input populated from API",
+    "Fetal emergency guidance and newborn-capable referral",
+    "Saved-case retrieval with measured values, handover and nine-node audit"
+  ],
+  "not_exercised_live": [
+    "Actual GPS capture/permission",
+    "Real hospital availability",
+    "Real road provider credentials",
+    "SMS/WhatsApp/voice delivery"
+  ],
+  "evidence_screenshot": "C:/Users/BROTHERs/.codex/visualizations/2026/10/10/01a12513-d983-7782-9616-42d46c55dc85/demo-hospital.jpg"
+}

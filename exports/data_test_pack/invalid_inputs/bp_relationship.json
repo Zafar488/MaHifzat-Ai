@@ -1,0 +1,11 @@
+{
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {
+      "systolic_bp": 100,
+      "diastolic_bp": 120
+    },
+    "ctg_features": null
+  },
+  "expected_http_status": 422
+}

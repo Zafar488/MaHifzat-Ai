@@ -1,0 +1,69 @@
+{
+  "health": {
+    "status": "ok",
+    "models": {
+      "maternalguard": true,
+      "fetalwatch": true,
+      "pretermguard": false,
+      "gestationinsight": false,
+      "carereach": false
+    },
+    "demo_mode": true,
+    "clinical_validation": "not established"
+  },
+  "scenarios": [
+    {
+      "scenario": "Routine ANC",
+      "case_id": "demo-v2-e2e-routine-anc",
+      "nine_agents": true,
+      "status": "pending_review",
+      "emergency": false,
+      "facility": "DEMO District maternity hospital",
+      "followup_action": "reminder",
+      "messages_sent": 0
+    },
+    {
+      "scenario": "Maternal emergency",
+      "case_id": "demo-v2-e2e-maternal-emergency",
+      "nine_agents": true,
+      "status": "pending_review",
+      "emergency": true,
+      "facility": "DEMO District maternity hospital",
+      "followup_action": "emergency_assessment",
+      "messages_sent": 0
+    },
+    {
+      "scenario": "Fetal concern",
+      "case_id": "demo-v2-e2e-fetal-concern",
+      "nine_agents": true,
+      "status": "pending_review",
+      "emergency": true,
+      "facility": "DEMO Regional maternity & newborn centre",
+      "followup_action": "emergency_assessment",
+      "messages_sent": 0
+    },
+    {
+      "scenario": "Missed checkups",
+      "case_id": "demo-v2-e2e-missed-checkups",
+      "nine_agents": true,
+      "status": "pending_review",
+      "emergency": false,
+      "facility": "DEMO District maternity hospital",
+      "followup_action": "home_visit",
+      "messages_sent": 0
+    },
+    {
+      "scenario": "Incomplete vitals + danger sign",
+      "case_id": "demo-v2-e2e-incomplete-vitals-and-danger-sign",
+      "nine_agents": true,
+      "status": "incomplete",
+      "emergency": true,
+      "facility": "DEMO District maternity hospital",
+      "followup_action": "emergency_assessment",
+      "messages_sent": 0
+    }
+  ],
+  "review_and_referral_persisted": true,
+  "task_outcome_persisted": true,
+  "external_messages_sent": 0
+}

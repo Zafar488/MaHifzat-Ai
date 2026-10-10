@@ -10,8 +10,11 @@ import numpy as np
 import wfdb
 
 
+DEFAULT_DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "ctu-uhb-ctgdb"
+
+
 def load_physionet_records(
-    data_dir: str | Path = "g:/hackthon/data/ctu-uhb-ctgdb",
+    data_dir: str | Path = DEFAULT_DATA_DIR,
 ) -> List[Dict[str, Any]]:
     """Load all CTU-UHB CTG recordings from a local directory.
 
@@ -21,7 +24,7 @@ def load_physionet_records(
 
     Parameters
     ----------
-    data_dir : str or Path, default ``"g:/hackthon/data/ctu-uhb-ctgdb"``
+    data_dir : str or Path, default repo data/ctu-uhb-ctgdb dir
         Directory containing the WFDB ``.dat`` and ``.hea`` files.
 
     Returns

@@ -1,0 +1,18 @@
+{
+  "model": "gestationinsight",
+  "features": {
+    "Pregnancies": 10.0,
+    "Glucose": 115.0,
+    "BloodPressure": 72.0,
+    "SkinThickness": 29.0,
+    "Insulin": 125.0,
+    "BMI": 35.3,
+    "DiabetesPedigreeFunction": 0.134,
+    "Age": 29.0,
+    "MAP": 13.333333333333334,
+    "glucose_tolerance_idx": 0.8214285714285714,
+    "age_parity_interaction": 290.0,
+    "insulin_glucose_ratio": 0.0,
+    "SBP_estimated": 40.0
+  }
+}

@@ -1,0 +1,16 @@
+﻿ M ".qoder/repowiki/en/content/API Reference/Authentication API.md"
+ M ".qoder/repowiki/en/content/Deployment and Operations.md"
+ M ".qoder/repowiki/en/content/Machine Learning Models/Machine Learning Models.md"
+ D ".qoder/repowiki/en/content/Project Overview.md"
+ M .qoder/repowiki/en/meta/repowiki-metadata.json
+ D Algo_Titans_MaaHifazat_AI.pptx
+ D Algo_Titans_Professional_Presentation.pptx
+ M backend/agents/__pycache__/orchestrator.cpython-311.pyc
+ M backend/api/routes/__pycache__/audit.cpython-311.pyc
+ M backend/maahifazat.db
+ M backend/services/__pycache__/inference.cpython-311.pyc
+ M backend/services/safety.py
+ D generate_ppt.py
+?? ".qoder/repowiki/en/content/Project Overview/"
+?? .qoder/repowiki/knowledge/
+?? backend/schemas/clinical.py

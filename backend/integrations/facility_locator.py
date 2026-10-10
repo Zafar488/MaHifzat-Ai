@@ -1,68 +1,61 @@
-"""Facility locator client — OpenStreetMap/Overpass API stub."""
-import httpx
-from typing import Dict, Any, List, Optional
+"""Verified directory or explicitly simulated facilities; no inferred capabilities."""
+import json
+import math
+from datetime import datetime, timezone
 from backend.config import settings
+from backend.schemas.care import Facility
 
+def haversine_km(origin, destination):
+    lat1, lon1, lat2, lon2 = map(math.radians, (*origin, *destination))
+    a = math.sin((lat2-lat1)/2)**2 + math.cos(lat1)*math.cos(lat2)*math.sin((lon2-lon1)/2)**2
+    return 6371.0088 * 2 * math.asin(min(1, math.sqrt(a)))
 
 class FacilityLocatorClient:
-    """Client for finding nearby healthcare facilities."""
+    def __init__(self, directory_path=None):
+        self.directory_path = directory_path or settings.FACILITY_DIRECTORY_PATH
+        self.status = "unavailable"
 
-    def __init__(self, base_url: str = None, timeout: float = 3.0):
-        self.base_url = base_url or settings.FACILITY_API_URL
-        self.timeout = timeout
+    def _directory(self, demo=False):
+        if demo and settings.DEMO_MODE:
+            path = settings.PROJECT_ROOT / "config" / "demo_facilities.json"
+        else:
+            path = self.directory_path
+        if path is None:
+            self.status = "unavailable"
+            return []
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+            rows = [Facility.model_validate(row) for row in raw["facilities"]]
+            if len({r.facility_id for r in rows}) != len(rows):
+                raise ValueError("Duplicate facility IDs")
+            self.status = "simulated" if demo else "directory"
+            return [r for r in rows if r.simulated == demo]
+        except (OSError, ValueError, KeyError, TypeError):
+            self.status = "invalid_directory"
+            return []
 
-    async def find_nearby_facilities(
-        self,
-        latitude: float,
-        longitude: float,
-        radius_km: float = 20.0,
-        facility_type: str = "hospital",
-    ) -> List[Dict[str, Any]]:
-        """Find healthcare facilities within radius. Returns ranked list."""
-        # STUB: Return mock facilities near Peshawar, KP
-        return [
-            {
-                "facility_id": "fac_001",
-                "name": "Lady Reading Hospital",
-                "type": "hospital",
-                "latitude": 34.0151,
-                "longitude": 71.5249,
-                "distance_km": 2.5,
-                "has_emergency": True,
-                "has_maternity": True,
-                "has_nicu": True,
-                "current_load": "medium",
-            },
-            {
-                "facility_id": "fac_002",
-                "name": "Hayatabad Medical Complex",
-                "type": "hospital",
-                "latitude": 33.9928,
-                "longitude": 71.4502,
-                "distance_km": 8.3,
-                "has_emergency": True,
-                "has_maternity": True,
-                "has_nicu": True,
-                "current_load": "low",
-            },
-            {
-                "facility_id": "fac_003",
-                "name": "BHU Regi Model Town",
-                "type": "health_center",
-                "latitude": 34.0050,
-                "longitude": 71.4800,
-                "distance_km": 4.1,
-                "has_emergency": False,
-                "has_maternity": True,
-                "has_nicu": False,
-                "current_load": "low",
-            },
-        ]
+    async def find_nearby_facilities(self, latitude, longitude, radius_km=100, facility_type="hospital", demo=False):
+        now = datetime.now(timezone.utc)
+        result = []
+        for facility in self._directory(demo):
+            verified = facility.verified_at is not None and 0 <= (now.date() - facility.verified_at).days <= settings.FACILITY_VERIFICATION_MAX_DAYS
+            if not demo and not verified:
+                continue
+            row = facility.model_dump(mode="json")
+            row["capabilities_verified"] = verified and not demo
+            checked = facility.availability_checked_at
+            if checked is not None:
+                checked = checked.replace(tzinfo=timezone.utc) if checked.tzinfo is None else checked
+            age_seconds = (now - checked).total_seconds() if checked else None
+            live = age_seconds is not None and 0 <= age_seconds <= 86400 and not demo
+            row["availability_verified"] = live
+            if not live:
+                row["availability"] = "unknown"
+            row["distance_km"] = round(haversine_km((latitude, longitude), (facility.latitude, facility.longitude)), 2)
+            row["distance_kind"] = "straight_line"
+            if row["distance_km"] <= radius_km:
+                result.append(row)
+        return sorted(result, key=lambda r: (r["distance_km"], r["facility_id"]))
 
-    async def get_facility_details(self, facility_id: str) -> Optional[Dict[str, Any]]:
-        """Get detailed facility info."""
-        facilities = await self.find_nearby_facilities(34.0, 71.5)
-        for f in facilities:
-            if f["facility_id"] == facility_id:
-                return f
-        return None
+    async def get_facility_details(self, facility_id):
+        return next((r.model_dump(mode="json") for r in self._directory() if r.facility_id == facility_id), None)

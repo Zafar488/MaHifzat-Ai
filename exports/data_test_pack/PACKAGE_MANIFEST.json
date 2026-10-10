@@ -1,0 +1,587 @@
+{
+  "generated_at": "2026-10-10T11:02:53.132658+00:00",
+  "source_data_preserved": true,
+  "scope": "All five local prepared datasets, all 15 local raw CTG records, saved model artifacts, model/assessment test inputs and verification evidence; excludes application databases and secrets.",
+  "files": [
+    {
+      "path": "DATASET_REGISTRY.md",
+      "bytes": 5124,
+      "sha256": "33349de8d4d12e080d38483a3b4fddec74b583f68a41d17f66a6410ebad65f68"
+    },
+    {
+      "path": "TEST_GUIDE_ROMAN_URDU.md",
+      "bytes": 4476,
+      "sha256": "e9a920bd6d6d81a3489cbcd1ac2fa208c4110d5349ebe6359dfe8f99b6265eae"
+    },
+    {
+      "path": "artifacts/carereach/best_model.joblib",
+      "bytes": 1452244,
+      "sha256": "48a6cbc9c1bfc851215b806bb5408637510bcbfe244edb456f8d3c369ee69acf"
+    },
+    {
+      "path": "artifacts/carereach/metadata.json",
+      "bytes": 1026,
+      "sha256": "b42021e1dbf9651d2335f2411e2d451db8de983e70a0a6c64f1aaf47fd49affb"
+    },
+    {
+      "path": "artifacts/carereach/preprocessor.joblib",
+      "bytes": 3746,
+      "sha256": "18c54127c41c97783a65fa3aa17758dca3beafd9bda2cfd22f626fe7414b8c71"
+    },
+    {
+      "path": "artifacts/carereach/shap_summary.png",
+      "bytes": 176129,
+      "sha256": "580ed91a5a69280829ce6954b7eb161a45eef8d5823d19886cfbacfdb8996caf"
+    },
+    {
+      "path": "artifacts/ctu_uhb_features.parquet",
+      "bytes": 14036,
+      "sha256": "9bcc0740402d1deaac15bcc63dbbc75ede6e2e1cb4a72f4068484cf0635d59dc"
+    },
+    {
+      "path": "artifacts/fetalwatch/best_model.joblib",
+      "bytes": 1418721,
+      "sha256": "c42ea19672876ea3302813791c8e7d5c5104fca2bb721acb503ca21d06dde6d2"
+    },
+    {
+      "path": "artifacts/fetalwatch/results.json",
+      "bytes": 6067,
+      "sha256": "dbced926636e5d3e2abede679b078ec51542b5d92ab2c415cf273e53a792212e"
+    },
+    {
+      "path": "artifacts/gestationinsight/best_model.joblib",
+      "bytes": 82892,
+      "sha256": "923fb95d6164f6738486b6a8350ad9c818dc9d4659a8d9f8ef976d0ec7c8545e"
+    },
+    {
+      "path": "artifacts/gestationinsight/label_encoder.joblib",
+      "bytes": 351,
+      "sha256": "6613233d2442a0938635221fec29c91fcf4024f791c79465777286a70349ec97"
+    },
+    {
+      "path": "artifacts/gestationinsight/metadata.json",
+      "bytes": 4601,
+      "sha256": "1f49e28019b68a6a45209e3974b3b021a3583d89786aed6e71f41509b6a27521"
+    },
+    {
+      "path": "artifacts/gestationinsight/preprocessor.joblib",
+      "bytes": 703,
+      "sha256": "a6cb94dee8ee98de43c6ce142fd8bde99e1766e4e6c5ab3598746e2b32ac5953"
+    },
+    {
+      "path": "artifacts/gestationinsight/shap_summary.png",
+      "bytes": 31303,
+      "sha256": "9cc489b726174568c90c365e2d31e7e1bcfecbf0dd29e4b7e4e9fcc82b52deb8"
+    },
+    {
+      "path": "artifacts/maternalguard/best_model.joblib",
+      "bytes": 1101772,
+      "sha256": "8161356f3dba8363bf303b423c6538886b9aa0e52511e97367fa0db21359c926"
+    },
+    {
+      "path": "artifacts/maternalguard/label_encoder.joblib",
+      "bytes": 507,
+      "sha256": "026572f9f6f82d9f973714ee39f4a68068e4daf28d1a392b48348f496c471ae9"
+    },
+    {
+      "path": "artifacts/maternalguard/results.json",
+      "bytes": 1858,
+      "sha256": "8a9013984ec3f154c374048e24165eab166e61c89877c6fd46fd7dc96ff629c4"
+    },
+    {
+      "path": "artifacts/pretermguard/best_model.joblib",
+      "bytes": 271425,
+      "sha256": "5a1fbf9ad595d1c6ae3a36af30f741a5e32491f17552581778586615b67f1524"
+    },
+    {
+      "path": "artifacts/pretermguard/results.json",
+      "bytes": 4032,
+      "sha256": "0bcda85c709007f398839612c27e1f1989955dec95e07157acf4b4be43611d71"
+    },
+    {
+      "path": "artifacts/research/carereach/manifest.json",
+      "bytes": 1327275,
+      "sha256": "319fbb7709e51e9676b8013cbf1f96fb091798bce67d7c83ff42f7d20b9b58bc"
+    },
+    {
+      "path": "artifacts/research/carereach/pipeline-v1.joblib",
+      "bytes": 528659,
+      "sha256": "1b9bedebdea444b8eaa81b15aaaa30b98f8de221f7473cf3fb4ce4269aa3be20"
+    },
+    {
+      "path": "artifacts/research/gestationinsight/manifest.json",
+      "bytes": 9243,
+      "sha256": "94a5cabdf8c3bb2c29ca2f6031118068c4a1e9fbd071b4221b8a3adb9742cba9"
+    },
+    {
+      "path": "artifacts/research/gestationinsight/pipeline-v1.joblib",
+      "bytes": 795742,
+      "sha256": "3940aa0782f19592b644e043c7927f6fb6af85acce3d83c34e2e99f26b75d429"
+    },
+    {
+      "path": "artifacts/research/pretermguard/manifest.json",
+      "bytes": 24923,
+      "sha256": "613a0e4442254a8c7ce6d8b0b885576af9747d0d7db6b6cbdad34964ab224b7a"
+    },
+    {
+      "path": "artifacts/research/pretermguard/pipeline-v1.joblib",
+      "bytes": 3008098,
+      "sha256": "4552f02e56393e6c35ec2b6c4a30877a24d8d0fe71094671879a4dc3cd6568f0"
+    },
+    {
+      "path": "artifacts/serving/fetalwatch/manifest.json",
+      "bytes": 25121,
+      "sha256": "fc8294e651a752acd51d650414f7724cfce2ee92994d8d579e9bfd2b002b8474"
+    },
+    {
+      "path": "artifacts/serving/fetalwatch/pipeline-v1.joblib",
+      "bytes": 1387428,
+      "sha256": "ca4e5867acb15273c1d609cab6a8443257b14c4903a0c746817c5a3a91eee2c4"
+    },
+    {
+      "path": "artifacts/serving/maternalguard/manifest.json",
+      "bytes": 12357,
+      "sha256": "2726aec2b4b5ca55bf26df710aac6ed589a103f876b58cab76ca3a35c0ef7544"
+    },
+    {
+      "path": "artifacts/serving/maternalguard/pipeline-v1.joblib",
+      "bytes": 731888,
+      "sha256": "2b6d9fb093c5a77c1a4d7bceee925f8c9a338744fd83f8903769a80ec8505571"
+    },
+    {
+      "path": "data/carereach_prepared.parquet",
+      "bytes": 2962560,
+      "sha256": "4da6fd93035b24011cc728621cbf135b8fb2ed4305f09ef0836f342d6209d752"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1001.dat",
+      "bytes": 76800,
+      "sha256": "4fd2604993def78137d02b4f338aa225f7df9bcf21960aa0994745377b03d409"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1001.hea",
+      "bytes": 926,
+      "sha256": "93cb95d6f47f9f334ba4997c41cb5eba6c2e343322eb98653d88fecab4377ced"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1002.dat",
+      "bytes": 76800,
+      "sha256": "1373bc769556657c86acb0fb7bab0879fe93e761d1fb99b1989c6b80246212b0"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1002.hea",
+      "bytes": 922,
+      "sha256": "6b829cf17b8965ddea6da65ce1735ad6cbb87cfeaab9da733ad7bb5a90bd39de"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1003.dat",
+      "bytes": 72000,
+      "sha256": "a1e342f03ebbeb4111327e05b4cab29980a99640655319d9a5de4163b2f45a85"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1003.hea",
+      "bytes": 924,
+      "sha256": "b6c05971ed61cad063cc5a07699598765e54c51399ad75bb8030fb77b4cd871b"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1004.dat",
+      "bytes": 67200,
+      "sha256": "1d5c609687740b5b4080fc217b6a3329538ec0d9cd0ee76aeb2fc74e3641d5fb"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1004.hea",
+      "bytes": 926,
+      "sha256": "1442cf71bda1457bb746ddd50e953d932a014c83ce5977f96c6b7c8413fcac95"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1005.dat",
+      "bytes": 72000,
+      "sha256": "5242e0d0d5a91a5cacccf85414dbff33bb0c75e7edab85a77c67e25043d7d23a"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1005.hea",
+      "bytes": 921,
+      "sha256": "4c604ee284cc1107778351b5a1c93002e86b6d213bc771a67998aa05d4618ef4"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1006.dat",
+      "bytes": 67200,
+      "sha256": "9fd2f300b0644c276a65bba78bd5aa4d25d0f79793191186992bdfc7d8f5524d"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1006.hea",
+      "bytes": 925,
+      "sha256": "00bbda8da5cc707ce16438aafc047936028cb774d552eaa11a25baa65ae7d5bb"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1007.dat",
+      "bytes": 62400,
+      "sha256": "06bd0ab4a85a9bfd01c9c597fea4026ae480428f4551e63523eddbaaf0748f72"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1007.hea",
+      "bytes": 928,
+      "sha256": "0631d8e029e4013f565fd90f5bf5c49cacc87a552a512828af8b6ef5b44bbf1a"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1008.dat",
+      "bytes": 67200,
+      "sha256": "b40391867264ad21fd21479db6a0ad3afaa4b378339a1ea6c25c636e72108a34"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1008.hea",
+      "bytes": 924,
+      "sha256": "bbd3175cfef7c8e072050eb9aae3a57a118142703782d1c1f218eb8c11133c07"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1009.dat",
+      "bytes": 81600,
+      "sha256": "56957d15727dcbbfd3843275b0cd63f8c15afe16ff99b2995711572fcf1c565d"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1009.hea",
+      "bytes": 917,
+      "sha256": "d2b7d83d8a02ead194c9d0371a20253a99948e5d7e8df4677300f6737b2fd81d"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1010.dat",
+      "bytes": 67200,
+      "sha256": "aae8c9bbab31f73b92c8dad6569b056c903ac5e05e53c6afe8829182a947e887"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1010.hea",
+      "bytes": 928,
+      "sha256": "dc95c5b3584cb38e2251edefd65a64362ddb660f12a5b251f6b89e549820be51"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1011.dat",
+      "bytes": 62400,
+      "sha256": "94e720bd86c8c11a97611f7b1a1a22486690bacbdb2b470b4b09f951cb368f19"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1011.hea",
+      "bytes": 927,
+      "sha256": "1462eeb5c861ae7d17c0a29f389695288d5d74f49063bfa3586c781853837128"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1012.dat",
+      "bytes": 67200,
+      "sha256": "d5fc7c7a4e0bbc4796966a4001280d553d0d8509d14e8b3de483bd73a694f320"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1012.hea",
+      "bytes": 928,
+      "sha256": "1ffbee96a3544b50d0646488359b09b77f4574d5c93399822adf6ed846395c7e"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1013.dat",
+      "bytes": 72000,
+      "sha256": "a8ed65b2f35ba93ba3328a8c5434db39456a1e6c10799023720ee68913aa0797"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1013.hea",
+      "bytes": 918,
+      "sha256": "4b51aae54efab5a8cabf4f9cb02c9ce436019b96cfe38422c8ac5e54e3793e1e"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1014.dat",
+      "bytes": 76800,
+      "sha256": "1a80866d6dc15b47c920e790e654f4a7f2bdd50a87989182fd516e10bb63f47e"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1014.hea",
+      "bytes": 925,
+      "sha256": "a85abaf8f85a576b0226ce7f787d5c94276706e905b4a9b3db8c98cea37cb2a5"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1015.dat",
+      "bytes": 76800,
+      "sha256": "91eb0a324f1d84425aaf06ecdc386a7bc8f6ad1bffbf17211b2f8565393256b0"
+    },
+    {
+      "path": "data/ctu-uhb-ctgdb/1015.hea",
+      "bytes": 926,
+      "sha256": "02cc3b710d77312a403ca273a0e012e818d4f2b244f9422fd3a0df10f776aac4"
+    },
+    {
+      "path": "data/gestation_prepared.parquet",
+      "bytes": 30735,
+      "sha256": "51c653d0b0bf66284c1299286501fbe108d71ca809615185d736e8e6dbd167bc"
+    },
+    {
+      "path": "data/oncotrace_prepared.parquet",
+      "bytes": 184407,
+      "sha256": "d1f448ca2b7414f708c1218659b8fc79ef7a23dac052dfe7dc635cbdc40ed5a5"
+    },
+    {
+      "path": "data/uci_ctg.parquet",
+      "bytes": 48493,
+      "sha256": "28ce62995eb5f357470a6ef977bedcda6e266253e85d1524f6e0b429fe2092ab"
+    },
+    {
+      "path": "data/uci_maternal.parquet",
+      "bytes": 8518,
+      "sha256": "7a87dab5ad2883339f2944b78427b526a11d5f1329f57c316e448735fd74ead4"
+    },
+    {
+      "path": "data_catalog.json",
+      "bytes": 23750,
+      "sha256": "c9643b93fef2f4c0843b5870e8abb48a2341d106a9fc7fbde50de7c3239dc1cd"
+    },
+    {
+      "path": "docs/API_SETUP.md",
+      "bytes": 4475,
+      "sha256": "2c366b8d8186390c9f35c6006828457631f101b5ec990994a02a2d787c377744"
+    },
+    {
+      "path": "docs/REAL_APP_GUIDE.md",
+      "bytes": 4597,
+      "sha256": "73dea1403eb1c5346d0bf3df850685b093db72d4f3032e567a4105151dc6cd59"
+    },
+    {
+      "path": "inputs/ctg_normal.json",
+      "bytes": 357,
+      "sha256": "fbc5f8ccf7fa896ea058be33ff3638a12c70bffd34df8b707d3bab7248eb1606"
+    },
+    {
+      "path": "inputs/ctg_normal_source.json",
+      "bytes": 867,
+      "sha256": "ee345799bbaddd8cd9e3ed1ad7c6598ec3bd84d305a834af5cf308f24f092d6b"
+    },
+    {
+      "path": "inputs/ctg_pathological.json",
+      "bytes": 352,
+      "sha256": "8b95b86bfa444af4907ddf959c20a82d98466eb9b2662bd9c79170963d931400"
+    },
+    {
+      "path": "inputs/ctg_pathological_source.json",
+      "bytes": 880,
+      "sha256": "d9fb6bf2566dabd51750120b4f79375c8195ee72fb69535abbd54948fdae17ae"
+    },
+    {
+      "path": "inputs/ctg_suspect.json",
+      "bytes": 351,
+      "sha256": "6062eb92cd4bc7dee055cd231c9324513584861c9b81c18ab8344f4b824f349f"
+    },
+    {
+      "path": "inputs/ctg_suspect_source.json",
+      "bytes": 866,
+      "sha256": "c375d26462c1056b1e79364dc3650fcdf0da91d306a7d24fdac7b3eb73bb2c87"
+    },
+    {
+      "path": "invalid_inputs/boolean_heart_rate.json",
+      "bytes": 189,
+      "sha256": "8c8b3569219756dcfe0e592719b5ca136cefdabe5a244180ed010adffe1c45d2"
+    },
+    {
+      "path": "invalid_inputs/bp_relationship.json",
+      "bytes": 217,
+      "sha256": "3465e699d7ed13788a1cf1bb90161e3d41cd58551cf0e74b4cdb8bc41295dd89"
+    },
+    {
+      "path": "invalid_inputs/invalid_ctg_rate.json",
+      "bytes": 592,
+      "sha256": "c1e1f70b8adaceaa631c224b51a17c50d2b0b298f1834c06410c17ebd63c6b8a"
+    },
+    {
+      "path": "invalid_inputs/temperature_wrong_unit.json",
+      "bytes": 198,
+      "sha256": "9c02e6236aff5bb7125d0f255c8e269234cc6bf93c6f9bb6dfc6c2a90fffd1f4"
+    },
+    {
+      "path": "model_catalog.json",
+      "bytes": 1384,
+      "sha256": "d46111aeb812c3a6d6fc16a0b7fd86b03efe3354078891af9969b39ef08ab47f"
+    },
+    {
+      "path": "models/carereach_expected.json",
+      "bytes": 483,
+      "sha256": "a17e98545da9cabb96e527cc3ef8fc1fa95e01e6b2c9c031cb6cd55f7d6750e9"
+    },
+    {
+      "path": "models/carereach_features.json",
+      "bytes": 281,
+      "sha256": "bf90f856b5a002071119897246b9de759f84f4d5d76e4d3bf1b86a7b9988f7cb"
+    },
+    {
+      "path": "models/carereach_request.json",
+      "bytes": 354,
+      "sha256": "163c092d6a8e1f7714ed86ec861b708b96d231df8dc1bb868909dd5090c8795b"
+    },
+    {
+      "path": "models/fetalwatch_expected.json",
+      "bytes": 559,
+      "sha256": "8033ec2bcb0e65cee1bf38ebf3eabc51abb997dbe2f98af8ab7a129a8e00bac9"
+    },
+    {
+      "path": "models/fetalwatch_features.json",
+      "bytes": 351,
+      "sha256": "6062eb92cd4bc7dee055cd231c9324513584861c9b81c18ab8344f4b824f349f"
+    },
+    {
+      "path": "models/fetalwatch_request.json",
+      "bytes": 441,
+      "sha256": "261fb29905e50de15561d811b9f7f7541f603735790959927210bc9d85cdfef1"
+    },
+    {
+      "path": "models/gestationinsight_expected.json",
+      "bytes": 534,
+      "sha256": "35deec2c2caa7e16b559566692779a5b9cb12cb8cce3d45424eb12ab85d19092"
+    },
+    {
+      "path": "models/gestationinsight_features.json",
+      "bytes": 364,
+      "sha256": "6d41b12b78c9886974ae8e13c0cac19783852458f786c2afcb5fa6d5c574a1d7"
+    },
+    {
+      "path": "models/gestationinsight_request.json",
+      "bytes": 444,
+      "sha256": "d6a2d70465a2443f86953e9016332fc800ed1736f24f48b020c97adff69c1d0b"
+    },
+    {
+      "path": "models/maternalguard_expected.json",
+      "bytes": 527,
+      "sha256": "abaaf5a78bcd670759c41a04faf0d8da846592654ba9f85c1942e531df28c003"
+    },
+    {
+      "path": "models/maternalguard_features.json",
+      "bytes": 125,
+      "sha256": "f95f521b44abdb8b9fcaae11b3c6d145c9941c6e8685cd6825c80ece86569445"
+    },
+    {
+      "path": "models/maternalguard_request.json",
+      "bytes": 188,
+      "sha256": "776889d8c5d2a7185e63a5638487de1595ee9d3957c0bc48d7bf1a3cbba523f2"
+    },
+    {
+      "path": "models/pretermguard_expected.json",
+      "bytes": 982,
+      "sha256": "c40e801b1ef071ecb916e6715ea3872f7920286b0ac251a485684dc1bbfa8d2b"
+    },
+    {
+      "path": "models/pretermguard_features.json",
+      "bytes": 359,
+      "sha256": "e94b2529e5d1b17bc3ab3651bb1f6b359da5b686d0263db4abecafcb4e803c12"
+    },
+    {
+      "path": "models/pretermguard_request.json",
+      "bytes": 451,
+      "sha256": "5959efde31058d94c7ac022cecd68a2f16fc932f197d00a0f33ac19ceed49f8a"
+    },
+    {
+      "path": "reports/LATEST_TEST_REPORT.md",
+      "bytes": 4639,
+      "sha256": "49c4ab1158233ff918ff5c879bc363f91c71992d26ffe12c7963c863776c0ebb"
+    },
+    {
+      "path": "reports/latest-test-results.xml",
+      "bytes": 9208,
+      "sha256": "385e875233a0ec5c63fe9326c7c13ab229038f0191a2a1359315eca53bc563f1"
+    },
+    {
+      "path": "reports/latest_project_test_report.json",
+      "bytes": 34586,
+      "sha256": "1e130c1d6d6ac711bc11a6d4fd60f218a1631d3bfc66583165f268afa337564f"
+    },
+    {
+      "path": "reports/model_audit.json",
+      "bytes": 14353,
+      "sha256": "2b7d04b5cf2d3e2b7d5fcdbd0e534d4242ed01a5bda9e2f83a415a9131da8822"
+    },
+    {
+      "path": "reports/real_app_verification.json",
+      "bytes": 807,
+      "sha256": "699dff4f8867135ec48cb78aecbd546425f0318fd89eea0962af2af272bf3efd"
+    },
+    {
+      "path": "requirements-app.txt",
+      "bytes": 526,
+      "sha256": "424f7d64e90e860a752896deb1404f834731ca5979a249476836c3d52d5dd7e2"
+    },
+    {
+      "path": "results/fetal_concern.json",
+      "bytes": 10167,
+      "sha256": "479d68cc04bf6dee0efb3077bd554cf6ca1facaf798d0f07615ae0e5092bd85f"
+    },
+    {
+      "path": "results/fetal_suspect.json",
+      "bytes": 9944,
+      "sha256": "91cba083b1c11c384b0262fa28b41c829fcfb90534f613316a13c0d31cdbd4af"
+    },
+    {
+      "path": "results/incomplete_vitals_danger_sign.json",
+      "bytes": 9382,
+      "sha256": "ab56d8686d6ed12e17065e84dbc64ef4abd0b462cff08b480800fa464bda5425"
+    },
+    {
+      "path": "results/maternal_emergency.json",
+      "bytes": 9719,
+      "sha256": "de83c2e19ba5b02e8c12d8e70b265baa231d4aebba10be372620b6c19620a001"
+    },
+    {
+      "path": "results/missed_checkups.json",
+      "bytes": 9047,
+      "sha256": "a83c250bdd5642e8bf09fe54cafed5e02e065203dc616f66c338ceab0d33fc83"
+    },
+    {
+      "path": "results/routine_anc.json",
+      "bytes": 8880,
+      "sha256": "ad42a8de16684b648f50956d83fd802cb8a3504a23cd8baa1beff0ea51e72785"
+    },
+    {
+      "path": "results/urgent_bp.json",
+      "bytes": 8798,
+      "sha256": "b687bcf9f732b1587e60bfb96b8eebb974192e5a2f928853a375733411230fa2"
+    },
+    {
+      "path": "scenarios/fetal_concern.json",
+      "bytes": 1688,
+      "sha256": "1c624d8c7c02cef79eafc5a2bcd406ea16a795b3508e7eb0345c9ee4d6192f8b"
+    },
+    {
+      "path": "scenarios/fetal_suspect.json",
+      "bytes": 1667,
+      "sha256": "a60863c603652b3bb0e4dec52a0f283470295a79bf46fe0f8b14fa03a728ec2e"
+    },
+    {
+      "path": "scenarios/incomplete_vitals_danger_sign.json",
+      "bytes": 1177,
+      "sha256": "ffb98dcaa14eaa6ff8671031d31578ff568ea30b8168ed681a816c6478426ca4"
+    },
+    {
+      "path": "scenarios/maternal_emergency.json",
+      "bytes": 1422,
+      "sha256": "afe92b952f611afd2dd16834435ac55c26463b8690a748a1a1b9045bb9dfea58"
+    },
+    {
+      "path": "scenarios/missed_checkups.json",
+      "bytes": 1196,
+      "sha256": "080adb0b63a8a1aa243ec9dcec711751d0dda5c94e4ad35db507736675e0e5dc"
+    },
+    {
+      "path": "scenarios/routine_anc.json",
+      "bytes": 1203,
+      "sha256": "112fa82423c97fb02c60e05c2dce85f4067a3aa2a03252d7958ac0aed59bd1ce"
+    },
+    {
+      "path": "scenarios/urgent_bp.json",
+      "bytes": 1195,
+      "sha256": "61eb169a88a95aa221f84aab5fda36910d4e7184f401f83f5b70335d86abc3cb"
+    },
+    {
+      "path": "scripts/export_test_pack.py",
+      "bytes": 15471,
+      "sha256": "f83e411b500d8d756b0d0df9dd1531766234f9c760eb686c106b4897b757d912"
+    },
+    {
+      "path": "scripts/verify_real_app.py",
+      "bytes": 3596,
+      "sha256": "8e857b747e8d041b51426ade4069e768618d3fe186e7b6d46a2050708f2e42c2"
+    },
+    {
+      "path": "workflow_checks.json",
+      "bytes": 2548,
+      "sha256": "a770847aee5760b0c390ac045052876b00e37d1c755fdd169dcf7895c9ef052e"
+    }
+  ]
+}

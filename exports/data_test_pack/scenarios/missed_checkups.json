@@ -1,0 +1,48 @@
+{
+  "test_only": true,
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {
+      "age": 28,
+      "systolic_bp": 118,
+      "diastolic_bp": 76,
+      "heart_rate": 74,
+      "temperature_celsius": 37.0,
+      "blood_sugar_mmol_l": 5.2,
+      "gestational_age_weeks": 32.0
+    },
+    "symptoms": [],
+    "ctg_features": null,
+    "ctg_source": null,
+    "provenance": "patient_reported",
+    "location": {
+      "latitude": 34.01,
+      "longitude": 71.53,
+      "source": "manual",
+      "share_for_discovery": false,
+      "share_for_routing": false
+    },
+    "allow_llm_processing": false,
+    "followup": {
+      "gestational_age_weeks": 32.0,
+      "completed_contact_weeks": [
+        12,
+        20
+      ],
+      "missed_visits": 2,
+      "transport_barrier": true,
+      "phone_access": false
+    }
+  },
+  "expected": {
+    "scenario": "Missed checkups",
+    "passed": true,
+    "rule_triage": "LOW_RISK",
+    "emergency": false,
+    "status": "pending_review",
+    "followup_action": "home_visit",
+    "maternal_prediction": "mid risk",
+    "fetal_prediction": "not_assessed",
+    "audited_agents": 9
+  }
+}

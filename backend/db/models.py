@@ -112,3 +112,75 @@ class FileRecord(Base):
     mime_type = Column(String)
     size_bytes = Column(Integer)
     uploaded_at = Column(DateTime, default=datetime.utcnow)
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    username = Column(String, unique=True, nullable=False, index=True)
+    hashed_password = Column(String, nullable=False)
+    full_name = Column(String, nullable=False)
+    role = Column(String, nullable=False, default="patient")
+    is_active = Column(Boolean, nullable=False, default=True)
+    token_version = Column(Integer, nullable=False, default=0)
+    preferences = Column(JSON, default=dict)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class PatientAccess(Base):
+    __tablename__ = "patient_access"
+    patient_id = Column(String, ForeignKey("patients.id"), primary_key=True)
+    user_id = Column(String, ForeignKey("users.id"), primary_key=True)
+    is_owner = Column(Boolean, nullable=False, default=False)
+
+
+class CaseRecord(Base):
+    __tablename__ = "cases"
+    id = Column(String, primary_key=True)
+    patient_id = Column(String, ForeignKey("patients.id"), nullable=False, index=True)
+    created_by = Column(String, ForeignKey("users.id"), nullable=False)
+    request_hash = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="pending")
+    state_data = Column(JSON, nullable=False, default=dict)
+    review_status = Column(String, nullable=False, default="pending")
+    reviewed_by = Column(String, ForeignKey("users.id"))
+    reviewed_at = Column(DateTime)
+    review_notes = Column(Text)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+class Alert(Base):
+    __tablename__ = "alerts"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    patient_id = Column(String, ForeignKey("patients.id"), nullable=False, index=True)
+    case_id = Column(String, ForeignKey("cases.id"), index=True)
+    kind = Column(String, default="clinical")
+    message = Column(Text, nullable=False)
+    channel = Column(String, default="app")
+    provider_status = Column(String, default="not_sent")
+    message_id = Column(String)
+    acknowledged_by = Column(String, ForeignKey("users.id"))
+    acknowledged_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+
+class FollowupTask(Base):
+    __tablename__ = "followup_tasks"
+    id = Column(String, primary_key=True, default=gen_uuid)
+    patient_id = Column(String, ForeignKey("patients.id"), nullable=False, index=True)
+    case_id = Column(String, ForeignKey("cases.id"), nullable=False, unique=True)
+    action = Column(String, nullable=False)
+    priority = Column(String, nullable=False)
+    due_date = Column(String, nullable=False)
+    status = Column(String, nullable=False, default="pending")
+    details = Column(JSON, nullable=False)
+    notes = Column(Text)
+    completed_by = Column(String, ForeignKey("users.id"))
+    completed_at = Column(DateTime)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class LoginThrottle(Base):
+    __tablename__ = "login_throttles"
+    key = Column(String, primary_key=True)
+    failures = Column(Integer, default=0, nullable=False)
+    window_start = Column(DateTime, default=datetime.utcnow, nullable=False)

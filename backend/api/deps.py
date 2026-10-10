@@ -32,6 +32,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
 def get_model_registry() -> ModelRegistry:
     """Return the singleton ModelRegistry (models loaded at startup)."""
     registry = ModelRegistry()
+    registry.load_all()
     return registry
 
 

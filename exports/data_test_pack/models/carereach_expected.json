@@ -1,0 +1,14 @@
+{
+  "status": "research_prediction",
+  "model": "carereach",
+  "label": "1",
+  "probabilities": {
+    "0": 0.4368888760541687,
+    "1": 0.5631111239458313
+  },
+  "model_version": "research-only-v2-20261010",
+  "intended_use": "General appointment cohort is not a validated ANC population.",
+  "care_decision_use": false,
+  "clinical_validation": "not established",
+  "warning": "Dataset-specific research output; it must not determine obstetric referral or treatment."
+}

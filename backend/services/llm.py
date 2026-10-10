@@ -133,6 +133,9 @@ def get_llm_service() -> Optional["GroqLLMService"]:
     to template text.
     """
     global _llm_service
+    from backend.config import settings
+    if not settings.ENABLE_LLM:
+        return None
     if _llm_service is None:
         try:
             _llm_service = GroqLLMService()

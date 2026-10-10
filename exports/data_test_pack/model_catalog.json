@@ -1,0 +1,42 @@
+[
+  {
+    "name": "maternalguard",
+    "version": "experimental-v2-20261010",
+    "target": "RiskLevel",
+    "intended_use": "UCI maternal risk category research",
+    "internal_macro_f1": 0.687058096941818,
+    "care_decision_use": true
+  },
+  {
+    "name": "fetalwatch",
+    "version": "experimental-v2-20261010",
+    "target": "NSP",
+    "intended_use": "UCI NSP fetal-state classification research; not preterm prediction",
+    "internal_macro_f1": 0.9246710292319188,
+    "care_decision_use": true
+  },
+  {
+    "name": "pretermguard",
+    "version": "ctg-patterns-v3-20261010",
+    "target": "CLASS",
+    "intended_use": "Original UCI CLASS CTG pattern classification (all 10 classes). No preterm outcome exists.",
+    "internal_macro_f1": 0.8504266747038033,
+    "care_decision_use": false
+  },
+  {
+    "name": "gestationinsight",
+    "version": "research-only-v2-20261010",
+    "target": "target",
+    "intended_use": "Pima diabetes proxy is not an observed pregnancy-complication outcome.",
+    "internal_macro_f1": 0.7423199023199024,
+    "care_decision_use": false
+  },
+  {
+    "name": "carereach",
+    "version": "research-only-v2-20261010",
+    "target": "target",
+    "intended_use": "General appointment cohort is not a validated ANC population.",
+    "internal_macro_f1": 0.5626517036449267,
+    "care_decision_use": false
+  }
+]

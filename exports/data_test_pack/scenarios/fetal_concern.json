@@ -1,0 +1,73 @@
+{
+  "test_only": true,
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {
+      "age": 30,
+      "systolic_bp": 120,
+      "diastolic_bp": 80,
+      "heart_rate": 82,
+      "temperature_celsius": 37.0,
+      "blood_sugar_mmol_l": 5.4,
+      "gestational_age_weeks": 36.0
+    },
+    "symptoms": [],
+    "ctg_features": {
+      "LB": 125.0,
+      "AC": 0.0,
+      "FM": 0.009,
+      "UC": 0.0,
+      "DL": 0.0,
+      "DS": 0.0,
+      "DP": 0.0,
+      "ASTV": 68.0,
+      "MSTV": 0.3,
+      "ALTV": 75.0,
+      "MLTV": 3.5,
+      "Width": 8.0,
+      "Min": 120.0,
+      "Max": 128.0,
+      "Nmax": 0.0,
+      "Nzeros": 0.0,
+      "Mode": 125.0,
+      "Mean": 125.0,
+      "Median": 126.0,
+      "Variance": 0.0,
+      "Tendency": 0.0
+    },
+    "ctg_source": "uci_measured",
+    "provenance": "patient_reported",
+    "location": {
+      "latitude": 34.01,
+      "longitude": 71.53,
+      "source": "manual",
+      "share_for_discovery": false,
+      "share_for_routing": false
+    },
+    "allow_llm_processing": false,
+    "followup": {
+      "gestational_age_weeks": 36.0,
+      "completed_contact_weeks": [
+        12,
+        20,
+        26,
+        30,
+        34
+      ],
+      "missed_visits": 0,
+      "transport_barrier": false,
+      "phone_access": null
+    }
+  },
+  "expected": {
+    "scenario": "Fetal concern",
+    "passed": true,
+    "rule_triage": "LOW_RISK",
+    "emergency": true,
+    "status": "pending_review",
+    "followup_action": "emergency_assessment",
+    "maternal_prediction": "low risk",
+    "fetal_prediction": "pathological",
+    "audited_agents": 9
+  }
+}

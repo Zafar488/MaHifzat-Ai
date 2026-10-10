@@ -1,27 +1,25 @@
-"""Async SQLAlchemy engine and session management."""
-import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-
+"""Async sessions; SQL logs disabled and SQLite foreign keys enforced."""
+from sqlalchemy import event
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 from backend.config import settings
 
-engine = create_async_engine(
-    settings.DATABASE_URL,
-    echo=settings.DEBUG,
-    future=True,
-)
+engine = create_async_engine(settings.DATABASE_URL, echo=False, future=True)
+if settings.DATABASE_URL.startswith("sqlite"):
+    @event.listens_for(engine.sync_engine, "connect")
+    def enable_foreign_keys(connection, record):
+        cursor = connection.cursor()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        cursor.close()
 
-AsyncSessionLocal = async_sessionmaker(
-    engine, class_=AsyncSession, expire_on_commit=False
-)
+AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+
 
 class Base(DeclarativeBase):
     pass
 
-async def get_db() -> AsyncSession:
-    """Dependency for FastAPI — yields an async DB session."""
+
+async def get_db():
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -30,7 +28,11 @@ async def get_db() -> AsyncSession:
             await session.rollback()
             raise
 
+
 async def init_db():
-    """Create all tables."""
+    from backend.db import models  # register metadata
+    if settings.APP_ENV == "production":
+        # Production schemas are managed by Alembic, never implicit startup DDL.
+        return
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

@@ -65,6 +65,7 @@ data/*.json
 data/*.zip
 data/*.tar.gz
 data/ctu-uhb-ctgdb/
+exports/*.zip
 
 # Logs
 *.log
@@ -125,12 +126,32 @@ $RECYCLE.BIN/
 .idea/
 *.iml
 
+# Tooling / Qoder
+.qoder/
+
 # =============================================================================
 # Misc
 # =============================================================================
-# Artifacts / screenshots generated during runs
-artifacts/
+# Artifacts: preserve served model pipelines and manifests, ignore transient runs
+artifacts/*
+!artifacts/serving/
+!artifacts/serving/**
+!artifacts/research/
+!artifacts/research/**
+!artifacts/carereach/
+!artifacts/carereach/**
+!artifacts/fetalwatch/
+!artifacts/fetalwatch/**
+!artifacts/gestationinsight/
+!artifacts/gestationinsight/**
+!artifacts/maternalguard/
+!artifacts/maternalguard/**
+!artifacts/pretermguard/
+!artifacts/pretermguard/**
+!artifacts/ctu_uhb_features.parquet
 *.png
+!docs/images/**
+!docs/images/*.png
 test_bar.png
 
 # Compiled files

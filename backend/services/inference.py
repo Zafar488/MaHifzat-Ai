@@ -1,347 +1,133 @@
-"""
-Model inference service — wraps all 5 trained ML models.
-Singleton pattern loads models once at startup.
-"""
-
-import sys
-import logging
-import numpy as np
-import pandas as pd
-import joblib
+"""Versioned complete-pipeline serving. Legacy bare estimators are never served."""
 from functools import lru_cache
 from pathlib import Path
-from typing import Dict, Any, List, Optional
-
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+import logging
+import joblib
+import numpy as np
+import pandas as pd
+import sklearn
 from backend.config import settings
+from backend.schemas.clinical import ClinicalInput
 
 logger = logging.getLogger(__name__)
-
-# ---------------------------------------------------------------------------
-# Feature lists
-# ---------------------------------------------------------------------------
-
-CTG_FEATURES: List[str] = [
-    "LB", "AC", "FM", "UC", "DL", "DS", "DP",
-    "ASTV", "MSTV", "ALTV", "MLTV", "Width",
-    "Min", "Max", "Nmax", "Nzeros",
-    "Mode", "Mean", "Median", "Variance", "Tendency",
-]
-
-MATERNAL_FEATURES: List[str] = [
-    "Age", "SystolicBP", "DiastolicBP", "BS", "BodyTemp", "HeartRate",
-]
-
-CAREREACH_RAW_FEATURES: List[str] = [
-    "Age", "Scholarship", "Hipertension", "Diabetes", "Alcoholism",
-    "Handcap", "SMS_received", "booking_delta_days", "appointment_dow",
-    "sms_x_delta", "comorbidity_count", "Gender", "age_group",
-]
-
-GESTATION_FEATURES: List[str] = [
-    "Pregnancies", "Glucose", "BloodPressure", "SkinThickness",
-    "Insulin", "BMI", "DiabetesPedigreeFunction", "Age",
-    "MAP", "glucose_tolerance_idx", "age_parity_interaction",
-    "insulin_glucose_ratio", "SBP_estimated",
-]
-
-GESTATION_LABEL_MAP: Dict[int, str] = {0: "Low", 1: "Moderate", 2: "High"}
+MATERNAL_FEATURES = ["Age", "SystolicBP", "DiastolicBP", "BS", "BodyTemp", "HeartRate"]
+CTG_FEATURES = ["LB", "AC", "FM", "UC", "DL", "DS", "DP", "ASTV", "MSTV", "ALTV", "MLTV", "Width", "Min", "Max", "Nmax", "Nzeros", "Mode", "Mean", "Median", "Variance", "Tendency"]
+DISABLED = {
+    "pretermguard": "No labelled preterm-birth outcome dataset or validated model.",
+    "gestationinsight": "Pima diabetes proxy is not an observed pregnancy-complication outcome.",
+    "carereach": "General appointment cohort is not a validated ANC population.",
+}
 
 
 class ModelRegistry:
-    """Singleton registry that loads and caches all ML models."""
+    _instance = None
 
-    _instance: Optional["ModelRegistry"] = None
-
-    def __new__(cls) -> "ModelRegistry":
+    def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
-            cls._instance._models: Dict[str, Any] = {}
-            cls._instance._extras: Dict[str, Any] = {}
-            cls._instance._loaded: bool = False
+            cls._instance._models = {}
+            cls._instance._errors = {}
+            cls._instance._loaded = False
         return cls._instance
 
-    # ------------------------------------------------------------------
-    # Loading
-    # ------------------------------------------------------------------
-
-    def load_all(self) -> None:
-        """Load all models from artifacts directory (idempotent)."""
+    def load_all(self):
         if self._loaded:
             return
-
-        self._load_model(
-            "fetalwatch",
-            settings.FETALWATCH_MODEL,
-        )
-        self._load_model(
-            "maternalguard",
-            settings.MATERNALGUARD_MODEL,
-            extra_paths={"label_encoder": settings.MATERNALGUARD_ENCODER},
-        )
-        self._load_model(
-            "pretermguard",
-            settings.PRETERMGUARD_MODEL,
-        )
-        self._load_model(
-            "carereach",
-            settings.CAREREACH_MODEL,
-            extra_paths={"preprocessor": settings.CAREREACH_PREPROCESSOR},
-        )
-        self._load_model(
-            "gestationinsight",
-            settings.GESTATIONINSIGHT_MODEL,
-            extra_paths={
-                "label_encoder": settings.GESTATIONINSIGHT_ENCODER,
-                "preprocessor": settings.GESTATIONINSIGHT_MODEL.parent / "preprocessor.joblib",
-            },
-        )
-
+        for name, features in (("maternalguard", MATERNAL_FEATURES), ("fetalwatch", CTG_FEATURES)):
+            path = settings.ARTIFACTS_DIR / "serving" / name / "pipeline-v1.joblib"
+            try:
+                bundle = joblib.load(path)
+                self._validate(bundle, features)
+                self._models[name] = bundle
+            except Exception as exc:
+                self._errors[name] = "Complete compatible pipeline unavailable; rebuild with scripts/run_models.py."
+                logger.warning("Pipeline %s unavailable (%s)", name, type(exc).__name__)
         self._loaded = True
-        logger.info("ModelRegistry: loaded models → %s", list(self._models.keys()))
 
-    def _load_model(
-        self,
-        name: str,
-        model_path: Path,
-        extra_paths: Optional[Dict[str, Path]] = None,
-    ) -> None:
-        """Load a single model + optional extras (encoder, preprocessor)."""
+    @staticmethod
+    def _validate(bundle, features):
+        if not isinstance(bundle, dict) or bundle.get("schema_version") != 1:
+            raise ValueError("Invalid artifact contract")
+        if bundle.get("sklearn_version") != sklearn.__version__ or bundle.get("features") != features:
+            raise ValueError("Incompatible environment or feature order")
+        if not bundle.get("units") or not bundle.get("label_map") or not bundle.get("calibration"):
+            raise ValueError("Missing preprocessing metadata")
+        pipeline = bundle["pipeline"]
+        if not hasattr(pipeline, "named_steps") or not {"imputer", "scaler", "estimator"} <= set(pipeline.named_steps):
+            raise ValueError("Complete pipeline required")
+        sample = pd.DataFrame([bundle["known_input"]], columns=features)
+        prediction = str(pipeline.predict(sample)[0])
+        probabilities = pipeline.predict_proba(sample)[0]
+        if prediction != bundle["known_prediction"] or not np.allclose(probabilities, bundle["known_probabilities"], atol=1e-10):
+            raise ValueError("Training-serving parity check failed")
+        if set(map(str, pipeline.classes_)) != set(bundle["label_map"]):
+            raise ValueError("Invalid class decoder")
+
+    def health_check(self):
+        health = {}
+        for name, features in (("maternalguard", MATERNAL_FEATURES), ("fetalwatch", CTG_FEATURES)):
+            try:
+                self._validate(self._models.get(name), features)
+                health[name] = True
+            except Exception:
+                health[name] = False
+        return {**health, **{name: False for name in DISABLED}}
+
+    def _fallback(self, key="risk_level", reason="Complete model pipeline unavailable", status="unavailable"):
+        return {key: "unknown", "probabilities": {}, "confidence": None, "model_available": False, "status": status, "reason": reason}
+
+    def _predict(self, name, features, values, key):
+        bundle = self._models.get(name)
+        if bundle is None:
+            return self._fallback(key, self._errors.get(name, "Complete model pipeline unavailable"))
+        missing = [f for f in features if values.get(f) is None]
+        if missing:
+            return self._fallback(key, "Missing measured features: " + ", ".join(missing), "insufficient_data")
         try:
-            if not Path(model_path).exists():
-                logger.warning("Model file not found: %s (%s)", name, model_path)
-                return
-            self._models[name] = joblib.load(str(model_path))
-            logger.info("Loaded model: %s from %s", name, model_path)
+            self._validate(bundle, features)
+            sample = pd.DataFrame([[values[f] for f in features]], columns=features).astype(float)
+            if not np.isfinite(sample.to_numpy()).all():
+                raise ValueError("Nonfinite features")
+            label = str(bundle["pipeline"].predict(sample)[0])
+            proba = bundle["pipeline"].predict_proba(sample)[0]
+            if not np.isfinite(proba).all() or np.any(proba < 0) or not np.isclose(sum(proba), 1):
+                raise ValueError("Invalid probabilities")
+            probabilities = {bundle["label_map"][str(c)]: float(p) for c, p in zip(bundle["pipeline"].classes_, proba)}
+            return {key: bundle["label_map"][label], "probabilities": probabilities,
+                    "confidence": None, "model_available": True, "status": "experimental",
+                    "model_version": bundle["model_version"], "calibration": bundle["calibration"],
+                    "intended_use": bundle["intended_use"], "clinical_validation": "not established",
+                    "out_of_training_range_features": [f for f, bounds in bundle.get("feature_ranges", {}).items() if values[f] < bounds[0] or values[f] > bounds[1]]}
         except Exception as exc:
-            logger.warning("Failed to load model %s: %s", name, exc)
-            return
+            logger.warning("Inference failed for %s (%s)", name, type(exc).__name__)
+            return self._fallback(key, "Pipeline validation or prediction failed", "error")
 
-        if extra_paths:
-            for key, path in extra_paths.items():
-                try:
-                    if Path(path).exists():
-                        self._extras[f"{name}_{key}"] = joblib.load(str(path))
-                        logger.info("Loaded extra %s_%s from %s", name, key, path)
-                    else:
-                        logger.warning("Extra file not found: %s_%s (%s)", name, key, path)
-                except Exception as exc:
-                    logger.warning("Failed to load extra %s_%s: %s", name, key, exc)
+    def predict_maternal_risk(self, vitals):
+        values = ClinicalInput.model_validate(vitals).maternal_features()
+        return self._predict("maternalguard", MATERNAL_FEATURES, values, "risk_level")
 
-    # ------------------------------------------------------------------
-    # Health check
-    # ------------------------------------------------------------------
-
-    def health_check(self) -> Dict[str, bool]:
-        """Return a dict showing which models loaded successfully."""
-        model_names = [
-            "fetalwatch", "maternalguard", "pretermguard",
-            "carereach", "gestationinsight",
-        ]
-        return {name: name in self._models for name in model_names}
-
-    # ------------------------------------------------------------------
-    # Prediction helpers
-    # ------------------------------------------------------------------
-
-    def _fallback(self, key: str = "risk_level") -> Dict[str, Any]:
-        """Return a safe fallback dict when a model is unavailable."""
-        return {key: "unknown", "probabilities": {}, "confidence": 0.0, "model_available": False}
-
-    # -- MaternalGuard --------------------------------------------------
-
-    def predict_maternal_risk(self, vitals: Dict[str, float]) -> Dict[str, Any]:
-        """
-        Predict maternal health risk level.
-        Dynamic evaluation combining ML model probabilities and clinical safety thresholds.
-        """
-        model = self._models.get("maternalguard")
-        if model is None:
-            return self._fallback("risk_level")
-
+    def predict_fetal_health(self, ctg_features):
+        from backend.schemas.assessment import AssessmentInput
         try:
-            sys_bp = float(vitals.get("SystolicBP", 120))
-            dia_bp = float(vitals.get("DiastolicBP", 80))
-            bs = float(vitals.get("BS", 5.5))
-            temp = float(vitals.get("BodyTemp", 98.6))
-            hr = float(vitals.get("HeartRate", 75))
+            AssessmentInput.ctg_numeric(ctg_features)
+            AssessmentInput.ctg_contract(ctg_features)
+        except (ValueError, TypeError):
+            return self._fallback("fetal_status", "Invalid CTG feature contract", "error")
+        return self._predict("fetalwatch", CTG_FEATURES, ctg_features or {}, "fetal_status")
 
-            # Clinical threshold rules
-            if sys_bp >= 140 or dia_bp >= 90 or bs >= 10.0 or temp >= 100.4 or hr >= 100:
-                risk_level = "high risk"
-                probabilities = {"high risk": 0.942, "mid risk": 0.043, "low risk": 0.015}
-                confidence = 0.942
-            elif sys_bp >= 130 or dia_bp >= 85 or bs >= 7.5:
-                risk_level = "mid risk"
-                probabilities = {"high risk": 0.125, "mid risk": 0.785, "low risk": 0.090}
-                confidence = 0.785
-            else:
-                risk_level = "low risk"
-                probabilities = {"high risk": 0.035, "mid risk": 0.115, "low risk": 0.850}
-                confidence = 0.850
+    def predict_preterm_risk(self, ctg_features):
+        return self._fallback(reason=DISABLED["pretermguard"], status="disabled")
 
-            return {
-                "risk_level": risk_level,
-                "probabilities": probabilities,
-                "confidence": confidence,
-                "model_available": True,
-            }
-        except Exception as exc:
-            logger.error("MaternalGuard prediction failed: %s", exc)
-            return self._fallback("risk_level")
+    def predict_gestational_complication(self, clinical_features):
+        return self._fallback(reason=DISABLED["gestationinsight"], status="disabled")
 
-    # -- FetalWatch -----------------------------------------------------
-
-    def predict_fetal_health(self, ctg_features: Dict[str, float]) -> Dict[str, Any]:
-        """
-        Predict fetal health status from CTG features.
-        Maps CTG baseline, accelerations, decelerations, and ASTV.
-        """
-        model = self._models.get("fetalwatch")
-        if model is None:
-            return self._fallback("fetal_status")
-
-        try:
-            lb = float(ctg_features.get("LB", ctg_features.get("baseline_value", 135)))
-            astv = float(ctg_features.get("ASTV", 45))
-            dl = float(ctg_features.get("DL", ctg_features.get("light_decelerations", 0)))
-            ds = float(ctg_features.get("DS", ctg_features.get("severe_decelerations", 0)))
-            ac = float(ctg_features.get("AC", ctg_features.get("accelerations", 0)))
-
-            if astv >= 65 or lb < 115 or lb > 160 or ds > 0:
-                fetal_status = "Pathological"
-                probabilities = {"Normal": 0.04, "Suspect": 0.11, "Pathological": 0.85}
-                confidence = 0.85
-            elif astv >= 45 or lb < 120 or dl > 0 or ac == 0:
-                fetal_status = "Suspect"
-                probabilities = {"Normal": 0.18, "Suspect": 0.74, "Pathological": 0.08}
-                confidence = 0.74
-            else:
-                fetal_status = "Normal"
-                probabilities = {"Normal": 0.91, "Suspect": 0.07, "Pathological": 0.02}
-                confidence = 0.91
-
-            return {
-                "fetal_status": fetal_status,
-                "probabilities": probabilities,
-                "confidence": confidence,
-                "model_available": True,
-            }
-        except Exception as exc:
-            logger.error("FetalWatch prediction failed: %s", exc)
-            return self._fallback("fetal_status")
-
-    # -- PretermGuard ---------------------------------------------------
-
-    def predict_preterm_risk(self, ctg_features: Dict[str, float]) -> Dict[str, Any]:
-        """
-        Predict preterm birth risk from CTG features.
-        """
-        model = self._models.get("pretermguard")
-        if model is None:
-            return self._fallback("risk_level")
-
-        try:
-            astv = float(ctg_features.get("ASTV", 45))
-            lb = float(ctg_features.get("LB", ctg_features.get("baseline_value", 135)))
-            uc = float(ctg_features.get("UC", ctg_features.get("uterine_contractions", 0)))
-
-            is_preterm_risk = (astv > 60 or lb < 120 or uc > 0.005)
-            preterm_prediction = 1 if is_preterm_risk else 0
-            preterm_probability = 0.84 if is_preterm_risk else 0.14
-
-            return {
-                "risk_level": "high risk" if is_preterm_risk else "low risk",
-                "preterm_prediction": preterm_prediction,
-                "preterm_probability": preterm_probability,
-                "probabilities": {"normal": round(1 - preterm_probability, 2), "preterm": preterm_probability},
-                "confidence": preterm_probability if is_preterm_risk else round(1 - preterm_probability, 2),
-                "model_available": True,
-            }
-        except Exception as exc:
-            logger.error("PretermGuard prediction failed: %s", exc)
-            return self._fallback("risk_level")
-
-    # -- CareReach ------------------------------------------------------
-
-    def predict_anc_followup_risk(self, patient_features: Dict[str, Any]) -> Dict[str, Any]:
-        """
-        Predict ANC missed-visit risk and priority intervention.
-        """
-        try:
-            delta = float(patient_features.get("booking_delta_days", patient_features.get("last_visit_days_ago", 14)))
-            sms = float(patient_features.get("SMS_received", 1))
-            htn = float(patient_features.get("Hipertension", 0))
-
-            if delta >= 30 or sms == 0 or htn == 1:
-                priority = "high"
-                missed_risk_score = 0.88
-                action = "Immediate LHW Home Visit & Priority ANC Scheduling"
-            elif delta >= 14:
-                priority = "medium"
-                missed_risk_score = 0.48
-                action = "Automated Urdu Voice Call & SMS Reminder Dispatch"
-            else:
-                priority = "low"
-                missed_risk_score = 0.12
-                action = "Standard Routine ANC Notification"
-
-            return {
-                "missed_risk_score": missed_risk_score,
-                "priority": priority,
-                "recommended_action": action,
-                "confidence": missed_risk_score if priority == "high" else round(1 - missed_risk_score, 2),
-                "model_available": True,
-            }
-        except Exception as exc:
-            logger.error("CareReach prediction failed: %s", exc)
-            return {
-                "missed_risk_score": 0.0,
-                "priority": "unknown",
-                "recommended_action": "Standard Notification",
-                "confidence": 0.0,
-                "model_available": False,
-            }
-
-    # -- GestationInsight -----------------------------------------------
-
-    def predict_gestational_complication(
-        self, clinical_features: Dict[str, float]
-    ) -> Dict[str, Any]:
-        """
-        Predict gestational complication / diabetes risk.
-        """
-        try:
-            glucose = float(clinical_features.get("Glucose", 100))
-            bmi = float(clinical_features.get("BMI", 24))
-
-            if glucose >= 140 or bmi >= 32:
-                risk_level = "high risk"
-                probabilities = {"Low": 0.05, "Moderate": 0.12, "High": 0.83}
-                confidence = 0.83
-            elif glucose >= 120 or bmi >= 28:
-                risk_level = "mid risk"
-                probabilities = {"Low": 0.15, "Moderate": 0.72, "High": 0.13}
-                confidence = 0.72
-            else:
-                risk_level = "low risk"
-                probabilities = {"Low": 0.88, "Moderate": 0.09, "High": 0.03}
-                confidence = 0.88
-
-            return {
-                "risk_level": risk_level,
-                "probabilities": probabilities,
-                "confidence": confidence,
-                "model_available": True,
-            }
-        except Exception as exc:
-            logger.error("GestationInsight prediction failed: %s", exc)
-            return self._fallback("risk_level")
+    def predict_anc_followup_risk(self, patient_features):
+        return {**self._fallback("priority", DISABLED["carereach"], "disabled"),
+                "missed_risk_score": None, "recommended_action": "Clinical ANC scoring unavailable"}
 
 
 @lru_cache(maxsize=1)
-def get_model_registry() -> ModelRegistry:
-    """Get or create the singleton model registry."""
+def get_model_registry():
     registry = ModelRegistry()
     registry.load_all()
     return registry

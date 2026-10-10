@@ -1,0 +1,935 @@
+{
+  "dataset_count": 5,
+  "total_prepared_rows": 115004,
+  "raw_ctg_records": 15,
+  "datasets": [
+    {
+      "file": "carereach_prepared.parquet",
+      "rows": 110527,
+      "columns": 20,
+      "fields": [
+        {
+          "name": "PatientId",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "AppointmentID",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Gender",
+          "dtype": "str",
+          "missing": 0
+        },
+        {
+          "name": "ScheduledDay",
+          "dtype": "datetime64[us, UTC]",
+          "missing": 0
+        },
+        {
+          "name": "AppointmentDay",
+          "dtype": "datetime64[us, UTC]",
+          "missing": 0
+        },
+        {
+          "name": "Age",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Neighbourhood",
+          "dtype": "str",
+          "missing": 0
+        },
+        {
+          "name": "Scholarship",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Hipertension",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Diabetes",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Alcoholism",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Handcap",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "SMS_received",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "No-show",
+          "dtype": "str",
+          "missing": 0
+        },
+        {
+          "name": "booking_delta_days",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "age_group",
+          "dtype": "category",
+          "missing": 3547
+        },
+        {
+          "name": "appointment_dow",
+          "dtype": "int32",
+          "missing": 0
+        },
+        {
+          "name": "sms_x_delta",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "comorbidity_count",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "target",
+          "dtype": "int64",
+          "missing": 0
+        }
+      ],
+      "sha256": "4da6fd93035b24011cc728621cbf135b8fb2ed4305f09ef0836f342d6209d752",
+      "preview": [
+        {
+          "PatientId": 29872499824296.0,
+          "AppointmentID": 5642903,
+          "Gender": "F",
+          "ScheduledDay": "2016-04-29T18:38:08.000Z",
+          "AppointmentDay": "2016-04-29T00:00:00.000Z",
+          "Age": 62,
+          "Neighbourhood": "JARDIM DA PENHA",
+          "Scholarship": 0,
+          "Hipertension": 1,
+          "Diabetes": 0,
+          "Alcoholism": 0,
+          "Handcap": 0,
+          "SMS_received": 0,
+          "No-show": "No",
+          "booking_delta_days": -1,
+          "age_group": "elderly",
+          "appointment_dow": 4,
+          "sms_x_delta": 0,
+          "comorbidity_count": 1,
+          "target": 0
+        },
+        {
+          "PatientId": 558997776694438.0,
+          "AppointmentID": 5642503,
+          "Gender": "M",
+          "ScheduledDay": "2016-04-29T16:08:27.000Z",
+          "AppointmentDay": "2016-04-29T00:00:00.000Z",
+          "Age": 56,
+          "Neighbourhood": "JARDIM DA PENHA",
+          "Scholarship": 0,
+          "Hipertension": 0,
+          "Diabetes": 0,
+          "Alcoholism": 0,
+          "Handcap": 0,
+          "SMS_received": 0,
+          "No-show": "No",
+          "booking_delta_days": -1,
+          "age_group": "senior",
+          "appointment_dow": 4,
+          "sms_x_delta": 0,
+          "comorbidity_count": 0,
+          "target": 0
+        },
+        {
+          "PatientId": 4262962299951.0,
+          "AppointmentID": 5642549,
+          "Gender": "F",
+          "ScheduledDay": "2016-04-29T16:19:04.000Z",
+          "AppointmentDay": "2016-04-29T00:00:00.000Z",
+          "Age": 62,
+          "Neighbourhood": "MATA DA PRAIA",
+          "Scholarship": 0,
+          "Hipertension": 0,
+          "Diabetes": 0,
+          "Alcoholism": 0,
+          "Handcap": 0,
+          "SMS_received": 0,
+          "No-show": "No",
+          "booking_delta_days": -1,
+          "age_group": "elderly",
+          "appointment_dow": 4,
+          "sms_x_delta": 0,
+          "comorbidity_count": 0,
+          "target": 0
+        }
+      ]
+    },
+    {
+      "file": "gestation_prepared.parquet",
+      "rows": 768,
+      "columns": 17,
+      "fields": [
+        {
+          "name": "Pregnancies",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Glucose",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "BloodPressure",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "SkinThickness",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "Insulin",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "BMI",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "DiabetesPedigreeFunction",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "Age",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Outcome",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "SBP_estimated",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "MAP",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "pulse_pressure",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "bmi_class",
+          "dtype": "category",
+          "missing": 11
+        },
+        {
+          "name": "glucose_tolerance_idx",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "age_parity_interaction",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "insulin_glucose_ratio",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "target",
+          "dtype": "int64",
+          "missing": 0
+        }
+      ],
+      "sha256": "51c653d0b0bf66284c1299286501fbe108d71ca809615185d736e8e6dbd167bc",
+      "preview": [
+        {
+          "Pregnancies": 6,
+          "Glucose": 148.0,
+          "BloodPressure": 72.0,
+          "SkinThickness": 35.0,
+          "Insulin": 125.0,
+          "BMI": 33.6,
+          "DiabetesPedigreeFunction": 0.627,
+          "Age": 50,
+          "Outcome": 1,
+          "SBP_estimated": 112,
+          "MAP": 85.3333333333,
+          "pulse_pressure": 40.0,
+          "bmi_class": "obese_1",
+          "glucose_tolerance_idx": 1.0571428571,
+          "age_parity_interaction": 300,
+          "insulin_glucose_ratio": 0.0,
+          "target": 2
+        },
+        {
+          "Pregnancies": 1,
+          "Glucose": 85.0,
+          "BloodPressure": 66.0,
+          "SkinThickness": 29.0,
+          "Insulin": 125.0,
+          "BMI": 26.6,
+          "DiabetesPedigreeFunction": 0.351,
+          "Age": 31,
+          "Outcome": 0,
+          "SBP_estimated": 106,
+          "MAP": 79.3333333333,
+          "pulse_pressure": 40.0,
+          "bmi_class": "overweight",
+          "glucose_tolerance_idx": 0.6071428571,
+          "age_parity_interaction": 31,
+          "insulin_glucose_ratio": 0.0,
+          "target": 0
+        },
+        {
+          "Pregnancies": 8,
+          "Glucose": 183.0,
+          "BloodPressure": 64.0,
+          "SkinThickness": 29.0,
+          "Insulin": 125.0,
+          "BMI": 23.3,
+          "DiabetesPedigreeFunction": 0.672,
+          "Age": 32,
+          "Outcome": 1,
+          "SBP_estimated": 104,
+          "MAP": 77.3333333333,
+          "pulse_pressure": 40.0,
+          "bmi_class": "normal",
+          "glucose_tolerance_idx": 1.3071428571,
+          "age_parity_interaction": 256,
+          "insulin_glucose_ratio": 0.0,
+          "target": 2
+        }
+      ]
+    },
+    {
+      "file": "oncotrace_prepared.parquet",
+      "rows": 569,
+      "columns": 39,
+      "fields": [
+        {
+          "name": "diagnosis",
+          "dtype": "str",
+          "missing": 0
+        },
+        {
+          "name": "radius_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "texture_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "perimeter_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "area_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "smoothness_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "compactness_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concavity_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concave_points_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "symmetry_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "fractal_dimension_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "radius_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "texture_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "perimeter_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "area_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "smoothness_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "compactness_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concavity_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concave_points_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "symmetry_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "fractal_dimension_se",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "radius_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "texture_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "perimeter_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "area_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "smoothness_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "compactness_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concavity_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concave_points_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "symmetry_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "fractal_dimension_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "target",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "volume_mean",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "volume_worst",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "shape_irregularity",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "texture_entropy",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "malignancy_risk_idx",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "concavity_perimeter",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "compactness_ratio",
+          "dtype": "float64",
+          "missing": 0
+        }
+      ],
+      "sha256": "d1f448ca2b7414f708c1218659b8fc79ef7a23dac052dfe7dc635cbdc40ed5a5",
+      "preview": [
+        {
+          "diagnosis": "M",
+          "radius_mean": 17.99,
+          "texture_mean": 10.38,
+          "perimeter_mean": 122.8,
+          "area_mean": 1001.0,
+          "smoothness_mean": 0.1184,
+          "compactness_mean": 0.2776,
+          "concavity_mean": 0.3001,
+          "concave_points_mean": 0.1471,
+          "symmetry_mean": 0.2419,
+          "fractal_dimension_mean": 0.07871,
+          "radius_se": 1.095,
+          "texture_se": 0.9053,
+          "perimeter_se": 8.589,
+          "area_se": 153.4,
+          "smoothness_se": 0.006399,
+          "compactness_se": 0.04904,
+          "concavity_se": 0.05373,
+          "concave_points_se": 0.01587,
+          "symmetry_se": 0.03003,
+          "fractal_dimension_se": 0.006193,
+          "radius_worst": 25.38,
+          "texture_worst": 17.33,
+          "perimeter_worst": 184.6,
+          "area_worst": 2019.0,
+          "smoothness_worst": 0.1622,
+          "compactness_worst": 0.6656,
+          "concavity_worst": 0.7119,
+          "concave_points_worst": 0.2654,
+          "symmetry_worst": 0.4601,
+          "fractal_dimension_worst": 0.1189,
+          "target": 1,
+          "volume_mean": 24388.332048802,
+          "volume_worst": 68479.9544159116,
+          "shape_irregularity": 0.0863939417,
+          "texture_entropy": 6.691357766,
+          "malignancy_risk_idx": 8.56984,
+          "concavity_perimeter": 36.85228,
+          "compactness_ratio": 0.0663800146
+        },
+        {
+          "diagnosis": "M",
+          "radius_mean": 20.57,
+          "texture_mean": 17.77,
+          "perimeter_mean": 132.9,
+          "area_mean": 1326.0,
+          "smoothness_mean": 0.08474,
+          "compactness_mean": 0.07864,
+          "concavity_mean": 0.0869,
+          "concave_points_mean": 0.07017,
+          "symmetry_mean": 0.1812,
+          "fractal_dimension_mean": 0.05667,
+          "radius_se": 0.5435,
+          "texture_se": 0.7339,
+          "perimeter_se": 3.398,
+          "area_se": 74.08,
+          "smoothness_se": 0.005225,
+          "compactness_se": 0.01308,
+          "concavity_se": 0.0186,
+          "concave_points_se": 0.0134,
+          "symmetry_se": 0.01389,
+          "fractal_dimension_se": 0.003532,
+          "radius_worst": 24.99,
+          "texture_worst": 23.41,
+          "perimeter_worst": 158.8,
+          "area_worst": 1956.0,
+          "smoothness_worst": 0.1238,
+          "compactness_worst": 0.1866,
+          "concavity_worst": 0.2416,
+          "concave_points_worst": 0.186,
+          "symmetry_worst": 0.275,
+          "fractal_dimension_worst": 0.08902,
+          "target": 1,
+          "volume_mean": 36457.8861492415,
+          "volume_worst": 65371.3385451853,
+          "shape_irregularity": 0.0282786552,
+          "texture_entropy": 9.7801318807,
+          "malignancy_risk_idx": 11.530068,
+          "concavity_perimeter": 11.54901,
+          "compactness_ratio": 0.0750746925
+        },
+        {
+          "diagnosis": "M",
+          "radius_mean": 19.69,
+          "texture_mean": 21.25,
+          "perimeter_mean": 130.0,
+          "area_mean": 1203.0,
+          "smoothness_mean": 0.1096,
+          "compactness_mean": 0.1599,
+          "concavity_mean": 0.1974,
+          "concave_points_mean": 0.1279,
+          "symmetry_mean": 0.2069,
+          "fractal_dimension_mean": 0.05999,
+          "radius_se": 0.7456,
+          "texture_se": 0.7869,
+          "perimeter_se": 4.585,
+          "area_se": 94.03,
+          "smoothness_se": 0.00615,
+          "compactness_se": 0.04006,
+          "concavity_se": 0.03832,
+          "concave_points_se": 0.02058,
+          "symmetry_se": 0.0225,
+          "fractal_dimension_se": 0.004571,
+          "radius_worst": 23.57,
+          "texture_worst": 25.53,
+          "perimeter_worst": 152.5,
+          "area_worst": 1709.0,
+          "smoothness_worst": 0.1444,
+          "compactness_worst": 0.4245,
+          "concavity_worst": 0.4504,
+          "concave_points_worst": 0.243,
+          "symmetry_worst": 0.3613,
+          "fractal_dimension_worst": 0.08758,
+          "target": 1,
+          "volume_mean": 31976.1194581824,
+          "volume_worst": 54848.8286052981,
+          "shape_irregularity": 0.050794444,
+          "texture_entropy": 12.3352483417,
+          "malignancy_risk_idx": 12.33316,
+          "concavity_perimeter": 25.662,
+          "compactness_ratio": 0.071183432
+        }
+      ]
+    },
+    {
+      "file": "uci_ctg.parquet",
+      "rows": 2126,
+      "columns": 23,
+      "fields": [
+        {
+          "name": "LB",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "AC",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "FM",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "UC",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "DL",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "DS",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "DP",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "ASTV",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "MSTV",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "ALTV",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "MLTV",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "Width",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Min",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Max",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Nmax",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Nzeros",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Mode",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Mean",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Median",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Variance",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "Tendency",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "CLASS",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "NSP",
+          "dtype": "int64",
+          "missing": 0
+        }
+      ],
+      "sha256": "28ce62995eb5f357470a6ef977bedcda6e266253e85d1524f6e0b429fe2092ab",
+      "preview": [
+        {
+          "LB": 120,
+          "AC": 0.0,
+          "FM": 0.0,
+          "UC": 0.0,
+          "DL": 0.0,
+          "DS": 0.0,
+          "DP": 0.0,
+          "ASTV": 73,
+          "MSTV": 0.5,
+          "ALTV": 43,
+          "MLTV": 2.4,
+          "Width": 64,
+          "Min": 62,
+          "Max": 126,
+          "Nmax": 2,
+          "Nzeros": 0,
+          "Mode": 120,
+          "Mean": 137,
+          "Median": 121,
+          "Variance": 73,
+          "Tendency": 1,
+          "CLASS": 9,
+          "NSP": 2
+        },
+        {
+          "LB": 132,
+          "AC": 0.006,
+          "FM": 0.0,
+          "UC": 0.006,
+          "DL": 0.003,
+          "DS": 0.0,
+          "DP": 0.0,
+          "ASTV": 17,
+          "MSTV": 2.1,
+          "ALTV": 0,
+          "MLTV": 10.4,
+          "Width": 130,
+          "Min": 68,
+          "Max": 198,
+          "Nmax": 6,
+          "Nzeros": 1,
+          "Mode": 141,
+          "Mean": 136,
+          "Median": 140,
+          "Variance": 12,
+          "Tendency": 0,
+          "CLASS": 6,
+          "NSP": 1
+        },
+        {
+          "LB": 133,
+          "AC": 0.003,
+          "FM": 0.0,
+          "UC": 0.008,
+          "DL": 0.003,
+          "DS": 0.0,
+          "DP": 0.0,
+          "ASTV": 16,
+          "MSTV": 2.1,
+          "ALTV": 0,
+          "MLTV": 13.4,
+          "Width": 130,
+          "Min": 68,
+          "Max": 198,
+          "Nmax": 5,
+          "Nzeros": 1,
+          "Mode": 141,
+          "Mean": 135,
+          "Median": 138,
+          "Variance": 13,
+          "Tendency": 0,
+          "CLASS": 6,
+          "NSP": 1
+        }
+      ]
+    },
+    {
+      "file": "uci_maternal.parquet",
+      "rows": 1014,
+      "columns": 7,
+      "fields": [
+        {
+          "name": "Age",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "SystolicBP",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "DiastolicBP",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "BS",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "BodyTemp",
+          "dtype": "float64",
+          "missing": 0
+        },
+        {
+          "name": "HeartRate",
+          "dtype": "int64",
+          "missing": 0
+        },
+        {
+          "name": "RiskLevel",
+          "dtype": "str",
+          "missing": 0
+        }
+      ],
+      "sha256": "7a87dab5ad2883339f2944b78427b526a11d5f1329f57c316e448735fd74ead4",
+      "preview": [
+        {
+          "Age": 25,
+          "SystolicBP": 130,
+          "DiastolicBP": 80,
+          "BS": 15.0,
+          "BodyTemp": 98.0,
+          "HeartRate": 86,
+          "RiskLevel": "high risk"
+        },
+        {
+          "Age": 35,
+          "SystolicBP": 140,
+          "DiastolicBP": 90,
+          "BS": 13.0,
+          "BodyTemp": 98.0,
+          "HeartRate": 70,
+          "RiskLevel": "high risk"
+        },
+        {
+          "Age": 29,
+          "SystolicBP": 90,
+          "DiastolicBP": 70,
+          "BS": 8.0,
+          "BodyTemp": 100.0,
+          "HeartRate": 80,
+          "RiskLevel": "high risk"
+        }
+      ]
+    }
+  ]
+}

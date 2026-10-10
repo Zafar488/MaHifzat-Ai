@@ -1,0 +1,253 @@
+{
+  "patient_id": "software-verification",
+  "case_id": "pack-maternal_emergency",
+  "language": "en",
+  "channel": "app",
+  "vitals": {
+    "age": 34.0,
+    "systolic_bp": 180.0,
+    "diastolic_bp": 120.0,
+    "heart_rate": 110.0,
+    "temperature_celsius": 38.4,
+    "blood_sugar_mmol_l": 9.8,
+    "gestational_age_weeks": 34.0
+  },
+  "symptoms": [
+    {
+      "name": "Severe headache",
+      "severity": "severe",
+      "duration_hours": null
+    },
+    {
+      "name": "Blurred vision",
+      "severity": "severe",
+      "duration_hours": null
+    }
+  ],
+  "location": {
+    "latitude": 34.01,
+    "longitude": 71.53,
+    "source": "manual",
+    "share_for_discovery": false,
+    "share_for_routing": false
+  },
+  "followup": {
+    "gestational_age_weeks": 34.0,
+    "completed_contact_weeks": [
+      12,
+      20,
+      26,
+      30
+    ],
+    "missed_visits": 0,
+    "transport_barrier": false,
+    "phone_access": null
+  },
+  "provenance": "patient_reported",
+  "allow_llm_processing": false,
+  "demographics": {
+    "age": 34,
+    "gestational_age_weeks": 34.0
+  },
+  "ctg_data": null,
+  "missing_fields": [],
+  "followup_questions": [],
+  "intake_complete": true,
+  "emergency": true,
+  "current_step": "reporting_complete",
+  "clinical_risk_result": {
+    "maternal_risk": {
+      "risk_level": "high risk",
+      "probabilities": {
+        "high risk": 0.9999178246186641,
+        "low risk": 3.3776670174697146e-05,
+        "mid risk": 4.839871116119079e-05
+      },
+      "confidence": null,
+      "model_available": true,
+      "status": "experimental",
+      "model_version": "experimental-v2-20261010",
+      "calibration": "uncalibrated class probabilities; not clinical confidence",
+      "intended_use": "UCI maternal risk category research",
+      "clinical_validation": "not established",
+      "out_of_training_range_features": [
+        "SystolicBP",
+        "DiastolicBP",
+        "HeartRate"
+      ]
+    },
+    "gestational_risk": {
+      "risk_level": "unknown",
+      "probabilities": {},
+      "confidence": null,
+      "model_available": false,
+      "status": "disabled",
+      "reason": "Pima diabetes proxy is not an observed pregnancy-complication outcome."
+    },
+    "who_red_flags": {
+      "triage_level": "HIGH_RISK_EMERGENCY",
+      "triggered_rules": [
+        "severe_hypertension",
+        "pre_eclampsia_danger_signs"
+      ],
+      "clinical_rationale": [
+        "Danger signs detected: severe_hypertension, pre_eclampsia_danger_signs"
+      ],
+      "recommended_actions": [
+        "Seek immediate assessment by an emergency maternity service. Do not wait for a model prediction or software review."
+      ],
+      "override_ml_scores": true,
+      "is_emergency": true,
+      "missing_fields": [],
+      "rule_version": "2026-10-09.1",
+      "clinical_review_status": "pending",
+      "timestamp": "2026-10-10T10:57:16.609119+00:00"
+    },
+    "is_emergency": true,
+    "risk_summary": "Danger signs detected: severe_hypertension, pre_eclampsia_danger_signs",
+    "llm_generated": false
+  },
+  "fetal_result": {
+    "fetal_status": "not_assessed",
+    "status": "not_assessed",
+    "reason": "No measured CTG features",
+    "escalate": false
+  },
+  "anc_result": {
+    "status": "rule_based",
+    "priority": "immediate",
+    "recommended_action": "emergency_assessment",
+    "risk_factors": [
+      "Current maternal/fetal concern requires clinical assessment"
+    ],
+    "missed_risk_score": null,
+    "model_available": false,
+    "next_contact_week": 34,
+    "next_appointment_date": "2026-10-10",
+    "next_reminder_date": "2026-10-10",
+    "task_due_date": "2026-10-10",
+    "overdue_days": 0,
+    "schedule_basis": "suggested_WHO_contact",
+    "rule_version": "anc-outreach-v1",
+    "contact_schedule_weeks": [
+      12,
+      20,
+      26,
+      30,
+      34,
+      36,
+      38,
+      40
+    ],
+    "completed_contact_weeks": [
+      12,
+      20,
+      26,
+      30
+    ],
+    "reason": "Clinician should individualize this suggested schedule. Outreach priority is an operational rule, not a predicted probability."
+  },
+  "referral_result": {
+    "urgency_level": "emergency",
+    "capabilities_needed": {
+      "has_maternity": true,
+      "has_emergency": true,
+      "has_nicu": false
+    },
+    "selected_facility": null,
+    "ranked_facilities": [],
+    "excluded_facilities": [],
+    "estimated_travel_time_min": null,
+    "simulated": false,
+    "status": "no_matching_facility",
+    "directory_status": "unavailable",
+    "reason": "No verified capable facility found within 100 km. Contact maternity/emergency services to arrange care manually."
+  },
+  "communication_result": {
+    "status": "not_sent",
+    "messages_sent": 0,
+    "all_delivered": false,
+    "draft_message": "Danger signs detected. Seek immediate emergency maternity assessment. Do not wait for a reminder or software review.",
+    "recommended_channel": "app",
+    "reason": "Draft prepared; no external message sent. Reviewed explicit action and provider required."
+  },
+  "clinician_result": {
+    "case_summary_text": "MaaHifazat clinical handover | Case: pack-maternal_emergency\nPatient ID: software-verification | Provenance: patient_reported\nAttention: EMERGENCY | Maternal rule triage: HIGH_RISK_EMERGENCY\nObservations: Age: 34 years; Gestation: 34 weeks; Systolic BP: 180 mmHg; Diastolic BP: 120 mmHg; Heart rate: 110 bpm; Temperature: 38.4 C; Blood glucose: 9.8 mmol/L\nReported symptoms: Severe headache (severe); Blurred vision (severe)\nDanger signs: severe_hypertension, pre_eclampsia_danger_signs\nExperimental maternal model: high risk (experimental)\nExperimental fetal model: not_assessed (not_assessed)\nMissing measurements: None of the required maternal measurements\nReferral candidate: none | no_matching_facility\nANC: immediate priority; action: emergency_assessment; next appointment: 2026-10-10\nNext actions: Seek immediate assessment by an emergency maternity service. Do not wait for a model prediction or software review.\nReview: pending qualified clinician review. Emergency assessment must not wait for software review.\nModel evidence: probabilities are uncalibrated; CTG-pattern, no-show and Pima-derived proxy results do not determine clinical care.",
+    "status": "pending_review",
+    "requires_immediate_attention": true,
+    "risk_indicators": [
+      "severe_hypertension",
+      "pre_eclampsia_danger_signs"
+    ],
+    "decision": null,
+    "reviewer": null,
+    "llm_generated": false,
+    "ai_assistance": {
+      "llm_generated": false,
+      "status": "not_requested",
+      "provider": "groq",
+      "urgency": "emergency",
+      "reason": "External AI processing was not permitted."
+    }
+  },
+  "data_quality_result": {
+    "missing_fields": [],
+    "status": "validated_input"
+  },
+  "reporting_result": {
+    "narrative": "MaaHifazat clinical handover | Case: pack-maternal_emergency\nPatient ID: software-verification | Provenance: patient_reported\nAttention: EMERGENCY | Maternal rule triage: HIGH_RISK_EMERGENCY\nObservations: Age: 34 years; Gestation: 34 weeks; Systolic BP: 180 mmHg; Diastolic BP: 120 mmHg; Heart rate: 110 bpm; Temperature: 38.4 C; Blood glucose: 9.8 mmol/L\nReported symptoms: Severe headache (severe); Blurred vision (severe)\nDanger signs: severe_hypertension, pre_eclampsia_danger_signs\nExperimental maternal model: high risk (experimental)\nExperimental fetal model: not_assessed (not_assessed)\nMissing measurements: None of the required maternal measurements\nReferral candidate: none | no_matching_facility\nANC: immediate priority; action: emergency_assessment; next appointment: 2026-10-10\nNext actions: Seek immediate assessment by an emergency maternity service. Do not wait for a model prediction or software review.\nReview: pending qualified clinician review. Emergency assessment must not wait for software review.\nModel evidence: probabilities are uncalibrated; CTG-pattern, no-show and Pima-derived proxy results do not determine clinical care.",
+    "clinical_validation": "not established",
+    "review_status": "pending",
+    "llm_generated": false
+  },
+  "audit_trail": [
+    {
+      "agent": "clinical_risk",
+      "action": "clinical_risk_evaluated",
+      "timestamp": "2026-10-10T10:57:16.625893+00:00"
+    },
+    {
+      "agent": "patient_intake",
+      "action": "patient_intake_evaluated",
+      "timestamp": "2026-10-10T10:57:16.627115+00:00"
+    },
+    {
+      "agent": "data_quality",
+      "action": "data_quality_evaluated",
+      "timestamp": "2026-10-10T10:57:16.628115+00:00"
+    },
+    {
+      "agent": "fetal_monitoring",
+      "action": "fetal_monitoring_evaluated",
+      "timestamp": "2026-10-10T10:57:16.630116+00:00"
+    },
+    {
+      "agent": "anc_followup",
+      "action": "anc_followup_evaluated",
+      "timestamp": "2026-10-10T10:57:16.632115+00:00"
+    },
+    {
+      "agent": "smart_referral",
+      "action": "smart_referral_evaluated",
+      "timestamp": "2026-10-10T10:57:16.633117+00:00"
+    },
+    {
+      "agent": "clinician_review",
+      "action": "clinician_review_evaluated",
+      "timestamp": "2026-10-10T10:57:16.634115+00:00"
+    },
+    {
+      "agent": "communication",
+      "action": "communication_evaluated",
+      "timestamp": "2026-10-10T10:57:16.635116+00:00"
+    },
+    {
+      "agent": "reporting",
+      "action": "reporting_evaluated",
+      "timestamp": "2026-10-10T10:57:16.636116+00:00"
+    }
+  ],
+  "errors": [],
+  "messages": [],
+  "status": "pending_review"
+}

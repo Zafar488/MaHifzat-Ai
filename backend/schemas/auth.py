@@ -16,6 +16,7 @@ class TokenPayload(BaseModel):
     sub: str              # user_id
     role: UserRole
     exp: Optional[int] = None
+    token_version: int = 0
 
 
 class TokenResponse(BaseModel):

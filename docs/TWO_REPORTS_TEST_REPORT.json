@@ -1,0 +1,40 @@
+{
+  "tested_at": "2026-10-10T11:25:26.264140+00:00",
+  "automated_tests": 88,
+  "failures": 0,
+  "errors": 0,
+  "test_seconds": 53.48,
+  "live_verification": {
+    "tested_at": "2026-10-10T11:22:06.830794+00:00",
+    "account": "report-check-f8f0b8c8",
+    "case_id": "d6245956-7ebf-42c5-8df3-6409939040e0",
+    "test_inputs": "Synthetic software inputs and selected measured dataset CTG row; public Peshawar coordinates, not actual user GPS",
+    "case_saved": true,
+    "nine_agents": true,
+    "two_reports": true,
+    "report_languages": [
+      "English",
+      "Urdu script"
+    ],
+    "groq_status": "generated",
+    "research_models": {
+      "pretermguard": "research_prediction",
+      "gestationinsight": "research_prediction",
+      "carereach": "research_prediction"
+    },
+    "maternal_model": "experimental",
+    "fetal_model": "experimental",
+    "hospital_count": 5,
+    "road_routes": 5,
+    "coverage_limited": true,
+    "coverage_radius_km": 2.0,
+    "sample_report_dir": "F:\\hackthon\\exports\\bilingual_reports"
+  },
+  "evidence": [
+    "bilingual-report-test-results.xml",
+    "bilingual-report-verification.json"
+  ],
+  "clinical_validation": "not established",
+  "actual_device_gps_tested": false,
+  "automatic_message_delivery_tested": false
+}

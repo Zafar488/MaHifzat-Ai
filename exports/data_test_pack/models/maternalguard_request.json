@@ -1,0 +1,11 @@
+{
+  "model": "maternalguard",
+  "features": {
+    "Age": 25.0,
+    "SystolicBP": 130.0,
+    "DiastolicBP": 80.0,
+    "BS": 15.0,
+    "BodyTemp": 98.0,
+    "HeartRate": 86.0
+  }
+}

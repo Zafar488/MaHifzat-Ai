@@ -27,13 +27,17 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 import warnings
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+
 warnings.filterwarnings('ignore')
 
 plt.style.use('seaborn-v0_8-whitegrid')
 sns.set_palette('Set2')
 
-DATA_DIR = 'g:/hackthon/data'
-NOTEBOOK_DIR = 'g:/hackthon/notebooks'
+from pathlib import Path
+DATA_DIR = str(Path().resolve() / 'data')
+NOTEBOOK_DIR = str(Path().resolve() / 'notebooks')
 os.makedirs(NOTEBOOK_DIR, exist_ok=True)
 print("Setup complete.")
 """))
@@ -220,7 +224,7 @@ cells.append(nbf.v4.new_markdown_cell("""## Summary
 nb.cells = cells
 
 # Write notebook
-nb_path = 'g:/hackthon/notebooks/01_eda_exploration.ipynb'
+nb_path = ROOT / 'notebooks' / '01_eda_exploration.ipynb'
 with open(nb_path, 'w', encoding='utf-8') as f:
     nbf.write(nb, f)
 print(f"Notebook saved to {nb_path}")

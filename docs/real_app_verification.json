@@ -1,0 +1,25 @@
+{
+  "account": "verification-089c42839e",
+  "test_inputs": "Synthetic software-verification observations; public test point, no actual user GPS",
+  "demo_mode": false,
+  "models": {
+    "maternalguard": "experimental",
+    "fetalwatch": "experimental",
+    "pretermguard": "research_prediction",
+    "gestationinsight": "research_prediction",
+    "carereach": "research_prediction"
+  },
+  "case_id": "a9be75a4-05e6-4925-a755-23f9cbb67547",
+  "nine_agents": true,
+  "case_saved": true,
+  "followup_action": "home_visit",
+  "groq_status": "generated",
+  "referral_status": "unverified_candidate_requires_confirmation",
+  "hospital_search": {
+    "status": "ok",
+    "provider": "osm_bounded_map",
+    "coverage_limited": true,
+    "coverage_radius_km": 2.0
+  },
+  "hospital_count": 8
+}

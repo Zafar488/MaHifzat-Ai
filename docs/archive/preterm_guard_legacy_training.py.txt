@@ -1,0 +1,419 @@
+"""PretermGuard — preterm birth risk classification from CTG features.
+
+Three-class classifier (Normal / Suspect / Pathological) trained on
+the UCI Cardiotocography dataset using the CLASS column as target.
+LightGBM (primary, Optuna HPO) and Random Forest (baseline).
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import sys
+import warnings
+
+# ---------------------------------------------------------------------------
+# Make project root importable when running this file directly
+# ---------------------------------------------------------------------------
+_PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+if _PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, _PROJECT_ROOT)
+
+import numpy as np
+import pandas as pd
+import joblib
+
+import lightgbm as lgb
+import optuna
+
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.metrics import (
+    classification_report,
+    confusion_matrix,
+    roc_auc_score,
+    f1_score,
+)
+from sklearn.model_selection import StratifiedKFold, cross_val_score, train_test_split
+from sklearn.preprocessing import RobustScaler
+from imblearn.over_sampling import SMOTE
+
+# ---------------------------------------------------------------------------
+# Suppress noisy logs
+# ---------------------------------------------------------------------------
+optuna.logging.set_verbosity(optuna.logging.WARNING)
+warnings.filterwarnings("ignore")
+
+# ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+CLASS_LABEL_MAP = {1: "Normal", 2: "Suspect", 3: "Pathological"}
+RANDOM_STATE = 42
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Helper utilities
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _macro_f1(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """Compute macro-averaged F1."""
+    report = classification_report(y_true, y_pred, output_dict=True, zero_division=0)
+    return float(report["macro avg"]["f1-score"])
+
+
+def _evaluate_model(model, X_test: pd.DataFrame, y_test: pd.Series, label: str) -> dict:
+    """Run full evaluation on the held-out test set and return a metrics dict."""
+    y_pred = model.predict(X_test)
+
+    report = classification_report(y_test, y_pred, output_dict=True, zero_division=0)
+    macro_f1 = float(report["macro avg"]["f1-score"])
+
+    # AUROC — one-vs-rest
+    try:
+        y_prob = model.predict_proba(X_test)
+        auroc = float(
+            roc_auc_score(
+                pd.get_dummies(y_test).values,
+                y_prob,
+                multi_class="ovr",
+                average="macro",
+            )
+        )
+    except Exception:
+        auroc = None
+
+    # Per-class metrics
+    classes = sorted(y_test.unique())
+    per_class: dict = {}
+    for cls in classes:
+        cls_key = str(cls)
+        per_class[cls_key] = {
+            "precision": float(report.get(cls_key, {}).get("precision", 0.0)),
+            "recall": float(report.get(cls_key, {}).get("recall", 0.0)),
+            "f1-score": float(report.get(cls_key, {}).get("f1-score", 0.0)),
+        }
+
+    print(f"\n  [{label}] Evaluation on test set:")
+    print(f"    Macro-F1 : {macro_f1:.4f}")
+    if auroc is not None:
+        print(f"    AUROC    : {auroc:.4f}")
+    print(classification_report(y_test, y_pred, zero_division=0))
+
+    return {
+        "macro_f1": macro_f1,
+        "auroc_ovr_macro": auroc,
+        "per_class": per_class,
+        "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
+        "classification_report": report,
+    }
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# LightGBM — Optuna HPO
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _train_lightgbm(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+    X_val: pd.DataFrame,
+    y_val: pd.Series,
+    n_trials: int = 20,
+) -> tuple:
+    """Train LightGBM with Optuna hyper-parameter search."""
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+
+    def objective(trial: optuna.Trial) -> float:
+        params = {
+            "num_leaves": trial.suggest_int("num_leaves", 20, 150),
+            "learning_rate": trial.suggest_float("learning_rate", 0.01, 0.3, log=True),
+            "n_estimators": trial.suggest_int("n_estimators", 100, 1000),
+            "min_child_samples": trial.suggest_int("min_child_samples", 5, 50),
+            "subsample": trial.suggest_float("subsample", 0.6, 1.0),
+            "colsample_bytree": trial.suggest_float("colsample_bytree", 0.6, 1.0),
+            "reg_alpha": trial.suggest_float("reg_alpha", 0.0, 10.0),
+            "reg_lambda": trial.suggest_float("reg_lambda", 0.0, 10.0),
+            "class_weight": "balanced",
+            "random_state": RANDOM_STATE,
+            "verbose": -1,
+            "n_jobs": -1,
+        }
+        clf = lgb.LGBMClassifier(**params)
+        scores = cross_val_score(
+            clf, X_train, y_train,
+            cv=skf,
+            scoring="f1_macro",
+            n_jobs=-1,
+        )
+        return float(scores.mean())
+
+    print("[LightGBM] Starting Optuna HPO ({} trials) ...".format(n_trials))
+    study = optuna.create_study(
+        direction="maximize",
+        pruner=optuna.pruners.MedianPruner(n_startup_trials=5, n_warmup_steps=5),
+        study_name="pretermguard_lgbm",
+    )
+    study.optimize(objective, n_trials=n_trials, show_progress_bar=False)
+
+    best_params = study.best_params
+    best_params.update({
+        "class_weight": "balanced",
+        "random_state": RANDOM_STATE,
+        "verbose": -1,
+        "n_jobs": -1,
+    })
+    print(f"[LightGBM] Best CV macro-F1: {study.best_value:.4f}")
+    print(f"[LightGBM] Best params: {best_params}")
+
+    # Retrain on full training set with early stopping on validation
+    best_model = lgb.LGBMClassifier(**best_params)
+    best_model.fit(
+        X_train, y_train,
+        eval_set=[(X_val, y_val)],
+        callbacks=[
+            lgb.early_stopping(stopping_rounds=30, verbose=False),
+            lgb.log_evaluation(period=0),
+        ],
+    )
+    return best_model, best_params
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Random Forest — baseline
+# ═══════════════════════════════════════════════════════════════════════════
+
+def _train_random_forest(
+    X_train: pd.DataFrame,
+    y_train: pd.Series,
+) -> tuple:
+    """Train a Random Forest baseline (no HPO)."""
+    print("[RandomForest] Training baseline (n_estimators=500, balanced) ...")
+    rf = RandomForestClassifier(
+        n_estimators=500,
+        class_weight="balanced",
+        random_state=RANDOM_STATE,
+        n_jobs=-1,
+    )
+    rf.fit(X_train, y_train)
+
+    skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=RANDOM_STATE)
+    cv_scores = cross_val_score(rf, X_train, y_train, cv=skf, scoring="f1_macro", n_jobs=-1)
+    print(f"[RandomForest] CV macro-F1: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+    params = {"n_estimators": 500, "class_weight": "balanced", "random_state": RANDOM_STATE}
+    return rf, params
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Main training pipeline
+# ═══════════════════════════════════════════════════════════════════════════
+
+def train_preterm_guard(
+    data_dir: str | None = None,
+    n_trials: int = 20,
+) -> dict:
+    """Run the full PretermGuard training pipeline.
+
+    Parameters
+    ----------
+    data_dir : str, optional
+        Directory that contains ``uci_ctg.parquet``.
+    n_trials : int
+        Number of Optuna trials for LightGBM HPO.
+
+    Returns
+    -------
+    results : dict
+        Nested dictionary with evaluation metrics for every model.
+    """
+    if data_dir is None:
+        data_dir = os.path.join(_PROJECT_ROOT, "data")
+
+    # ------------------------------------------------------------------
+    # 1. Load data
+    # ------------------------------------------------------------------
+    print("\n" + "=" * 60)
+    print("  PretermGuard — Preterm Birth Risk Classification Pipeline")
+    print("=" * 60)
+    print("\n[Step 1] Loading UCI CTG dataset (CLASS target) ...")
+
+    parquet_path = os.path.join(data_dir, "uci_ctg.parquet")
+    if not os.path.exists(parquet_path):
+        raise FileNotFoundError(f"UCI CTG parquet not found at: {parquet_path}")
+
+    df = pd.read_parquet(parquet_path)
+
+    # Features = all 21 CTG features (exclude NSP and CLASS)
+    feature_cols = [c for c in df.columns if c not in ("NSP", "CLASS")]
+    X = df[feature_cols].copy()
+
+    # Target = CLASS column mapped to labels
+    y = df["CLASS"].map(CLASS_LABEL_MAP).copy()
+    y.name = "CLASS"
+
+    # Drop rows where CLASS didn't map (NaN = unmapped values)
+    valid_mask = y.notna()
+    X = X[valid_mask].reset_index(drop=True)
+    y = y[valid_mask].reset_index(drop=True)
+
+    print(f"  Loaded {len(X)} samples, {X.shape[1]} features")
+    print(f"  Class distribution (CLASS):\n{y.value_counts().to_string()}")
+
+    # ------------------------------------------------------------------
+    # 2. Preprocess: split + scale + SMOTE
+    # ------------------------------------------------------------------
+    print("\n[Step 2] Preprocessing (split 70/15/15 + RobustScaler + SMOTE) ...")
+
+    # Stratified split: 70% train, 15% val, 15% test
+    X_trainval, X_test, y_trainval, y_test = train_test_split(
+        X, y, test_size=0.15, random_state=RANDOM_STATE, stratify=y,
+    )
+    adjusted_val_size = 0.15 / (1.0 - 0.15)
+    X_train, X_val, y_train, y_val = train_test_split(
+        X_trainval, y_trainval,
+        test_size=adjusted_val_size,
+        random_state=RANDOM_STATE,
+        stratify=y_trainval,
+    )
+
+    # RobustScaler
+    scaler = RobustScaler()
+    X_train = pd.DataFrame(scaler.fit_transform(X_train), columns=X.columns, index=X_train.index)
+    X_val = pd.DataFrame(scaler.transform(X_val), columns=X.columns, index=X_val.index)
+    X_test = pd.DataFrame(scaler.transform(X_test), columns=X.columns, index=X_test.index)
+
+    # SMOTE on training set only
+    smote = SMOTE(random_state=RANDOM_STATE)
+    X_train, y_train = smote.fit_resample(X_train, y_train)
+    X_train = pd.DataFrame(X_train, columns=feature_cols)
+    y_train = pd.Series(y_train, name="CLASS")
+
+    print(f"  Train: {len(X_train)} | Val: {len(X_val)} | Test: {len(X_test)}")
+    print(f"  Train class distribution after SMOTE:\n{y_train.value_counts().to_string()}")
+
+    results: dict = {}
+
+    # ------------------------------------------------------------------
+    # 3a. LightGBM (primary)
+    # ------------------------------------------------------------------
+    print("\n[Step 3a] Training LightGBM (Optuna HPO) ...")
+    lgbm_model, lgbm_params = _train_lightgbm(X_train, y_train, X_val, y_val, n_trials=n_trials)
+    lgbm_metrics = _evaluate_model(lgbm_model, X_test, y_test, label="LightGBM")
+    results["LightGBM"] = {"params": lgbm_params, **lgbm_metrics}
+
+    # ------------------------------------------------------------------
+    # 3b. Random Forest (baseline)
+    # ------------------------------------------------------------------
+    print("\n[Step 3b] Training Random Forest (baseline) ...")
+    rf_model, rf_params = _train_random_forest(X_train, y_train)
+    rf_metrics = _evaluate_model(rf_model, X_test, y_test, label="RandomForest")
+    results["RandomForest"] = {"params": rf_params, **rf_metrics}
+
+    # ------------------------------------------------------------------
+    # 4. Comparison table
+    # ------------------------------------------------------------------
+    print("\n" + "=" * 60)
+    print("  MODEL COMPARISON")
+    print("=" * 60)
+    header = f"{'Model':<15} {'Macro-F1':>10} {'AUROC':>10}"
+    print(header)
+    print("-" * len(header))
+    for name, m in results.items():
+        auroc_str = f"{m['auroc_ovr_macro']:.4f}" if m["auroc_ovr_macro"] is not None else "N/A"
+        print(f"{name:<15} {m['macro_f1']:>10.4f} {auroc_str:>10}")
+
+    # ------------------------------------------------------------------
+    # 5. Select & save best model
+    # ------------------------------------------------------------------
+    best_name = max(results, key=lambda k: results[k]["macro_f1"])
+    best_model_obj = {
+        "LightGBM": lgbm_model,
+        "RandomForest": rf_model,
+    }[best_name]
+
+    out_dir = os.path.join(_PROJECT_ROOT, "artifacts", "pretermguard")
+    os.makedirs(out_dir, exist_ok=True)
+
+    model_path = os.path.join(out_dir, "best_model.joblib")
+    joblib.dump(best_model_obj, model_path)
+    print(f"\n[Saved] Best model '{best_name}' -> {model_path}")
+
+    results_path = os.path.join(out_dir, "results.json")
+
+    # Make results JSON-serialisable
+    def _sanitize(obj):
+        if isinstance(obj, (np.integer,)):
+            return int(obj)
+        if isinstance(obj, (np.floating,)):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        if isinstance(obj, dict):
+            return {k: _sanitize(v) for k, v in obj.items()}
+        if isinstance(obj, (list, tuple)):
+            return [_sanitize(v) for v in obj]
+        return obj
+
+    serializable_results = _sanitize(results)
+    serializable_results["best_model"] = best_name
+    with open(results_path, "w", encoding="utf-8") as fp:
+        json.dump(serializable_results, fp, indent=2)
+    print(f"[Saved] Results -> {results_path}")
+
+    print("\n" + "=" * 60)
+    print(f"  BEST MODEL : {best_name}")
+    print(f"  Macro-F1   : {results[best_name]['macro_f1']:.4f}")
+    print("=" * 60 + "\n")
+
+    return results
+
+
+# ═══════════════════════════════════════════════════════════════════════════
+# Entry point
+# ═══════════════════════════════════════════════════════════════════════════
+
+def main() -> None:
+    """Run the full PretermGuard pipeline and print a formatted summary."""
+    results = train_preterm_guard(n_trials=10)
+
+    # Formatted per-class sensitivity summary
+    print("\n" + "=" * 60)
+    print("  PER-CLASS SENSITIVITY (Recall) — Test Set")
+    print("=" * 60)
+
+    best_name = max(results, key=lambda k: results[k]["macro_f1"])
+    print(f"\n  Best model: {best_name}")
+    print(f"  Macro-F1  : {results[best_name]['macro_f1']:.4f}")
+    auroc = results[best_name].get("auroc_ovr_macro")
+    if auroc is not None:
+        print(f"  AUROC     : {auroc:.4f}")
+
+    print("\n  Per-class sensitivity (all models):")
+    for model_name, metrics in results.items():
+        print(f"\n  [{model_name}]")
+        for cls, cls_metrics in metrics.get("per_class", {}).items():
+            print(
+                f"    {cls:<15}  "
+                f"Precision={cls_metrics['precision']:.3f}  "
+                f"Recall={cls_metrics['recall']:.3f}  "
+                f"F1={cls_metrics['f1-score']:.3f}"
+            )
+
+    # Clinical interpretation
+    print("\n" + "=" * 60)
+    print("  CLINICAL INTERPRETATION")
+    print("=" * 60)
+    print("""
+  PretermGuard uses CLASS labels (1=Normal, 2=Suspect, 3=Pathological)
+  from CTG recordings to assess preterm birth / fetal distress risk.
+
+  - Normal:     Healthy CTG pattern. Low preterm risk.
+                -> Routine monitoring recommended.
+
+  - Suspect:    Ambiguous CTG pattern. Moderate risk.
+                -> Increased surveillance, biophysical profile.
+
+  - Pathological: Abnormal CTG pattern. High preterm/distress risk.
+                  -> Immediate clinical evaluation, consider intervention.
+    """)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,86 @@
+{
+  "tested_at": "2026-10-10T10:57:16.838897+00:00",
+  "passed": 7,
+  "failed": 0,
+  "cases": [
+    {
+      "scenario": "Routine ANC",
+      "passed": true,
+      "rule_triage": "LOW_RISK",
+      "emergency": false,
+      "status": "pending_review",
+      "followup_action": "reminder",
+      "maternal_prediction": "mid risk",
+      "fetal_prediction": "not_assessed",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Maternal emergency",
+      "passed": true,
+      "rule_triage": "HIGH_RISK_EMERGENCY",
+      "emergency": true,
+      "status": "pending_review",
+      "followup_action": "emergency_assessment",
+      "maternal_prediction": "high risk",
+      "fetal_prediction": "not_assessed",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Fetal concern",
+      "passed": true,
+      "rule_triage": "LOW_RISK",
+      "emergency": true,
+      "status": "pending_review",
+      "followup_action": "emergency_assessment",
+      "maternal_prediction": "low risk",
+      "fetal_prediction": "pathological",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Missed checkups",
+      "passed": true,
+      "rule_triage": "LOW_RISK",
+      "emergency": false,
+      "status": "pending_review",
+      "followup_action": "home_visit",
+      "maternal_prediction": "mid risk",
+      "fetal_prediction": "not_assessed",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Incomplete vitals + danger sign",
+      "passed": true,
+      "rule_triage": "HIGH_RISK_EMERGENCY",
+      "emergency": true,
+      "status": "incomplete",
+      "followup_action": "emergency_assessment",
+      "maternal_prediction": "unknown",
+      "fetal_prediction": "not_assessed",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Urgent BP",
+      "passed": true,
+      "rule_triage": "URGENT",
+      "emergency": false,
+      "status": "pending_review",
+      "followup_action": "call",
+      "maternal_prediction": "mid risk",
+      "fetal_prediction": "not_assessed",
+      "audited_agents": 9
+    },
+    {
+      "scenario": "Fetal suspect",
+      "passed": true,
+      "rule_triage": "LOW_RISK",
+      "emergency": false,
+      "status": "pending_review",
+      "followup_action": "call",
+      "maternal_prediction": "low risk",
+      "fetal_prediction": "suspect",
+      "audited_agents": 9
+    }
+  ],
+  "invalid_payloads_rejected": 4,
+  "external_calls": "None in these seven graph checks; separate running-app check verifies live providers."
+}

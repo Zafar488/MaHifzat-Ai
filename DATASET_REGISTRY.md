@@ -35,7 +35,7 @@ ctg = fetch_ucirepo(id=193)
 |---|---|
 | **Source** | UCI Machine Learning Repository |
 | **URL** | https://archive.ics.uci.edu/dataset/863/maternal+health+risk |
-| **Records** | 1,013 |
+| **Records** | 1,014 in the local prepared file |
 | **Features** | 6 — Age, Systolic BP, Diastolic BP, Blood Sugar, Body Temperature, Heart Rate |
 | **Target** | `RiskLevel` — 3-class (low / mid / high risk) |
 | **License** | CC BY 4.0 |
@@ -104,3 +104,20 @@ Each dataset is loaded independently by its own loader in `src/data/loaders/`.
 
 - **No Pakistan / Khyber Pakhtunkhwa (KP)–specific data exists yet** in any public repository for either fetal or maternal health. This project currently relies on proxy populations (Portugal, Czech Republic, Bangladesh).
 - Future work should seek local clinical partnerships to collect region-specific data, which would significantly improve model generalizability for the target deployment context.
+
+
+## Verified local data inventory
+
+The local export contains five prepared datasets. Counts below describe files actually present, rather than the full upstream collections.
+
+| Local file | Rows |
+|---|---:|
+| `data/carereach_prepared.parquet` | 110,527 |
+| `data/gestation_prepared.parquet` | 768 |
+| `data/oncotrace_prepared.parquet` | 569 |
+| `data/uci_ctg.parquet` | 2,126 |
+| `data/uci_maternal.parquet` | 1,014 |
+
+The local PhysioNet download contains 15 CTG records (1001 through 1015), with paired `.dat` and `.hea` files. The full upstream recording count above is not the number currently downloaded. `artifacts/ctu_uhb_features.parquet` contains exploratory features derived from these 15 records.
+
+See `docs/LATEST_TEST_REPORT.md` for current model targets and test findings.

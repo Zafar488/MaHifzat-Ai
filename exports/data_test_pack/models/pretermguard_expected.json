@@ -1,0 +1,22 @@
+{
+  "status": "research_prediction",
+  "model": "pretermguard",
+  "label": "CTG pattern class 6",
+  "probabilities": {
+    "CTG pattern class 1": 2.4076616283605435e-07,
+    "CTG pattern class 2": 0.0013820887567202553,
+    "CTG pattern class 3": 9.797044805308957e-05,
+    "CTG pattern class 4": 9.325068239408656e-08,
+    "CTG pattern class 5": 3.538623135461199e-08,
+    "CTG pattern class 6": 0.997755930359354,
+    "CTG pattern class 7": 0.0007633096711078965,
+    "CTG pattern class 8": 1.422922727209267e-07,
+    "CTG pattern class 9": 1.7681106531344632e-07,
+    "CTG pattern class 10": 1.2258350302121072e-08
+  },
+  "model_version": "ctg-patterns-v3-20261010",
+  "intended_use": "Original UCI CLASS CTG pattern classification (all 10 classes). No preterm outcome exists.",
+  "care_decision_use": false,
+  "clinical_validation": "not established",
+  "warning": "Dataset-specific research output; it must not determine obstetric referral or treatment."
+}

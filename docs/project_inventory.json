@@ -1,0 +1,1745 @@
+[
+  {
+    "file": "api/index.py",
+    "lines": 11,
+    "sha256": "9ceb1b1ff6138f69bfae32ac6f94a5f211f03f147018eda4584ff3ec3e6b64ea",
+    "functions": []
+  },
+  {
+    "file": "app.py",
+    "lines": 607,
+    "sha256": "97a3342f196dcc657cb66847152ed6a4da7abe1a8bd986c4d5f9bb242a742cc7",
+    "functions": [
+      "api",
+      "call",
+      "render_referral",
+      "render_result",
+      "review_controls",
+      "service"
+    ]
+  },
+  {
+    "file": "app_demo_scenarios.py",
+    "lines": 12,
+    "sha256": "330dc17bb63e97263de6327a431b481944c209f6fdc872cdb755329cf04e83f2",
+    "functions": []
+  },
+  {
+    "file": "artifacts/carereach/metadata.json",
+    "lines": 45,
+    "sha256": "b42021e1dbf9651d2335f2411e2d451db8de983e70a0a6c64f1aaf47fd49affb"
+  },
+  {
+    "file": "artifacts/fetalwatch/results.json",
+    "lines": 249,
+    "sha256": "dbced926636e5d3e2abede679b078ec51542b5d92ab2c415cf273e53a792212e"
+  },
+  {
+    "file": "artifacts/gestationinsight/metadata.json",
+    "lines": 206,
+    "sha256": "1f49e28019b68a6a45209e3974b3b021a3583d89786aed6e71f41509b6a27521"
+  },
+  {
+    "file": "artifacts/gestationinsight/test.txt",
+    "lines": 1,
+    "sha256": "2cf24dba5fb0a30e26e83b2ac5b9e29e1b161e5c1fa7425e73043362938b9824"
+  },
+  {
+    "file": "artifacts/maternalguard/results.json",
+    "lines": 96,
+    "sha256": "8a9013984ec3f154c374048e24165eab166e61c89877c6fd46fd7dc96ff629c4"
+  },
+  {
+    "file": "artifacts/pretermguard/results.json",
+    "lines": 164,
+    "sha256": "0bcda85c709007f398839612c27e1f1989955dec95e07157acf4b4be43611d71"
+  },
+  {
+    "file": "artifacts/research/carereach/manifest.json",
+    "lines": 110573,
+    "sha256": "319fbb7709e51e9676b8013cbf1f96fb091798bce67d7c83ff42f7d20b9b58bc"
+  },
+  {
+    "file": "artifacts/research/gestationinsight/manifest.json",
+    "lines": 820,
+    "sha256": "94a5cabdf8c3bb2c29ca2f6031118068c4a1e9fbd071b4221b8a3adb9742cba9"
+  },
+  {
+    "file": "artifacts/research/pretermguard/manifest.json",
+    "lines": 2229,
+    "sha256": "613a0e4442254a8c7ce6d8b0b885576af9747d0d7db6b6cbdad34964ab224b7a"
+  },
+  {
+    "file": "artifacts/serving/fetalwatch/manifest.json",
+    "lines": 2210,
+    "sha256": "fc8294e651a752acd51d650414f7724cfce2ee92994d8d579e9bfd2b002b8474"
+  },
+  {
+    "file": "artifacts/serving/maternalguard/manifest.json",
+    "lines": 1083,
+    "sha256": "2726aec2b4b5ca55bf26df710aac6ed589a103f876b58cab76ca3a35c0ef7544"
+  },
+  {
+    "file": "backend/__init__.py",
+    "lines": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/__init__.py",
+    "lines": 1,
+    "sha256": "f72f5f44f2e2e063992f21ac9b10394f781dd655cc0e648b006c7e4ec1bac029",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/__init__.py",
+    "lines": 23,
+    "sha256": "d67d4dbdf462a86413859f0fa3b45064a8c7ff870416763ebdcde396ce52281a",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/anc_followup.py",
+    "lines": 4,
+    "sha256": "314795ab3fb7720c8f445d24744ecf18ae4c3e12a998a3196f1b093abf1a1a3b",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/clinical_risk.py",
+    "lines": 4,
+    "sha256": "652c1724414f87a8897b3d42645078a820369c31e90d67f690022f8939ab439e",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/clinician_review.py",
+    "lines": 4,
+    "sha256": "8bb4fe2129f651055e6cb45162ff2dcc6323170b807abdb2b271d11cadb216d1",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/communication.py",
+    "lines": 4,
+    "sha256": "2693b7edb6625e092463098e48fdb2ff743332625cd14a26c3bb55c68e5a36fe",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/core.py",
+    "lines": 76,
+    "sha256": "cc7d7670cb298f7d0c382047c2723dff34c22e08372254b401bd417cf97be5b3",
+    "functions": [
+      "output",
+      "urgency",
+      "patient_intake",
+      "clinical_risk",
+      "data_quality",
+      "fetal_monitoring",
+      "anc_followup",
+      "smart_referral",
+      "clinician_review",
+      "communication",
+      "reporting"
+    ]
+  },
+  {
+    "file": "backend/agents/nodes/data_quality.py",
+    "lines": 4,
+    "sha256": "40a559117c47a5e930839596c10ee46f5e1ee1c40c14786e770f8c608881a873",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/fetal_monitoring.py",
+    "lines": 4,
+    "sha256": "1cb141f934f5d1d295a52ec328af9ef56e959b111ca4c373e5a261fb8f340a4f",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/patient_intake.py",
+    "lines": 4,
+    "sha256": "efea4216ad87753443d3fe06acf86bed2d9c7cd97dcf6786394ced76258c393c",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/reporting.py",
+    "lines": 4,
+    "sha256": "f69077ddfa7799e50a86cca1c13689c4f6cdf3a1468493f6eee350e331d12f50",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/nodes/smart_referral.py",
+    "lines": 4,
+    "sha256": "74a20ff25039908b8d2a31172433e98e6569c61325fd9029a6b42fc2abf5d3fe",
+    "functions": []
+  },
+  {
+    "file": "backend/agents/orchestrator.py",
+    "lines": 83,
+    "sha256": "fb9e76fc8da6e7cf4e98d247d863c56a5cd636bd3fb4c016819fcf43ff62d478",
+    "functions": [
+      "guarded",
+      "route_after_clinical_risk",
+      "route_after_intake",
+      "route_after_data_quality",
+      "route_after_fetal",
+      "run_workflow",
+      "run_single_node",
+      "invoke"
+    ]
+  },
+  {
+    "file": "backend/api/__init__.py",
+    "lines": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "functions": []
+  },
+  {
+    "file": "backend/api/access.py",
+    "lines": 24,
+    "sha256": "19a2bd2161c7ecd28d9402a10b315f0491be926030c28dd1cde082b5ca11dd93",
+    "functions": [
+      "patient_scope",
+      "accessible_patient",
+      "staff_only"
+    ]
+  },
+  {
+    "file": "backend/api/auth.py",
+    "lines": 178,
+    "sha256": "0c956e740c5f7609084c113ff54507afa49d66d2855650bca5f352f05a03e66d",
+    "functions": [
+      "_hash_password",
+      "_verify_password",
+      "create_access_token",
+      "verify_token",
+      "get_current_user",
+      "require_role",
+      "create_user",
+      "signup",
+      "provision",
+      "update_user",
+      "login",
+      "logout",
+      "me",
+      "preferences",
+      "save_preferences",
+      "check",
+      "password_bytes"
+    ]
+  },
+  {
+    "file": "backend/api/deps.py",
+    "lines": 46,
+    "sha256": "6f76b73c29537b625971052cf87c3e77bd4b874a882dfe3dbe48d3586343a8f2",
+    "functions": [
+      "get_db",
+      "get_model_registry",
+      "get_safety_service"
+    ]
+  },
+  {
+    "file": "backend/api/main.py",
+    "lines": 61,
+    "sha256": "f64aa2895ab6ff49f7cbece587bf2b08351cb596d74c770f15fa84b9459929d6",
+    "functions": [
+      "lifespan",
+      "unhandled",
+      "health",
+      "readiness"
+    ]
+  },
+  {
+    "file": "backend/api/routes/__init__.py",
+    "lines": 3,
+    "sha256": "98880ea92b49f6a42ff557ed1150ba5335ca724e49aa9825b8648cf5c3a9d853",
+    "functions": []
+  },
+  {
+    "file": "backend/api/routes/agents.py",
+    "lines": 156,
+    "sha256": "49067ab1da4ceeaa4803fa5bbdfd1226e9e2ad284aaeb93e97edb910b544ae28",
+    "functions": [
+      "nodes",
+      "run_full_workflow",
+      "review",
+      "resume",
+      "invoke",
+      "saved_case"
+    ]
+  },
+  {
+    "file": "backend/api/routes/alerts.py",
+    "lines": 76,
+    "sha256": "3d2de76e933951da1652cc6c0fe9a69577d6a51cbb9a7c8e589cdd7e0d0bcf54",
+    "functions": [
+      "serialize",
+      "checked",
+      "list_alerts",
+      "detail",
+      "acknowledge",
+      "send"
+    ]
+  },
+  {
+    "file": "backend/api/routes/analytics.py",
+    "lines": 75,
+    "sha256": "aa2c53dbfa638d8dce46f248d8bdd0120fbb1142c808accba21b42ba7e52dd4c",
+    "functions": [
+      "dashboard",
+      "model_health",
+      "evidence",
+      "demo_ctg"
+    ]
+  },
+  {
+    "file": "backend/api/routes/audit.py",
+    "lines": 29,
+    "sha256": "374a50951881be5950e08a56a6e9db3338f83befff6bcfe013196d16e06fdd31",
+    "functions": [
+      "logs"
+    ]
+  },
+  {
+    "file": "backend/api/routes/care.py",
+    "lines": 22,
+    "sha256": "31e35ba690dc19b7496f5d8bf4cccbf4890db86742846eba9e6328ceb64c599a",
+    "functions": [
+      "self_assess"
+    ]
+  },
+  {
+    "file": "backend/api/routes/facilities.py",
+    "lines": 46,
+    "sha256": "5ed9f4068767d25ab870974f59dd4920ac515ec5339eb4bfa1b3ef34f201800b",
+    "functions": [
+      "search",
+      "nearby",
+      "integrations"
+    ]
+  },
+  {
+    "file": "backend/api/routes/followups.py",
+    "lines": 45,
+    "sha256": "e85c859540f6c8a8b9f11d9ee72a41a9311c795aca164099f234bba5482a6e49",
+    "functions": [
+      "serialize",
+      "queue",
+      "resolve",
+      "save_task"
+    ]
+  },
+  {
+    "file": "backend/api/routes/helper.py",
+    "lines": 39,
+    "sha256": "92b8c11cb2dbc9d5af93ca31ccf6285d6a3a872fa4597d707755254540b15cf8",
+    "functions": [
+      "chat",
+      "public_search"
+    ]
+  },
+  {
+    "file": "backend/api/routes/models.py",
+    "lines": 23,
+    "sha256": "90a9f7d250ed4b9e05f97ecaa38c435d9e91451967684aaebfdcbda8125accd2",
+    "functions": [
+      "model_catalog",
+      "model_predict"
+    ]
+  },
+  {
+    "file": "backend/api/routes/patients.py",
+    "lines": 95,
+    "sha256": "0eda4739c1781fac98761c9f25c22f5e947b70cf43844555f885d3fa966a028e",
+    "functions": [
+      "profile",
+      "create_patient",
+      "list_patients",
+      "get_patient",
+      "update_patient",
+      "history",
+      "assign",
+      "unassign"
+    ]
+  },
+  {
+    "file": "backend/api/routes/referrals.py",
+    "lines": 92,
+    "sha256": "903d25bd7cc01f0ea99188da826464a22f432cd1a70ce15ed88a9363c262fa08",
+    "functions": [
+      "serialize",
+      "create",
+      "list_referrals",
+      "checked",
+      "detail",
+      "transition"
+    ]
+  },
+  {
+    "file": "backend/api/routes/risks.py",
+    "lines": 40,
+    "sha256": "8da3c6d6dd51c56dc97c721ff5caf4fbe57515fff204b7b2a737e43cf221d39f",
+    "functions": [
+      "assess_risk",
+      "get_risk_assessment"
+    ]
+  },
+  {
+    "file": "backend/config.py",
+    "lines": 53,
+    "sha256": "211fa91474489cea6ba4dfd2caf077482663cf0f4828b0be84fe5f09a2ba8e0e",
+    "functions": [
+      "production_requirements"
+    ]
+  },
+  {
+    "file": "backend/db/__init__.py",
+    "lines": 3,
+    "sha256": "3a1b1bcd0d61e1d0c4df5d46c2b5fe6c54ee5abba178cdc807ab9f26a4885f92",
+    "functions": []
+  },
+  {
+    "file": "backend/db/engine.py",
+    "lines": 38,
+    "sha256": "d85b4a536c1567f718014e8d49a60dea8fcdb9bc88f3243a017475f0a8bcc964",
+    "functions": [
+      "get_db",
+      "init_db",
+      "enable_foreign_keys"
+    ]
+  },
+  {
+    "file": "backend/db/models.py",
+    "lines": 186,
+    "sha256": "98401902a46d8e9d3969bfc96990daa231c564b25a156e33c8314e4a8b76268a",
+    "functions": [
+      "gen_uuid"
+    ]
+  },
+  {
+    "file": "backend/db/repositories.py",
+    "lines": 124,
+    "sha256": "faa27503972134392bd932b6944f957fc3589b8a715b30a10c19e980f164af37",
+    "functions": [
+      "__init__",
+      "create",
+      "get_by_id",
+      "update",
+      "list_all",
+      "__init__",
+      "create",
+      "get_by_case_id",
+      "get_by_patient",
+      "__init__",
+      "create",
+      "get_by_id",
+      "update_status",
+      "__init__",
+      "log",
+      "get_by_case",
+      "get_recent",
+      "__init__",
+      "save_state",
+      "get_latest",
+      "__init__",
+      "register",
+      "get_active",
+      "__init__",
+      "create",
+      "get_by_case"
+    ]
+  },
+  {
+    "file": "backend/integrations/__init__.py",
+    "lines": 4,
+    "sha256": "4b54eaf308042f5cf496da908a26ddf508c5a0d57a5ec947353e990bfdd65b19",
+    "functions": []
+  },
+  {
+    "file": "backend/integrations/facility_locator.py",
+    "lines": 61,
+    "sha256": "65ccd5bebb75c1cb2c07c22a0f0fb068d8feff5a988dc2bd9581ef2d2d4e0e29",
+    "functions": [
+      "haversine_km",
+      "__init__",
+      "_directory",
+      "find_nearby_facilities",
+      "get_facility_details"
+    ]
+  },
+  {
+    "file": "backend/integrations/messaging_client.py",
+    "lines": 29,
+    "sha256": "e5b8e4553458502cc4c003da05af95f18791c0fb38ca34ee3924643a111cb010",
+    "functions": [
+      "__init__",
+      "send_sms",
+      "send_whatsapp",
+      "_simulate",
+      "send_emergency_alert",
+      "get_delivery_status",
+      "send_reminder"
+    ]
+  },
+  {
+    "file": "backend/integrations/osm_discovery.py",
+    "lines": 128,
+    "sha256": "e6b7b9f6afd19443df563338241a8e13f9993dce84e8be725bb67a1407f16518",
+    "functions": [
+      "reported_services",
+      "bounded_map_fallback",
+      "flag",
+      "search"
+    ]
+  },
+  {
+    "file": "backend/integrations/routing_client.py",
+    "lines": 34,
+    "sha256": "3d0118b7e5875d5a7b532d88e3def04852dcf0ed080172c7cc58e19e6501a652",
+    "functions": [
+      "get_travel_time",
+      "get_route"
+    ]
+  },
+  {
+    "file": "backend/integrations/voice_client.py",
+    "lines": 16,
+    "sha256": "b9c67e83b01a8e1bfd8002ec942391a1dcadff95546bad9383be5443db98c39f",
+    "functions": [
+      "__init__",
+      "transcribe",
+      "detect_language",
+      "extract_symptoms"
+    ]
+  },
+  {
+    "file": "backend/schemas/__init__.py",
+    "lines": 6,
+    "sha256": "169cb5ad70f9379b859c873e400a688bea901a5f0b66977b4aa3a36e38cf7269",
+    "functions": []
+  },
+  {
+    "file": "backend/schemas/assessment.py",
+    "lines": 81,
+    "sha256": "bb8662380328b513d0b98a070bf315aa08cff2eb5842aecf0325469e1137368e",
+    "functions": [
+      "movement_safety",
+      "symptoms_normalized",
+      "ctg_numeric",
+      "ctg_contract",
+      "numeric_ctg_data",
+      "valid_ctg_data"
+    ]
+  },
+  {
+    "file": "backend/schemas/auth.py",
+    "lines": 42,
+    "sha256": "eae060be66c347a9732083bcc573f5002d1005da8acd2dd351e6873aa1d3a628",
+    "functions": []
+  },
+  {
+    "file": "backend/schemas/care.py",
+    "lines": 56,
+    "sha256": "994c34b0c40eca9b3b26f2bb6a38ae841b329e52497e758d224a0736db70b6b0",
+    "functions": [
+      "contacts"
+    ]
+  },
+  {
+    "file": "backend/schemas/clinical.py",
+    "lines": 88,
+    "sha256": "0a2d7ad15026c81dbf28e72aee1283622a178414de7ddd425d0e95d41b6b6abd",
+    "functions": [
+      "normalize_symptoms",
+      "normalize",
+      "maternal_features",
+      "missing_vitals",
+      "assign"
+    ]
+  },
+  {
+    "file": "backend/schemas/encounter.py",
+    "lines": 63,
+    "sha256": "430017afa60124d31d45dfd359b199e42094d68fe17d58a298f9bf20e13b2200",
+    "functions": [
+      "merge_movement_observation",
+      "consistent_history"
+    ]
+  },
+  {
+    "file": "backend/schemas/patient.py",
+    "lines": 42,
+    "sha256": "5e6147147c0d16221129daf8b5854146310e07518ab8717679e3c171e67ac6d0",
+    "functions": []
+  },
+  {
+    "file": "backend/schemas/referral.py",
+    "lines": 27,
+    "sha256": "887cc219136fbc570049ff67311d74d40f6f413ad4fc4eaf0774db40b809b9b8",
+    "functions": []
+  },
+  {
+    "file": "backend/schemas/risk.py",
+    "lines": 42,
+    "sha256": "de569c8d54af72f639d42c2850323f829a84917013710e6d6fb6fc5ceb02a1c8",
+    "functions": []
+  },
+  {
+    "file": "backend/schemas/state.py",
+    "lines": 49,
+    "sha256": "5bc80a0daa953735304ec6e072e3eb8fb9b7060f24bae28d4327c0d246141d51",
+    "functions": []
+  },
+  {
+    "file": "backend/services/__init__.py",
+    "lines": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "functions": []
+  },
+  {
+    "file": "backend/services/ai_assistant.py",
+    "lines": 101,
+    "sha256": "b77817ca962e4e0bd96d3e88ae59645af5b25ebe073a7dcbc3d867b5fc9dfd8d",
+    "functions": [
+      "deidentified_symptoms",
+      "explain_case"
+    ]
+  },
+  {
+    "file": "backend/services/bilingual_reports.py",
+    "lines": 232,
+    "sha256": "e974a3a635833ebeff0924b392a632d421687fd436f8e40f37cf092983e2ff82",
+    "functions": [
+      "value_text",
+      "care_steps",
+      "build_two_reports",
+      "report_html",
+      "section",
+      "field"
+    ]
+  },
+  {
+    "file": "backend/services/case_research.py",
+    "lines": 40,
+    "sha256": "5bea27ba5042438d1611f36f9bcaa7be2192a49347aa7beb9be799f6d38ba535",
+    "functions": [
+      "research_for_case",
+      "run"
+    ]
+  },
+  {
+    "file": "backend/services/cases.py",
+    "lines": 98,
+    "sha256": "f3e358153ffa5ef6465c7165da9a6f332a08f5359f0f4f14dbe817499a484108",
+    "functions": [
+      "normalized_input",
+      "reserve_case",
+      "persist_assessment",
+      "assess"
+    ]
+  },
+  {
+    "file": "backend/services/ctg_import.py",
+    "lines": 38,
+    "sha256": "b7e89ff8e6d860e8a3872e28a00d54c9288396251064b229d7d22b4d270c29f3",
+    "functions": [
+      "ctg_template_csv",
+      "parse_ctg_csv",
+      "complete_ctg",
+      "parse_ctg_json"
+    ]
+  },
+  {
+    "file": "backend/services/followup.py",
+    "lines": 59,
+    "sha256": "7c08645dfd056342e8264c447194ed13bf44541e7ad7667f782b83896453d167",
+    "functions": [
+      "local_today",
+      "plan_followup"
+    ]
+  },
+  {
+    "file": "backend/services/hospital_search.py",
+    "lines": 39,
+    "sha256": "66ddb6ad6fcfdf8e07b0ff41478201c8895f259a33ead7e4cdac297ff488d60b",
+    "functions": [
+      "discover_hospitals",
+      "tentative_referral"
+    ]
+  },
+  {
+    "file": "backend/services/inference.py",
+    "lines": 133,
+    "sha256": "bfab71bee79a6a73485110e67943dca070ca4a2607e13bf8c8b85951b963d07d",
+    "functions": [
+      "get_model_registry",
+      "__new__",
+      "load_all",
+      "_validate",
+      "health_check",
+      "_fallback",
+      "_predict",
+      "predict_maternal_risk",
+      "predict_fetal_health",
+      "predict_preterm_risk",
+      "predict_gestational_complication",
+      "predict_anc_followup_risk"
+    ]
+  },
+  {
+    "file": "backend/services/llm.py",
+    "lines": 146,
+    "sha256": "6d9d3f334caf2344cd00931bbbc437e8229a3b7e6f0a227420f009dd23ee03e3",
+    "functions": [
+      "get_llm_service",
+      "__init__",
+      "generate",
+      "generate_risk_summary",
+      "generate_followup_questions",
+      "generate_communication_message",
+      "generate_case_summary",
+      "generate_report"
+    ]
+  },
+  {
+    "file": "backend/services/model_workbench.py",
+    "lines": 64,
+    "sha256": "d3958aebbb919e0685e32328184a4bb1f7e847c8dd3a94e433e2229d33612071",
+    "functions": [
+      "research_bundle",
+      "catalog",
+      "predict"
+    ]
+  },
+  {
+    "file": "backend/services/pregnancy_rag.py",
+    "lines": 418,
+    "sha256": "b03611671bc48cb247c866a931b4c14a40c953d2e2ff8a98290910c54cfdfa0d",
+    "functions": [
+      "check_urgent_symptoms",
+      "retrieve_guidelines",
+      "search_duckduckgo",
+      "generate_pregnancy_advice"
+    ]
+  },
+  {
+    "file": "backend/services/referral_planner.py",
+    "lines": 72,
+    "sha256": "26e1ff636714b54f16217cc79e4b460432afd152d58e7400ff25f8d7215435b6",
+    "functions": [
+      "effective_urgency",
+      "plan_referral"
+    ]
+  },
+  {
+    "file": "backend/services/reporting.py",
+    "lines": 54,
+    "sha256": "3ca8d8f8acb4af5c665e6c6c7855e05da75d59e7db68a868cd59c38033eeac77",
+    "functions": [
+      "recommended_care_actions",
+      "build_handover"
+    ]
+  },
+  {
+    "file": "backend/services/safety.py",
+    "lines": 66,
+    "sha256": "8831ef05e235d0a05d277e55ca134ef6bd577fd21bcdf08895cc8bf4948e4add",
+    "functions": [
+      "get_safety_service",
+      "check_who_red_flags",
+      "is_emergency"
+    ]
+  },
+  {
+    "file": "backend/tests/__init__.py",
+    "lines": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "functions": []
+  },
+  {
+    "file": "backend/tests/conftest.py",
+    "lines": 66,
+    "sha256": "a5447f8bbb3ecaa6873d226d9d3c63adbe32c564811fcd441b221d1b9fe081cf",
+    "functions": [
+      "foreign_keys",
+      "override_get_db",
+      "async_client",
+      "login_as",
+      "auth_headers",
+      "patient_id"
+    ]
+  },
+  {
+    "file": "backend/tests/test_api.py",
+    "lines": 227,
+    "sha256": "91482c38aac00fd46ee460856b46706057e7b5c3f7484f8e653488b06d33d460",
+    "functions": [
+      "test_health_and_readiness",
+      "test_login_and_logout",
+      "test_public_privilege_signup_denied",
+      "test_signup_default_patient_persistent",
+      "test_disabled_or_role_changed_user_token_denied",
+      "test_patient_boundaries_every_route",
+      "test_emergency_formats",
+      "test_missing_and_symptoms",
+      "test_invalid_inputs_never_persist",
+      "test_missing_patient_and_invalid_referral",
+      "test_persistence_idempotency_review_and_resume",
+      "test_failed_graph_persisted_truthfully",
+      "test_analytics_and_audit_filters",
+      "test_empty_audit_truthful",
+      "test_alerts_acknowledge_and_no_live_message",
+      "test_preferences_persist",
+      "test_login_rate_limit",
+      "failing"
+    ]
+  },
+  {
+    "file": "backend/tests/test_bilingual_reports.py",
+    "lines": 168,
+    "sha256": "233d2bde5442d9b69e16f7435c8c2b15c6e5bc36c0b649d20a6fc90a1fac2f74",
+    "functions": [
+      "sample_ctg",
+      "csv_record",
+      "test_ctg_single_patient_template_import_and_units",
+      "test_ctg_import_rejects_ambiguous_or_incompatible_data",
+      "test_movement_changes_are_mapped_but_never_felt_is_not_reduction",
+      "report_state",
+      "test_two_reports_preserve_urgency_unknown_services_distance_and_safe_html",
+      "test_research_derivation_preserves_missing_and_does_not_modify_clinical_state",
+      "test_full_case_stores_intake_and_two_reports_with_access_control",
+      "test_ai_withholds_all_identifying_case_notes_and_requires_urdu_script",
+      "test_four_sections_render_without_invented_observations",
+      "test_clinician_date_gestation_is_separate_from_contact_milestone",
+      "predict",
+      "post"
+    ]
+  },
+  {
+    "file": "backend/tests/test_care_workflows.py",
+    "lines": 157,
+    "sha256": "4524f9a7098bb18c2ef002529d4f66eed1ac49fa84c26a430e311c1c8907896c",
+    "functions": [
+      "test_canonical_temperature_never_guesses_units",
+      "test_anc_operational_actions_and_schedule",
+      "test_invalid_followup_and_ctg_rejected",
+      "test_distance_known_reference",
+      "test_capabilities_before_proximity",
+      "test_facility_directory_validation_stale_and_availability",
+      "test_route_consent_timeout_and_valid_units",
+      "test_nine_agents_handover_persistence_and_task_scoping",
+      "test_fetal_pathological_escalates_assessment_and_alert",
+      "test_demo_location_cannot_enter_measured_case",
+      "post",
+      "timeout"
+    ]
+  },
+  {
+    "file": "backend/tests/test_data_preparation.py",
+    "lines": 30,
+    "sha256": "420617ec3fb39b3824c952f75f04362a711eaa2c79fe2ac72c8da8f82ed84c15",
+    "functions": [
+      "test_no_silent_synthetic_fallback_and_explicit_manifest",
+      "test_wdbc_builtin_fallback_has_expected_feature_names"
+    ]
+  },
+  {
+    "file": "backend/tests/test_inference.py",
+    "lines": 106,
+    "sha256": "3e8a7e0453509b072ce2db393449b4475651b7f0a9ac8cdaf8bc88f0b25ff2a6",
+    "functions": [
+      "test_model_readiness_complete_pipelines",
+      "test_training_serving_parity_and_estimator_called",
+      "test_failing_estimator_cannot_return_prediction",
+      "test_absent_and_incompatible_artifacts",
+      "test_missing_measured_features_abstains",
+      "test_danger_sign_without_vitals",
+      "test_unknown_vitals_not_normal",
+      "test_explicit_unit_conversions",
+      "test_contract_generated_from_authoritative_schema",
+      "test_saved_splits_do_not_share_feature_groups",
+      "test_direct_ctg_boolean_and_absent_input_abstain",
+      "fail"
+    ]
+  },
+  {
+    "file": "backend/tests/test_orchestrator.py",
+    "lines": 76,
+    "sha256": "5543988b7fdf5d365c30ca8fd03886dfb7aef29c6674d3d0ac424e0a44d1c663",
+    "functions": [
+      "state",
+      "test_missing_intake_still_triaged",
+      "test_top_level_ctg_runs_fetal_node",
+      "test_suspect_escalates_without_preterm_claim",
+      "test_node_error_stops_downstream",
+      "test_malformed_input_rejected",
+      "test_model_execution_error_stops_workflow",
+      "test_fetal_emergency_handover_does_not_offer_routine_care",
+      "fail"
+    ]
+  },
+  {
+    "file": "backend/tests/test_pregnancy_helper.py",
+    "lines": 100,
+    "sha256": "8705f3639af24f71960431ccf9cfadc0f1465cc9e57e05f4fb57664e1ff3e424",
+    "functions": [
+      "test_curated_guidelines_structure",
+      "test_retrieve_guidelines",
+      "test_danger_sign_detection",
+      "test_generate_pregnancy_advice_with_shared_assessment",
+      "test_helper_api_endpoints"
+    ]
+  },
+  {
+    "file": "backend/tests/test_real_app.py",
+    "lines": 154,
+    "sha256": "a347f0819c785af2e63fe884e508193ad8bbcd735babd3ed252eb428becd0df8",
+    "functions": [
+      "test_patient_self_care_runs_nine_nodes_with_ownership",
+      "test_osm_consent_and_actual_map_tags",
+      "test_osm_failure_has_no_fictional_fallback",
+      "test_discovery_routes_do_not_mutate_shared_cache",
+      "ai_state",
+      "valid_ai",
+      "test_groq_consent_and_minimum_payload",
+      "test_groq_invalid_output_falls_back_without_changing_care",
+      "test_five_models_execute_actual_contracts",
+      "test_free_contact_actions_are_explicit_composers",
+      "test_real_bounded_map_fallback_reports_partial_coverage",
+      "post",
+      "post",
+      "search",
+      "route",
+      "post",
+      "post",
+      "post",
+      "get"
+    ]
+  },
+  {
+    "file": "config/demo_facilities.json",
+    "lines": 37,
+    "sha256": "7733fd5aba4bf2e8ba11d34aa03ec565daee1b5b984854e176f350f13a6ac11e"
+  },
+  {
+    "file": "DATASET_REGISTRY.md",
+    "lines": 123,
+    "sha256": "33349de8d4d12e080d38483a3b4fddec74b583f68a41d17f66a6410ebad65f68"
+  },
+  {
+    "file": "docs/API_SETUP.md",
+    "lines": 56,
+    "sha256": "2c366b8d8186390c9f35c6006828457631f101b5ec990994a02a2d787c377744"
+  },
+  {
+    "file": "docs/bilingual-report-verification.json",
+    "lines": 26,
+    "sha256": "386da8ef59517e60d1c89b3ca4d0b3a0cfc8fc7c7c814094cef852eed7bd0976"
+  },
+  {
+    "file": "docs/CLINICAL_REFERENCES.md",
+    "lines": 8,
+    "sha256": "f9f9606110304567b5872755286aae8e220481164c5dd6a66c37b8b5a9f91456"
+  },
+  {
+    "file": "docs/DEMO_GUIDE.md",
+    "lines": 18,
+    "sha256": "8ada9582aad2580b12cf49a1a66f0c8a45a15af87e6e4ceebaa07f699913531f"
+  },
+  {
+    "file": "docs/demo_verification.json",
+    "lines": 69,
+    "sha256": "dba5388eac23ad01f11d724077b7c5b81ad7cf13fa1c36f62193d0dbb4f0c5ac"
+  },
+  {
+    "file": "docs/IMPLEMENTATION_REPORT.md",
+    "lines": 53,
+    "sha256": "0a2717242d80a8ac1359979073e910491cbdec1e64fa15f45b74cdb1b6e0c41b"
+  },
+  {
+    "file": "docs/latest_project_test_report.json",
+    "lines": 1175,
+    "sha256": "1e130c1d6d6ac711bc11a6d4fd60f218a1631d3bfc66583165f268afa337564f"
+  },
+  {
+    "file": "docs/LATEST_TEST_REPORT.md",
+    "lines": 67,
+    "sha256": "49c4ab1158233ff918ff5c879bc363f91c71992d26ffe12c7963c863776c0ebb"
+  },
+  {
+    "file": "docs/live_provider_verification.json",
+    "lines": 59,
+    "sha256": "e05b605a0ca2366f286220c8477d03e3c3c88e310ef2eaafbd21ebc8e25a2845"
+  },
+  {
+    "file": "docs/model_audit.json",
+    "lines": 496,
+    "sha256": "2b7d04b5cf2d3e2b7d5fcdbd0e534d4242ed01a5bda9e2f83a415a9131da8822"
+  },
+  {
+    "file": "docs/REAL_APP_GUIDE.md",
+    "lines": 37,
+    "sha256": "73dea1403eb1c5346d0bf3df850685b093db72d4f3032e567a4105151dc6cd59"
+  },
+  {
+    "file": "docs/real_app_verification.json",
+    "lines": 25,
+    "sha256": "955bb2f21dc884ceacf2f8a3650403b30970aea612808ab7c4e695e0a99d8448"
+  },
+  {
+    "file": "docs/software_verification.json",
+    "lines": 28,
+    "sha256": "46171796aebda04bf1a19a7684c5894e8023f865de3cc2d665b73d951c07741b"
+  },
+  {
+    "file": "docs/TWO_REPORTS_GUIDE.md",
+    "lines": 50,
+    "sha256": "492fd5298ba89e48aa9271b097016105895b525a842aa540b13722ecc3f1467c"
+  },
+  {
+    "file": "docs/TWO_REPORTS_TEST_REPORT.json",
+    "lines": 40,
+    "sha256": "b9c877346d5514dd9d4f95f78f20c444e438d9dd3dc93aa0ae5bb597e76c0e70"
+  },
+  {
+    "file": "download_and_prep.py",
+    "lines": 491,
+    "sha256": "54dc9c79f7c43d181ecb4279217e14e8426d3edc7f0d1abaf3e9731fc4860561",
+    "functions": [
+      "_try_url_download",
+      "_save_prepared",
+      "_print_summary",
+      "_generate_synthetic_carereach",
+      "scholarship_prob_offset",
+      "engineer_carereach_features",
+      "prepare_carereach",
+      "engineer_gestation_features",
+      "_create_multiclass_target",
+      "prepare_gestation",
+      "_generate_synthetic_oncotrace",
+      "engineer_oncotrace_features",
+      "prepare_oncotrace",
+      "main"
+    ]
+  },
+  {
+    "file": "exports/bilingual_reports/care-report-en.txt",
+    "lines": 114,
+    "sha256": "5abbcfbfdb27a5f36a138a5700c520093ed3a806a0f20c67115baa7d661180b4"
+  },
+  {
+    "file": "exports/bilingual_reports/care-report-ur.txt",
+    "lines": 114,
+    "sha256": "f051505cfc13512bd3d734a64d5d69833b4920def050dfee4dd60843b003468e"
+  },
+  {
+    "file": "exports/bilingual_reports/care-report.html",
+    "lines": 1,
+    "sha256": "77144c5674eb59b76e14bc4b58fb8dc108288d51d7aef7170385248035a43b27"
+  },
+  {
+    "file": "exports/bilingual_reports/referral-report-en.txt",
+    "lines": 41,
+    "sha256": "53ecf2e2ab1b3e9f937b8bd56a78176ddeb80bea6f980a32aa6c2a340ea25392"
+  },
+  {
+    "file": "exports/bilingual_reports/referral-report-ur.txt",
+    "lines": 41,
+    "sha256": "b38b4d83f22789288685da7bc0842fdf430bd04ea107e7017820fb3509bc6e2a"
+  },
+  {
+    "file": "exports/bilingual_reports/referral-report.html",
+    "lines": 1,
+    "sha256": "692c4f8c789ce0bbb04803940e3555bb90d3e105ba4ccf900c74c2891d1ffca4"
+  },
+  {
+    "file": "exports/data_test_pack/data_catalog.json",
+    "lines": 935,
+    "sha256": "c9643b93fef2f4c0843b5870e8abb48a2341d106a9fc7fbde50de7c3239dc1cd"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_normal.json",
+    "lines": 23,
+    "sha256": "fbc5f8ccf7fa896ea058be33ff3638a12c70bffd34df8b707d3bab7248eb1606"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_normal_source.json",
+    "lines": 23,
+    "sha256": "ee345799bbaddd8cd9e3ed1ad7c6598ec3bd84d305a834af5cf308f24f092d6b"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_pathological.json",
+    "lines": 23,
+    "sha256": "8b95b86bfa444af4907ddf959c20a82d98466eb9b2662bd9c79170963d931400"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_pathological_source.json",
+    "lines": 23,
+    "sha256": "d9fb6bf2566dabd51750120b4f79375c8195ee72fb69535abbd54948fdae17ae"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_suspect.json",
+    "lines": 23,
+    "sha256": "6062eb92cd4bc7dee055cd231c9324513584861c9b81c18ab8344f4b824f349f"
+  },
+  {
+    "file": "exports/data_test_pack/inputs/ctg_suspect_source.json",
+    "lines": 23,
+    "sha256": "c375d26462c1056b1e79364dc3650fcdf0da91d306a7d24fdac7b3eb73bb2c87"
+  },
+  {
+    "file": "exports/data_test_pack/invalid_inputs/boolean_heart_rate.json",
+    "lines": 10,
+    "sha256": "8c8b3569219756dcfe0e592719b5ca136cefdabe5a244180ed010adffe1c45d2"
+  },
+  {
+    "file": "exports/data_test_pack/invalid_inputs/bp_relationship.json",
+    "lines": 11,
+    "sha256": "3465e699d7ed13788a1cf1bb90161e3d41cd58551cf0e74b4cdb8bc41295dd89"
+  },
+  {
+    "file": "exports/data_test_pack/invalid_inputs/invalid_ctg_rate.json",
+    "lines": 30,
+    "sha256": "c1e1f70b8adaceaa631c224b51a17c50d2b0b298f1834c06410c17ebd63c6b8a"
+  },
+  {
+    "file": "exports/data_test_pack/invalid_inputs/temperature_wrong_unit.json",
+    "lines": 10,
+    "sha256": "9c02e6236aff5bb7125d0f255c8e269234cc6bf93c6f9bb6dfc6c2a90fffd1f4"
+  },
+  {
+    "file": "exports/data_test_pack/model_catalog.json",
+    "lines": 42,
+    "sha256": "d46111aeb812c3a6d6fc16a0b7fd86b03efe3354078891af9969b39ef08ab47f"
+  },
+  {
+    "file": "exports/data_test_pack/models/carereach_expected.json",
+    "lines": 14,
+    "sha256": "a17e98545da9cabb96e527cc3ef8fc1fa95e01e6b2c9c031cb6cd55f7d6750e9"
+  },
+  {
+    "file": "exports/data_test_pack/models/carereach_features.json",
+    "lines": 15,
+    "sha256": "bf90f856b5a002071119897246b9de759f84f4d5d76e4d3bf1b86a7b9988f7cb"
+  },
+  {
+    "file": "exports/data_test_pack/models/carereach_request.json",
+    "lines": 18,
+    "sha256": "163c092d6a8e1f7714ed86ec861b708b96d231df8dc1bb868909dd5090c8795b"
+  },
+  {
+    "file": "exports/data_test_pack/models/fetalwatch_expected.json",
+    "lines": 16,
+    "sha256": "8033ec2bcb0e65cee1bf38ebf3eabc51abb997dbe2f98af8ab7a129a8e00bac9"
+  },
+  {
+    "file": "exports/data_test_pack/models/fetalwatch_features.json",
+    "lines": 23,
+    "sha256": "6062eb92cd4bc7dee055cd231c9324513584861c9b81c18ab8344f4b824f349f"
+  },
+  {
+    "file": "exports/data_test_pack/models/fetalwatch_request.json",
+    "lines": 26,
+    "sha256": "261fb29905e50de15561d811b9f7f7541f603735790959927210bc9d85cdfef1"
+  },
+  {
+    "file": "exports/data_test_pack/models/gestationinsight_expected.json",
+    "lines": 15,
+    "sha256": "35deec2c2caa7e16b559566692779a5b9cb12cb8cce3d45424eb12ab85d19092"
+  },
+  {
+    "file": "exports/data_test_pack/models/gestationinsight_features.json",
+    "lines": 15,
+    "sha256": "6d41b12b78c9886974ae8e13c0cac19783852458f786c2afcb5fa6d5c574a1d7"
+  },
+  {
+    "file": "exports/data_test_pack/models/gestationinsight_request.json",
+    "lines": 18,
+    "sha256": "d6a2d70465a2443f86953e9016332fc800ed1736f24f48b020c97adff69c1d0b"
+  },
+  {
+    "file": "exports/data_test_pack/models/maternalguard_expected.json",
+    "lines": 16,
+    "sha256": "abaaf5a78bcd670759c41a04faf0d8da846592654ba9f85c1942e531df28c003"
+  },
+  {
+    "file": "exports/data_test_pack/models/maternalguard_features.json",
+    "lines": 8,
+    "sha256": "f95f521b44abdb8b9fcaae11b3c6d145c9941c6e8685cd6825c80ece86569445"
+  },
+  {
+    "file": "exports/data_test_pack/models/maternalguard_request.json",
+    "lines": 11,
+    "sha256": "776889d8c5d2a7185e63a5638487de1595ee9d3957c0bc48d7bf1a3cbba523f2"
+  },
+  {
+    "file": "exports/data_test_pack/models/pretermguard_expected.json",
+    "lines": 22,
+    "sha256": "c40e801b1ef071ecb916e6715ea3872f7920286b0ac251a485684dc1bbfa8d2b"
+  },
+  {
+    "file": "exports/data_test_pack/models/pretermguard_features.json",
+    "lines": 23,
+    "sha256": "e94b2529e5d1b17bc3ab3651bb1f6b359da5b686d0263db4abecafcb4e803c12"
+  },
+  {
+    "file": "exports/data_test_pack/models/pretermguard_request.json",
+    "lines": 26,
+    "sha256": "5959efde31058d94c7ac022cecd68a2f16fc932f197d00a0f33ac19ceed49f8a"
+  },
+  {
+    "file": "exports/data_test_pack/PACKAGE_MANIFEST.json",
+    "lines": 587,
+    "sha256": "3e314dfcb06076b131f0919638850c138e8e39179772c7650f756e4a162909d5"
+  },
+  {
+    "file": "exports/data_test_pack/results/fetal_concern.json",
+    "lines": 272,
+    "sha256": "479d68cc04bf6dee0efb3077bd554cf6ca1facaf798d0f07615ae0e5092bd85f"
+  },
+  {
+    "file": "exports/data_test_pack/results/fetal_suspect.json",
+    "lines": 272,
+    "sha256": "91cba083b1c11c384b0262fa28b41c829fcfb90534f613316a13c0d31cdbd4af"
+  },
+  {
+    "file": "exports/data_test_pack/results/incomplete_vitals_danger_sign.json",
+    "lines": 247,
+    "sha256": "ab56d8686d6ed12e17065e84dbc64ef4abd0b462cff08b480800fa464bda5425"
+  },
+  {
+    "file": "exports/data_test_pack/results/maternal_emergency.json",
+    "lines": 253,
+    "sha256": "de83c2e19ba5b02e8c12d8e70b265baa231d4aebba10be372620b6c19620a001"
+  },
+  {
+    "file": "exports/data_test_pack/results/missed_checkups.json",
+    "lines": 233,
+    "sha256": "a83c250bdd5642e8bf09fe54cafed5e02e065203dc616f66c338ceab0d33fc83"
+  },
+  {
+    "file": "exports/data_test_pack/results/routine_anc.json",
+    "lines": 230,
+    "sha256": "ad42a8de16684b648f50956d83fd802cb8a3504a23cd8baa1beff0ea51e72785"
+  },
+  {
+    "file": "exports/data_test_pack/results/urgent_bp.json",
+    "lines": 232,
+    "sha256": "b687bcf9f732b1587e60bfb96b8eebb974192e5a2f928853a375733411230fa2"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/fetal_concern.json",
+    "lines": 73,
+    "sha256": "1c624d8c7c02cef79eafc5a2bcd406ea16a795b3508e7eb0345c9ee4d6192f8b"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/fetal_suspect.json",
+    "lines": 73,
+    "sha256": "a60863c603652b3bb0e4dec52a0f283470295a79bf46fe0f8b14fa03a728ec2e"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/incomplete_vitals_danger_sign.json",
+    "lines": 49,
+    "sha256": "ffb98dcaa14eaa6ff8671031d31578ff568ea30b8168ed681a816c6478426ca4"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/maternal_emergency.json",
+    "lines": 59,
+    "sha256": "afe92b952f611afd2dd16834435ac55c26463b8690a748a1a1b9045bb9dfea58"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/missed_checkups.json",
+    "lines": 48,
+    "sha256": "080adb0b63a8a1aa243ec9dcec711751d0dda5c94e4ad35db507736675e0e5dc"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/routine_anc.json",
+    "lines": 49,
+    "sha256": "112fa82423c97fb02c60e05c2dce85f4067a3aa2a03252d7958ac0aed59bd1ce"
+  },
+  {
+    "file": "exports/data_test_pack/scenarios/urgent_bp.json",
+    "lines": 49,
+    "sha256": "61eb169a88a95aa221f84aab5fda36910d4e7184f401f83f5b70335d86abc3cb"
+  },
+  {
+    "file": "exports/data_test_pack/TEST_GUIDE_ROMAN_URDU.md",
+    "lines": 47,
+    "sha256": "e9a920bd6d6d81a3489cbcd1ac2fa208c4110d5349ebe6359dfe8f99b6265eae"
+  },
+  {
+    "file": "exports/data_test_pack/workflow_checks.json",
+    "lines": 86,
+    "sha256": "a770847aee5760b0c390ac045052876b00e37d1c755fdd169dcf7895c9ef052e"
+  },
+  {
+    "file": "notebooks/01_eda_exploration.ipynb",
+    "lines": 326,
+    "sha256": "59bcea72d0180f0dd4f9f4d2c138c2a7601068a7efadc21b9e1e5163183c3fae",
+    "cells": 17
+  },
+  {
+    "file": "notebooks/02_pipeline_demo.ipynb",
+    "lines": 440,
+    "sha256": "9a25b3d96d32254a57c9f62dc378503c8993b44c2cbe924ed8d4e302c7747c58",
+    "cells": 17
+  },
+  {
+    "file": "PRESENTATION.md",
+    "lines": 16,
+    "sha256": "134229095e200b8a0e76a76a14d54c84aa2e03e3b94999c01f5d8a7812abd1e5"
+  },
+  {
+    "file": "pyproject.toml",
+    "lines": 8,
+    "sha256": "854e4c60b83a5fd7935e6a1cc09ae0ee0fc8494cbf08d8008f19cec42831b7dc"
+  },
+  {
+    "file": "README.md",
+    "lines": 52,
+    "sha256": "af5c9bf28a668e327cf3be683a09da43e7dcfd15f4818ccdfa6702b27265dba9"
+  },
+  {
+    "file": "requirements-app.txt",
+    "lines": 23,
+    "sha256": "424f7d64e90e860a752896deb1404f834731ca5979a249476836c3d52d5dd7e2"
+  },
+  {
+    "file": "requirements-backend.txt",
+    "lines": 15,
+    "sha256": "d3ff53dd991adb911d2c659d2ea70e53f1bb4a66498f61f964269b2d5b85fa7c"
+  },
+  {
+    "file": "requirements-demo.txt",
+    "lines": 23,
+    "sha256": "424f7d64e90e860a752896deb1404f834731ca5979a249476836c3d52d5dd7e2"
+  },
+  {
+    "file": "requirements.txt",
+    "lines": 16,
+    "sha256": "cd5ea4303fadfc494fa6005a534c92221f36740a163dd04b46994d79682eac0c"
+  },
+  {
+    "file": "run_app.bat",
+    "lines": 8,
+    "sha256": "d5bf69771ecb8e86eeff612edc3fa5e25a58ca2d460a4a48013144d1b4fab1b7"
+  },
+  {
+    "file": "safety_rules.py",
+    "lines": 56,
+    "sha256": "bfaa38650d58047121b46cbc66d01473a5eae7be33995c022c48603a7e80459b",
+    "functions": [
+      "run_unit_tests",
+      "evaluate",
+      "to_dict"
+    ]
+  },
+  {
+    "file": "scripts/02_pipeline_demo.ipynb",
+    "lines": 440,
+    "sha256": "29550bfc8ead0dfafa2d6790a6a68f44738ca5a20d4785f87679b54560ab75e5",
+    "cells": 17
+  },
+  {
+    "file": "scripts/audit_models.py",
+    "lines": 177,
+    "sha256": "fe06a80b29c248fc237fe0ca6f30b7ed0b4ab046d1d5a2449f4db82b2d02f52c",
+    "functions": [
+      "datasets",
+      "supported",
+      "research",
+      "legacy",
+      "physionet",
+      "inventory",
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/bootstrap_demo.py",
+    "lines": 26,
+    "sha256": "949095f81375e20ed699eb80d9d9c44a2243b5c60655fdb3a1f1c8ffaa602f54",
+    "functions": [
+      "seed"
+    ]
+  },
+  {
+    "file": "scripts/create_admin.py",
+    "lines": 21,
+    "sha256": "5c3442a0d4ef5d1824d76aaf4f9c1e63784b4e1f4a86c76e3b6f8320c3338f53",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/create_eda_notebook.py",
+    "lines": 230,
+    "sha256": "cdf857875f7659627dca4e3b22c31dd64f87a5ab8c1308546ccb66a502135702",
+    "functions": []
+  },
+  {
+    "file": "scripts/create_pipeline_demo_notebook.py",
+    "lines": 394,
+    "sha256": "ae4497e915b17cf8fa1ee3f85a6b0790d33fafa3de04d0434a83776b30a8a863",
+    "functions": [
+      "md",
+      "code"
+    ]
+  },
+  {
+    "file": "scripts/download_physionet.py",
+    "lines": 68,
+    "sha256": "203e7ef4897b8a04c909692c120be630352f26a5c607a3a0e83c0167c3123ca9",
+    "functions": []
+  },
+  {
+    "file": "scripts/download_uci.py",
+    "lines": 45,
+    "sha256": "fab744dff502b29b88bdd73f1cd969705b31a4b1761b231585ce8648a9b38d0a",
+    "functions": []
+  },
+  {
+    "file": "scripts/export_contract.py",
+    "lines": 27,
+    "sha256": "7ee3a252c99858ed324588b38f8df0bebc86f5d707c6c40fefb0ceeb346369da",
+    "functions": [
+      "render"
+    ]
+  },
+  {
+    "file": "scripts/export_test_pack.py",
+    "lines": 176,
+    "sha256": "f83e411b500d8d756b0d0df9dd1531766234f9c760eb686c106b4897b757d912",
+    "functions": [
+      "write",
+      "ctg_examples",
+      "scenarios",
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/generate_pdf_guide.py",
+    "lines": 665,
+    "sha256": "67f985b655947774d6f87033aa44590d87d6a42a47bad8afcd74de43dc907c04",
+    "functions": [
+      "build_pdf",
+      "__init__",
+      "showPage",
+      "save",
+      "draw_page_decorations"
+    ]
+  },
+  {
+    "file": "scripts/run_eda.py",
+    "lines": 189,
+    "sha256": "471121d3ac5f28a067a9a053df436e25b3fec8567b2348f1cd7d609a2874cd1b",
+    "functions": []
+  },
+  {
+    "file": "scripts/run_models.py",
+    "lines": 150,
+    "sha256": "1fde960bc559e2a28406ab114ff66bb8ee202393beb4b40457402af030e3711d",
+    "functions": [
+      "train_model",
+      "run_all_models",
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/start_app.py",
+    "lines": 27,
+    "sha256": "7daeee044532020854b4e904baf2b4a5227dc6cec2f7276051a520dc4696281d",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/start_demo.py",
+    "lines": 31,
+    "sha256": "12a49e93137f6c5ee548af7de4dabb7ddeacfea72e72199f5645f86f1ed789c5",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/train_ctg_patterns.py",
+    "lines": 54,
+    "sha256": "5dc9043d77f99e3ba7f564468ffaef98e3cba8afd5784889d592321531b14184",
+    "functions": [
+      "train"
+    ]
+  },
+  {
+    "file": "scripts/train_proxy_research.py",
+    "lines": 72,
+    "sha256": "acf70ca34b4328b6cf537a4c498998e2f21ab53a6429c71b321c82e42c066bbd",
+    "functions": [
+      "train"
+    ]
+  },
+  {
+    "file": "scripts/verify_bilingual_reports.py",
+    "lines": 60,
+    "sha256": "2fa92a4188ce9b771be39ef11e0833c266b1bc060a9dc205c56e033995d3a383",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/verify_demo.py",
+    "lines": 62,
+    "sha256": "655ffe6e0ee03cf10c767b6fa39c1f15aadafe44da284e789fffd0b50951dd21",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "scripts/verify_real_app.py",
+    "lines": 45,
+    "sha256": "8e857b747e8d041b51426ade4069e768618d3fe186e7b6d46a2050708f2e42c2",
+    "functions": [
+      "main"
+    ]
+  },
+  {
+    "file": "src/__init__.py",
+    "lines": 1,
+    "sha256": "7b8bfbdfce18fe2cba53d69f753522b088662a65428b3fc8d7fb1d7ff5d3c578",
+    "functions": []
+  },
+  {
+    "file": "src/data/__init__.py",
+    "lines": 25,
+    "sha256": "e9179bc5f1af128ef31601e0f53fa58511f299685cb2aa46f9e42ae93c1e4287",
+    "functions": []
+  },
+  {
+    "file": "src/data/loaders/__init__.py",
+    "lines": 11,
+    "sha256": "1cf3584d0e08b96c50b5742be211beeb21476088c617e4d53cada5e71ab7d738",
+    "functions": []
+  },
+  {
+    "file": "src/data/loaders/physionet_ctg.py",
+    "lines": 105,
+    "sha256": "681e60e6e90b1bde6fe9bced99e9a55893941e1a2ae81eaa034fb9ba6810bdc6",
+    "functions": [
+      "load_physionet_records"
+    ]
+  },
+  {
+    "file": "src/data/loaders/uci_ctg.py",
+    "lines": 54,
+    "sha256": "1ecba6adc7d1305475d326eb29b8df523abb705e9a302a1721ba8975ad8be128",
+    "functions": [
+      "load_uci_ctg"
+    ]
+  },
+  {
+    "file": "src/data/loaders/uci_maternal.py",
+    "lines": 50,
+    "sha256": "762617091be7eba6aa30abe3616bb30bfe4aae0ef1a2a815b62c8be7c08bd78a",
+    "functions": [
+      "load_uci_maternal"
+    ]
+  },
+  {
+    "file": "src/data/preprocessing.py",
+    "lines": 261,
+    "sha256": "7d6afab5c56d834299e298f5e33248ecc0d62024aabd9a7f01f7199eef686c9e",
+    "functions": [
+      "split_data",
+      "scale_features",
+      "handle_imbalance",
+      "preprocess_pipeline",
+      "_transform"
+    ]
+  },
+  {
+    "file": "src/evaluation/__init__.py",
+    "lines": 1,
+    "sha256": "7334edebc8afcb86f692b2225a72acbc4b1f009703ef2fbcac6e67b5e41cb506",
+    "functions": []
+  },
+  {
+    "file": "src/evaluation/metrics.py",
+    "lines": 464,
+    "sha256": "207059beeca1285b9b4103712aba8a01823585ecebc63564a5b4d8c8aa81b3e2",
+    "functions": [
+      "_save_and_close",
+      "plot_confusion_matrix",
+      "plot_roc_curves",
+      "plot_feature_importance",
+      "plot_calibration_curves",
+      "generate_classification_report",
+      "generate_shap_summary",
+      "compare_models"
+    ]
+  },
+  {
+    "file": "src/features/__init__.py",
+    "lines": 1,
+    "sha256": "bc4744c689b565a9ba388d1a41d6e77752be6be174ccecdac31440ccbe7ecb03",
+    "functions": []
+  },
+  {
+    "file": "src/features/ctg_features.py",
+    "lines": 708,
+    "sha256": "8b1692bc0e62eee555f5a0140d19b1621fe739ae60a83fd994a66609882fafe6",
+    "functions": [
+      "_detect_baseline",
+      "_detect_accelerations",
+      "_detect_decelerations",
+      "_compute_stv",
+      "_compute_ltv",
+      "_compute_histogram_features",
+      "_detect_fetal_movements",
+      "_detect_contraction",
+      "extract_features_from_signal",
+      "extract_features_batch"
+    ]
+  },
+  {
+    "file": "src/models/__init__.py",
+    "lines": 1,
+    "sha256": "173333e78f420de24fc773481574876af42de64fd559e21a3044c128d3edcb3d",
+    "functions": []
+  },
+  {
+    "file": "src/models/fetal_watch.py",
+    "lines": 13,
+    "sha256": "603298a87399d4cb01be6598d3fa653c4d386b4e545666d16c4e09732e065e4b",
+    "functions": [
+      "train_fetal_watch"
+    ]
+  },
+  {
+    "file": "src/models/maternal_guard.py",
+    "lines": 13,
+    "sha256": "f48c31c10d2f34c2de12974b504ec276958e83d2c2f2c020b20acaf2bfc95ce7",
+    "functions": [
+      "train_maternal_guard"
+    ]
+  },
+  {
+    "file": "src/models/preterm_guard.py",
+    "lines": 5,
+    "sha256": "76a113b0456f9c060847faa8ddca52207f0dc6ace4fe2fab904db47281d0373a",
+    "functions": [
+      "train_preterm_guard"
+    ]
+  },
+  {
+    "file": "train_care_reach.py",
+    "lines": 3,
+    "sha256": "b501697db76639f250cd444a3d8e7e4c1659eacfbd1efa7721734c71632d7d46",
+    "functions": []
+  },
+  {
+    "file": "train_gestation_insight.py",
+    "lines": 3,
+    "sha256": "b9fba15d5d39a71099be72692eea3cabd6a613a68b7ddfec1a0e592a5a927693",
+    "functions": []
+  },
+  {
+    "file": "ui/__init__.py",
+    "lines": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "functions": []
+  },
+  {
+    "file": "ui/api_client.py",
+    "lines": 32,
+    "sha256": "cb7573c3f9e05aba5579f268219bb683914828acc9ac13f7024c48d9c3cf9aab",
+    "functions": [
+      "__init__",
+      "__init__",
+      "request"
+    ]
+  },
+  {
+    "file": "ui/assessment_form.py",
+    "lines": 196,
+    "sha256": "d6e5f467f5585f6ba6b65d1a52945bdf184700691b2372f2289fe1e5f21a4dc8",
+    "functions": [
+      "render_assessment_form"
+    ]
+  },
+  {
+    "file": "ui/auth_view.py",
+    "lines": 138,
+    "sha256": "2bea42869f65091d3ae7f3ccf287bf81c445038e7538a643c5f06030dc692094",
+    "functions": [
+      "establish_session",
+      "render_auth"
+    ]
+  },
+  {
+    "file": "ui/contact_actions.py",
+    "lines": 28,
+    "sha256": "9f8305267b033b1b31159b8e7df4e244b69f4ede7fc1e84c1497d74b8e800448",
+    "functions": [
+      "contact_links",
+      "render_contacts"
+    ]
+  },
+  {
+    "file": "ui/geolocation/index.html",
+    "lines": 25,
+    "sha256": "8d5fdb69d43725b66f92ab50679ce91c3df31553b4e3044498995e2ee5370551"
+  },
+  {
+    "file": "ui/i18n.py",
+    "lines": 172,
+    "sha256": "6044f0c643f54ba4db199dc05c7c60fcfc750ed5e7905b5134c476c3c1df347d",
+    "functions": [
+      "normalize_numerals",
+      "parse_numeric",
+      "format_urdu_number",
+      "apply_language_styles",
+      "t"
+    ]
+  },
+  {
+    "file": "ui/live_dashboard.py",
+    "lines": 85,
+    "sha256": "f35104188a4e14280896db8cf54f8af196a36bf48ab8e9e27e159e6eb467e9ca",
+    "functions": [
+      "distance_label",
+      "render_location_dashboard",
+      "render_integration_status"
+    ]
+  },
+  {
+    "file": "ui/model_workspace.py",
+    "lines": 26,
+    "sha256": "80d0f4904a049fa8e188084b335d4704e23cbc78d0513532a5f89fe12fe28249",
+    "functions": [
+      "render_workbench"
+    ]
+  },
+  {
+    "file": "ui/pregnancy_helper_view.py",
+    "lines": 164,
+    "sha256": "5b3cd34375878a3c7a025a7825eee3376d9bc17ee5696c876fdc27d3c00badd4",
+    "functions": [
+      "render_pregnancy_helper"
+    ]
+  },
+  {
+    "file": "ui/reminders.py",
+    "lines": 13,
+    "sha256": "d3c6a4eac5992c36bbb71a93fd57b86550bd4321e91cb0836f84e43e617b3db1",
+    "functions": [
+      "render_due_reminders"
+    ]
+  },
+  {
+    "file": "ui/report_view.py",
+    "lines": 24,
+    "sha256": "7e5fe06236252589cff57d352a4d9c01fe99664b4d028ad3e9965d088624f777",
+    "functions": [
+      "render_two_reports"
+    ]
+  },
+  {
+    "file": "vercel.json",
+    "lines": 18,
+    "sha256": "768173d2d462ead77678fc4c86ea26702a240f2d51627e8d3d673092f4b93ed7"
+  }
+]

@@ -574,15 +574,16 @@ def extract_features_from_signal(
     # --- Histogram features ---
     hist_feats = _compute_histogram_features(fhr)
 
-    # Normalize event counts per minute to match UCI CTG scale
+    # UCI CTG event features are counts per second, not counts per minute.
+    duration_sec = duration_min * 60.0
     features = {
         "LB": baseline,
-        "AC": round(ac_count / duration_min, 3) if duration_min > 0 else 0.0,
-        "FM": round(fm_count / duration_min, 3) if duration_min > 0 else 0.0,
-        "UC": round(uc_count / duration_min, 3) if duration_min > 0 else 0.0,
-        "DL": round(dl_count / duration_min, 3) if duration_min > 0 else 0.0,
-        "DS": round(ds_count / duration_min, 3) if duration_min > 0 else 0.0,
-        "DP": round(dp_count / duration_min, 3) if duration_min > 0 else 0.0,
+        "AC": round(ac_count / duration_sec, 6) if duration_sec > 0 else 0.0,
+        "FM": round(fm_count / duration_sec, 6) if duration_sec > 0 else 0.0,
+        "UC": round(uc_count / duration_sec, 6) if duration_sec > 0 else 0.0,
+        "DL": round(dl_count / duration_sec, 6) if duration_sec > 0 else 0.0,
+        "DS": round(ds_count / duration_sec, 6) if duration_sec > 0 else 0.0,
+        "DP": round(dp_count / duration_sec, 6) if duration_sec > 0 else 0.0,
         "ASTV": astv,
         "MSTV": mstv,
         "ALTV": altv,

@@ -1,0 +1,18 @@
+{
+  "model": "carereach",
+  "features": {
+    "Age": 28,
+    "Scholarship": 0,
+    "Hipertension": 0,
+    "Diabetes": 0,
+    "Alcoholism": 0,
+    "Handcap": 0,
+    "SMS_received": 0,
+    "booking_delta_days": 0,
+    "appointment_dow": 4,
+    "sms_x_delta": 0,
+    "comorbidity_count": 0,
+    "Gender": "M",
+    "age_group": "adult"
+  }
+}

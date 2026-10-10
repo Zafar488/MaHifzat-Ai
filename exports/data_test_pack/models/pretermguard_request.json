@@ -1,0 +1,26 @@
+{
+  "model": "pretermguard",
+  "features": {
+    "LB": 134.0,
+    "AC": 0.003,
+    "FM": 0.0,
+    "UC": 0.008,
+    "DL": 0.003,
+    "DS": 0.0,
+    "DP": 0.0,
+    "ASTV": 16.0,
+    "MSTV": 2.4,
+    "ALTV": 0.0,
+    "MLTV": 23.0,
+    "Width": 117.0,
+    "Min": 53.0,
+    "Max": 170.0,
+    "Nmax": 11.0,
+    "Nzeros": 0.0,
+    "Mode": 137.0,
+    "Mean": 134.0,
+    "Median": 137.0,
+    "Variance": 13.0,
+    "Tendency": 1.0
+  }
+}

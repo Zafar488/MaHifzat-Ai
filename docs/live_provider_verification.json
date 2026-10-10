@@ -1,0 +1,59 @@
+{
+  "groq": {
+    "status": "generated",
+    "generated": true,
+    "model": "openai/gpt-oss-120b"
+  },
+  "openstreetmap": {
+    "status": "ok",
+    "provider": "osm_bounded_map",
+    "coverage_radius_km": 2.0,
+    "coverage_limited": true,
+    "fetched_at": "2026-10-10T10:31:50.463434+00:00",
+    "hospital_count": 8,
+    "sample_hospitals": [
+      {
+        "name": "Mercy Teaching Hospital",
+        "distance_m": 2250,
+        "distance_kind": "road",
+        "travel_time_minutes": 4.2,
+        "source_url": "https://www.openstreetmap.org/node/5302612921"
+      },
+      {
+        "name": "Fauji Foundation Hospital",
+        "distance_m": 2030,
+        "distance_kind": "road",
+        "travel_time_minutes": 4.2,
+        "source_url": "https://www.openstreetmap.org/way/225787276"
+      },
+      {
+        "name": "CMH Family Wing",
+        "distance_m": 3170,
+        "distance_kind": "road",
+        "travel_time_minutes": 5.9,
+        "source_url": "https://www.openstreetmap.org/way/106504859"
+      },
+      {
+        "name": "CMH Peshawar - Combined Military Hospital",
+        "distance_m": 3650,
+        "distance_kind": "road",
+        "travel_time_minutes": 6.6,
+        "source_url": "https://www.openstreetmap.org/node/854341089"
+      },
+      {
+        "name": "Combined Military Hospital (CMH)",
+        "distance_m": 3710,
+        "distance_kind": "road",
+        "travel_time_minutes": 6.7,
+        "source_url": "https://www.openstreetmap.org/way/838453554"
+      }
+    ]
+  },
+  "routing": {
+    "status": "routed",
+    "distance_kind": "road",
+    "distance_km": 3.89,
+    "eta_minutes": 7.5
+  },
+  "inputs": "Synthetic non-identifying vitals and public test coordinates only; no actual patient location was obtained"
+}

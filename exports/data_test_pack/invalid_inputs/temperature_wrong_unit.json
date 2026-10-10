@@ -1,0 +1,10 @@
+{
+  "payload": {
+    "patient_id": "REPLACE_WITH_YOUR_OWN_PATIENT_ID",
+    "vitals": {
+      "temperature_celsius": 98.6
+    },
+    "ctg_features": null
+  },
+  "expected_http_status": 422
+}

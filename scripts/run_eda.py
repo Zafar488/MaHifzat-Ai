@@ -11,8 +11,10 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-DATA_DIR = 'g:/hackthon/data'
-NOTEBOOK_DIR = 'g:/hackthon/notebooks'
+from pathlib import Path
+ROOT = Path(__file__).resolve().parents[1]
+DATA_DIR = str(ROOT / 'data')
+NOTEBOOK_DIR = str(ROOT / 'notebooks')
 os.makedirs(NOTEBOOK_DIR, exist_ok=True)
 
 plt.style.use('seaborn-v0_8-whitegrid')
