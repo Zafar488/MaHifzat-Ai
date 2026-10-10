@@ -136,6 +136,8 @@ export default function RiskIntelligencePage() {
           BodyTemp: Number(formData.BodyTemp),
           HeartRate: Number(formData.HeartRate),
         },
+        ctg_source: "uci_measured",
+        provenance: "patient_reported",
         ctg_features: {
           LB: Number(formData.BaselineFHR),
           AC: formData.BaselineFHR < 120 ? 0 : 0.003,
