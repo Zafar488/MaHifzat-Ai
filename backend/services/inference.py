@@ -136,11 +136,9 @@ def get_model_registry():
 def get_model_health_status():
     registry = get_model_registry()
     health = registry.health_check()
-    from backend.services.model_workbench import catalog
-    workbench_catalog = {item["name"]: item["executable"] for item in catalog()}
 
     clinical_ready = health.get("maternalguard", False) and health.get("fetalwatch", False)
-    research_ready = all(workbench_catalog.get(m, False) for m in ("pretermguard", "gestationinsight", "carereach"))
+    research_ready = all(health.get(m, False) for m in ("pretermguard", "gestationinsight", "carereach"))
 
     return {
         "clinical_models": {
@@ -148,9 +146,9 @@ def get_model_health_status():
             "fetalwatch": health.get("fetalwatch", False),
         },
         "research_workbench_models": {
-            "pretermguard": workbench_catalog.get("pretermguard", False),
-            "gestationinsight": workbench_catalog.get("gestationinsight", False),
-            "carereach": workbench_catalog.get("carereach", False),
+            "pretermguard": health.get("pretermguard", False),
+            "gestationinsight": health.get("gestationinsight", False),
+            "carereach": health.get("carereach", False),
         },
         "inference_readiness": {
             "clinical_serving_ready": clinical_ready,
@@ -159,3 +157,4 @@ def get_model_health_status():
         "clinical_serving_ready": clinical_ready,
         "research_workbench_ready": research_ready,
     }
+

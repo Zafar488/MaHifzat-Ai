@@ -15,13 +15,16 @@ async def test_health_and_readiness(async_client):
     health = (await async_client.get("/api/health")).json()
     assert health["status"] == "ok"
     assert health["clinical_models"]["maternalguard"] is True
-    assert health["research_workbench_models"]["carereach"] is True
+    assert health["research_workbench_models"]["carereach"] is False
+    assert health["research_workbench_models"]["gestationinsight"] is False
     r = await async_client.get("/api/ready")
     assert r.status_code == 200, r.text
     ready = r.json()
     assert ready["clinical_models"]["maternalguard"] is True
-    assert ready["research_workbench_models"]["carereach"] is True
+    assert ready["research_workbench_models"]["carereach"] is False
+    assert ready["research_workbench_models"]["gestationinsight"] is False
     assert ready["supported_models_ready"] is True
+
 
 
 @pytest.mark.asyncio
