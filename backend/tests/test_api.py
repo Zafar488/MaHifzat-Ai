@@ -12,10 +12,16 @@ VITALS = {"Age": 30, "SystolicBP": 120, "DiastolicBP": 80, "BS": 7.0, "BodyTemp"
 
 @pytest.mark.asyncio
 async def test_health_and_readiness(async_client):
-    assert (await async_client.get("/api/health")).json()["status"] == "ok"
+    health = (await async_client.get("/api/health")).json()
+    assert health["status"] == "ok"
+    assert health["clinical_models"]["maternalguard"] is True
+    assert health["research_workbench_models"]["carereach"] is True
     r = await async_client.get("/api/ready")
     assert r.status_code == 200, r.text
-    assert r.json()["models"]["carereach"] is False
+    ready = r.json()
+    assert ready["clinical_models"]["maternalguard"] is True
+    assert ready["research_workbench_models"]["carereach"] is True
+    assert ready["supported_models_ready"] is True
 
 
 @pytest.mark.asyncio

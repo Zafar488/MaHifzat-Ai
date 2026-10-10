@@ -28,8 +28,9 @@ async def dashboard(db: AsyncSession = Depends(get_db), user=Depends(get_current
 
 @router.get("/models/health")
 async def model_health(registry=Depends(get_model_registry), user=Depends(get_current_user)):
-    health = registry.health_check()
-    return {"models": health, "all_loaded": all(health.values()), "supported_ready": all(health[name] for name in ("maternalguard", "fetalwatch")), "loaded_count": sum(health.values()), "total_count": len(health), "clinical_validation": "not established"}
+    from backend.services.inference import get_model_health_status
+    status = get_model_health_status()
+    return {"status": "ok", "inference_readiness": status["inference_readiness"], "clinical_models": status["clinical_models"], "research_workbench_models": status["research_workbench_models"], "clinical_validation": "not established"}
 
 @router.get("/models/evidence")
 async def evidence(user=Depends(get_current_user), registry=Depends(get_model_registry)):

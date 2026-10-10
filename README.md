@@ -14,11 +14,19 @@
 
 ---
 
-## 📸 Application Showcase
+## 💻 React 19 Application Architecture & UI Navigation
 
-### Unified Main Dashboard (Two Primary Sections)
-![MaaHifazat Main Dashboard](docs/images/01_main_page.png)
-*The main dashboard is organized into exactly two primary sections: **A — Risk Assessment** and **B — Pregnancy Helper**, with supporting panels for patient history, follow-up queues, and model audit records.*
+The frontend is built with **React 19**, **TypeScript**, **Vite**, and **Tailwind CSS v4**, organized into clinical and intelligence views:
+
+| Page / Route | Component | Key Features & Capability |
+|---|---|---|
+| **Dashboard** (`/dashboard`) | `DashboardPage.tsx` | Overview metrics, live risk distribution charts, and recent case queue. |
+| **Risk Assessment** (`/risk-assessment`) | `RiskIntelligencePage.tsx` | Four-group clinical intake, WHO red-flag triage, heuristic fallback alerts (`FallbackNotice`), and doctor handover controls. |
+| **Bilingual Case Reports** (`/reports`) | `ReportsPage.tsx` | Printable English & Urdu (اردو) care and referral report preview, HTML & Text downloads. |
+| **ANC Followups** (`/followups`) | `FollowupsPage.tsx` | Priority outreach queue, task resolution modal, and direct call/SMS/WhatsApp links. |
+| **Model Workbench** (`/models`) | `ModelWorkbenchPage.tsx` | Direct inference testbed with explicit `CLINICAL` vs `RESEARCH` model badges. |
+| **Pregnancy Helper** (`/pregnancy-helper`) | `PregnancyHelperPage.tsx` | Conversational RAG assistant grounded in WHO/NICE guidelines with live DuckDuckGo web search fallback. |
+| **Referrals & Alerts** (`/referrals`, `/alerts`) | `ReferralsPage.tsx`, `AlertsPage.tsx` | Hospital candidate ranking, road routing ETA, and clinical danger sign notifications. |
 
 ---
 

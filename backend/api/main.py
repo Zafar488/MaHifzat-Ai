@@ -35,29 +35,13 @@ async def unhandled(request: Request, exc: Exception):
 
 @app.get("/api/health")
 async def health():
-    from backend.services.model_workbench import catalog
-    registry = ModelRegistry()
-    health_status = registry.health_check()
-    workbench_catalog = {item["name"]: item["executable"] for item in catalog()}
-
-    clinical_ready = health_status.get("maternalguard", False) and health_status.get("fetalwatch", False)
-    research_ready = all(workbench_catalog.get(m, False) for m in ("pretermguard", "gestationinsight", "carereach"))
-
+    from backend.services.inference import get_model_health_status
+    status = get_model_health_status()
     return {
         "status": "ok",
-        "inference_readiness": {
-            "clinical_serving_ready": clinical_ready,
-            "research_workbench_ready": research_ready,
-        },
-        "clinical_models": {
-            "maternalguard": health_status.get("maternalguard", False),
-            "fetalwatch": health_status.get("fetalwatch", False),
-        },
-        "research_workbench_models": {
-            "pretermguard": workbench_catalog.get("pretermguard", False),
-            "gestationinsight": workbench_catalog.get("gestationinsight", False),
-            "carereach": workbench_catalog.get("carereach", False),
-        },
+        "inference_readiness": status["inference_readiness"],
+        "clinical_models": status["clinical_models"],
+        "research_workbench_models": status["research_workbench_models"],
         "demo_mode": settings.DEMO_MODE,
         "clinical_validation": "not established",
     }
@@ -74,10 +58,11 @@ async def readiness(db: AsyncSession = Depends(get_db)):
         database_ready = True
     except Exception:
         database_ready = False
-    health = ModelRegistry().health_check()
-    models_ready = health["maternalguard"] and health["fetalwatch"]
+    from backend.services.inference import get_model_health_status
+    model_status = get_model_health_status()
+    models_ready = model_status["clinical_serving_ready"]
     ready = database_ready and (models_ready or not settings.REQUIRE_MODELS)
-    return JSONResponse(status_code=200 if ready else 503, content={"status": "ready" if ready else "not_ready", "database": database_ready, "models": health, "supported_models_ready": models_ready})
+    return JSONResponse(status_code=200 if ready else 503, content={"status": "ready" if ready else "not_ready", "database": database_ready, "inference_readiness": model_status["inference_readiness"], "clinical_models": model_status["clinical_models"], "research_workbench_models": model_status["research_workbench_models"], "supported_models_ready": models_ready})
 
 
 for router in (auth_router, patients.router, risks.router, referrals.router, agents.router, alerts.router, audit.router, analytics.router, followups.router, facilities.router, care.router, models.router, helper.router):
