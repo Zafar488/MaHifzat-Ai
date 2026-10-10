@@ -30,7 +30,21 @@ async def dashboard(db: AsyncSession = Depends(get_db), user=Depends(get_current
 async def model_health(registry=Depends(get_model_registry), user=Depends(get_current_user)):
     from backend.services.inference import get_model_health_status
     status = get_model_health_status()
-    return {"status": "ok", "inference_readiness": status["inference_readiness"], "clinical_models": status["clinical_models"], "research_workbench_models": status["research_workbench_models"], "clinical_validation": "not established"}
+    all_models = {**status["clinical_models"], **status["research_workbench_models"]}
+    loaded_count = sum(1 for v in status["clinical_models"].values() if v is True)
+    total_count = len(status["clinical_models"])
+    return {
+        "status": "ok",
+        "models": all_models,
+        "all_loaded": status["clinical_serving_ready"],
+        "loaded_count": loaded_count,
+        "total_count": total_count,
+        "inference_readiness": status["inference_readiness"],
+        "clinical_models": status["clinical_models"],
+        "research_workbench_models": status["research_workbench_models"],
+        "clinical_validation": "not established"
+    }
+
 
 @router.get("/models/evidence")
 async def evidence(user=Depends(get_current_user), registry=Depends(get_model_registry)):

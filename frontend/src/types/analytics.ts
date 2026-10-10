@@ -18,7 +18,10 @@ export interface ModelHealth {
   all_loaded: boolean
   loaded_count: number
   total_count: number
+  clinical_models?: Record<string, boolean>
+  research_workbench_models?: Record<string, boolean>
 }
+
 
 export interface HealthCheck {
   status: string

@@ -199,7 +199,12 @@ export default function DashboardPage() {
 
                 <div className="mt-4 border-t border-gray-100 pt-4">
                   <ul className="space-y-3">
-                    {Object.entries(modelHealth.models).map(([modelName, isLoaded]) => (
+                    {Object.entries(
+                      modelHealth.models || {
+                        ...(modelHealth.clinical_models || {}),
+                        ...(modelHealth.research_workbench_models || {})
+                      }
+                    ).map(([modelName, isLoaded]) => (
                       <li key={modelName} className="flex items-center justify-between text-sm">
                         <span className="font-mono text-xs text-gray-600">{modelName}</span>
                         <span className={cn(
