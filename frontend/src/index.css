@@ -35,6 +35,10 @@
   --animate-overlay-fade-in: overlay-fade-in 150ms ease-out;
   --animate-modal-pop-in: modal-pop-in 150ms ease-out;
   --animate-toast-slide-in: toast-slide-in 200ms ease-out;
+  --animate-gentle-float: gentle-float 4s ease-in-out infinite;
+  --animate-card-fade-in: card-fade-in 200ms ease-out forwards;
+  --animate-emergency-pulse: emergency-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) 2;
+  --animate-pulse-subtle: pulse-subtle 3s ease-in-out infinite;
 
   @keyframes overlay-fade-in {
     from {
@@ -66,6 +70,47 @@
       transform: translateX(0);
     }
   }
+
+  @keyframes gentle-float {
+    0%, 100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-6px);
+    }
+  }
+
+  @keyframes card-fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes emergency-pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4);
+    }
+    50% {
+      box-shadow: 0 0 0 8px rgba(220, 38, 38, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    }
+  }
+
+  @keyframes pulse-subtle {
+    0%, 100% {
+      opacity: 0.9;
+    }
+    50% {
+      opacity: 0.6;
+    }
+  }
 }
 
 @layer base {
@@ -89,3 +134,16 @@
   background-image: radial-gradient(var(--color-gray-200) 1px, transparent 1px);
   background-size: 22px 22px;
 }
+
+/* Reduced motion accessibility fallback */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

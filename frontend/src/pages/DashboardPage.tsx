@@ -55,7 +55,7 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm animate-card-fade-in" style={{ animationDelay: '0ms' }}>
           <div className="p-5">
             <div className="flex items-center gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-teal-50">
@@ -69,7 +69,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-red-200 bg-red-50 shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-red-200 bg-red-50 shadow-sm animate-card-fade-in" style={{ animationDelay: '60ms' }}>
           <div className="p-5">
             <div className="flex items-center gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-red-100">
@@ -85,7 +85,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50 shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-amber-200 bg-amber-50 shadow-sm animate-card-fade-in" style={{ animationDelay: '120ms' }}>
           <div className="p-5">
             <div className="flex items-center gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-amber-100">
@@ -101,7 +101,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-xl border border-blue-200 bg-blue-50 shadow-sm">
+        <div className="overflow-hidden rounded-xl border border-blue-200 bg-blue-50 shadow-sm animate-card-fade-in" style={{ animationDelay: '180ms' }}>
           <div className="p-5">
             <div className="flex items-center gap-4">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-blue-100">

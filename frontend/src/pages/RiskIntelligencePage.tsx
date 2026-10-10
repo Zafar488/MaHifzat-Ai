@@ -394,7 +394,7 @@ export default function RiskIntelligencePage() {
             <div className="space-y-6">
               {/* WHO Emergency Banner */}
               {result.is_emergency && (
-                <div className="rounded-xl bg-red-50 p-5 border-2 border-red-200 flex items-start gap-4 shadow-sm">
+                <div className="rounded-xl bg-red-50 p-5 border-2 border-red-200 flex items-start gap-4 shadow-sm animate-emergency-pulse">
                   <ShieldAlert className="size-8 text-red-600 shrink-0 mt-0.5" />
                   <div>
                     <h3 className="text-base font-bold text-red-900 uppercase tracking-wide">WHO EMERGENCY TRIAGE TRIGGERED</h3>

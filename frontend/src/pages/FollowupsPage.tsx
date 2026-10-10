@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   CalendarClock,
+  CalendarCheck,
   CheckCircle2,
   XCircle,
-  Clock,
   Loader2,
   AlertCircle,
   Filter,
@@ -226,10 +226,12 @@ export default function FollowupsPage() {
             ))}
           </div>
         ) : (
-          <div className="p-12 text-center text-sm text-gray-500 space-y-2">
-            <Clock className="size-10 text-gray-300 mx-auto mb-2" />
-            <h3 className="font-semibold text-gray-800">No {statusFilter} follow-up tasks</h3>
-            <p className="text-xs text-gray-500">All outreach tasks for this filter have been completed.</p>
+          <div className="p-12 text-center text-sm text-gray-500 space-y-3 animate-card-fade-in">
+            <div className="flex size-14 items-center justify-center rounded-2xl bg-teal-50 text-teal-600 mx-auto shadow-sm">
+              <CalendarCheck className="size-7" />
+            </div>
+            <h3 className="font-semibold text-gray-900 text-base">No {statusFilter} follow-up tasks</h3>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto">All outreach and care tasks for this filter are up to date.</p>
           </div>
         )}
       </div>
