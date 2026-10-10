@@ -33,10 +33,11 @@ async def model_health(registry=Depends(get_model_registry), user=Depends(get_cu
     all_models = {**status["clinical_models"], **status["research_workbench_models"]}
     loaded_count = sum(1 for v in all_models.values() if v is True)
     total_count = len(all_models)
+    all_loaded = loaded_count == total_count
     return {
         "status": "ok",
         "models": all_models,
-        "all_loaded": status["clinical_serving_ready"],
+        "all_loaded": all_loaded,
         "loaded_count": loaded_count,
         "total_count": total_count,
         "inference_readiness": status["inference_readiness"],
@@ -44,6 +45,7 @@ async def model_health(registry=Depends(get_model_registry), user=Depends(get_cu
         "research_workbench_models": status["research_workbench_models"],
         "clinical_validation": "not established"
     }
+
 
 
 
