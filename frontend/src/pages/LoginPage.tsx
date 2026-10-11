@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { HeartPulse, Loader2, Lock, User, ShieldCheck } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
 import { MaternalHealthIllustration } from '@/components/illustrations/MaternalHealthIllustration'
+import { getErrorMessage } from '@/lib/utils'
 
 const loginSchema = z.object({
   username: z.string().min(1, 'Username is required'),
@@ -37,7 +38,7 @@ export default function LoginPage() {
       await login(data.username, data.password)
       navigate(from, { replace: true })
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || err.message || 'Login failed')
+      setErrorMsg(getErrorMessage(err, 'Login failed'))
     }
   }
 

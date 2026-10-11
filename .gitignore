@@ -165,3 +165,4 @@ test_bar.png
 *.bak
 *.swp
 *~
+scratch/

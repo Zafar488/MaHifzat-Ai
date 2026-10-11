@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
-import { Activity, Bot, Loader2, ShieldAlert, HeartPulse, Brain, Baby, CalendarClock, ArrowRight, UserCheck, RefreshCw, Zap } from 'lucide-react'
+import { Activity, Bot, Loader2, ShieldAlert, HeartPulse, Brain, Baby, CalendarClock, ArrowRight, UserCheck, RefreshCw, Zap, FileText, ExternalLink } from 'lucide-react'
 import { api } from '@/lib/api-client'
 import { usePatients } from '@/hooks/usePatients'
-import { cn } from '@/lib/utils'
+import { cn, getErrorMessage } from '@/lib/utils'
 import { FallbackNotice } from '@/components/shared/FallbackNotice'
+import { NearestHospitalMapCard } from '@/components/shared/NearestHospitalMapCard'
 
 interface RiskAssessmentResponse {
   case_id: string
@@ -14,6 +15,7 @@ interface RiskAssessmentResponse {
   gestational_complication?: any
   anc_followup?: any
   safety_triage?: any
+  urgency_level?: string
   is_emergency: boolean
 }
 
@@ -71,6 +73,7 @@ export default function RiskIntelligencePage() {
   const [result, setResult] = useState<RiskAssessmentResponse | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(null)
+  const [reportLang, setReportLang] = useState<'en' | 'ur'>('en')
 
   // Interactive Form State for Vitals & Clinical Features
   const [formData, setFormData] = useState({
@@ -136,8 +139,8 @@ export default function RiskIntelligencePage() {
           BodyTemp: Number(formData.BodyTemp),
           HeartRate: Number(formData.HeartRate),
         },
-        ctg_source: "uci_measured",
-        provenance: "patient_reported",
+        ctg_source: "demo",
+        provenance: "demo",
         ctg_features: {
           LB: Number(formData.BaselineFHR),
           AC: formData.BaselineFHR < 120 ? 0 : 0.003,
@@ -187,7 +190,7 @@ export default function RiskIntelligencePage() {
       const res = await api.post<RiskAssessmentResponse>('/risks/assess', payload)
       setResult(res.data)
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Failed to run risk assessment.')
+      setErrorMsg(getErrorMessage(err, 'Failed to run risk assessment.'))
     } finally {
       setIsSubmitting(false)
     }
@@ -419,9 +422,14 @@ export default function RiskIntelligencePage() {
                 {/* 1. MaternalGuard */}
                 {result.maternal_risk && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                      <HeartPulse className="size-4 text-rose-500" /> Model 1: MaternalGuard
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <HeartPulse className="size-4 text-rose-500" /> Model 1: MaternalGuard
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ⚡ ML Pipeline Live
+                      </span>
+                    </div>
 
                     {(result.maternal_risk.model_available === false || result.maternal_risk.source === 'heuristic_fallback') && (
                       <FallbackNotice modelName="MaternalGuard" source={result.maternal_risk.source} compact />
@@ -430,27 +438,39 @@ export default function RiskIntelligencePage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-medium text-gray-700">Maternal Risk Level</span>
                       <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
-                        result.maternal_risk.risk_level === 'high risk' || result.maternal_risk.risk_level === 'High' ? 'bg-red-100 text-red-800' :
-                        result.maternal_risk.risk_level === 'mid risk' || result.maternal_risk.risk_level === 'Moderate' ? 'bg-amber-100 text-amber-800' :
-                        'bg-green-100 text-green-800'
+                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase shadow-sm",
+                        result.maternal_risk.risk_level === 'high risk' || result.maternal_risk.risk_level === 'High' ? 'bg-red-600 text-white' :
+                        result.maternal_risk.risk_level === 'mid risk' || result.maternal_risk.risk_level === 'Moderate' ? 'bg-amber-500 text-white' :
+                        'bg-emerald-600 text-white'
                       )}>
                         {result.maternal_risk.risk_level}
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                      <span>Model Confidence:</span>
-                      <span className="font-semibold text-gray-800">{(result.maternal_risk.confidence * 100).toFixed(1)}%</span>
-                    </div>
+
+                    {result.maternal_risk.probabilities && (
+                      <div className="space-y-1 pt-2 border-t border-gray-100 text-[11px]">
+                        {Object.entries(result.maternal_risk.probabilities).map(([label, prob]) => (
+                          <div key={label} className="flex items-center justify-between text-gray-600">
+                            <span className="capitalize">{label}:</span>
+                            <span className="font-mono font-bold text-gray-900">{((prob as number) * 100).toFixed(1)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* 2. FetalWatch */}
                 {result.fetal_health && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                      <Baby className="size-4 text-blue-500" /> Model 2: FetalWatch (CTG)
-                    </h4>
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <Baby className="size-4 text-blue-500" /> Model 2: FetalWatch (CTG)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ⚡ ML Pipeline Live
+                      </span>
+                    </div>
 
                     {(result.fetal_health.model_available === false || result.fetal_health.source === 'heuristic_fallback') && (
                       <FallbackNotice modelName="FetalWatch (CTG)" source={result.fetal_health.source} compact />
@@ -459,93 +479,107 @@ export default function RiskIntelligencePage() {
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-medium text-gray-700">Fetal Distress Status</span>
                       <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
-                        result.fetal_health.fetal_status === 'Pathological' ? 'bg-red-100 text-red-800' :
-                        result.fetal_health.fetal_status === 'Suspect' ? 'bg-amber-100 text-amber-800' :
-                        'bg-green-100 text-green-800'
+                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase shadow-sm",
+                        result.fetal_health.fetal_status === 'Pathological' ? 'bg-red-600 text-white' :
+                        result.fetal_health.fetal_status === 'Suspect' ? 'bg-amber-500 text-white' :
+                        'bg-emerald-600 text-white'
                       )}>
                         {result.fetal_health.fetal_status}
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                      <span>Model Confidence:</span>
-                      <span className="font-semibold text-gray-800">{(result.fetal_health.confidence * 100).toFixed(1)}%</span>
-                    </div>
+
+                    {result.fetal_health.probabilities && (
+                      <div className="space-y-1 pt-2 border-t border-gray-100 text-[11px]">
+                        {Object.entries(result.fetal_health.probabilities).map(([label, prob]) => (
+                          <div key={label} className="flex items-center justify-between text-gray-600">
+                            <span className="capitalize">{label}:</span>
+                            <span className="font-mono font-bold text-gray-900">{((prob as number) * 100).toFixed(1)}%</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* 3. PretermGuard */}
                 {result.preterm_risk && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                      <Activity className="size-4 text-purple-500" /> Model 3: PretermGuard
-                    </h4>
-
-                    {(result.preterm_risk.model_available === false || result.preterm_risk.source === 'heuristic_fallback') && (
-                      <FallbackNotice modelName="PretermGuard" source={result.preterm_risk.source} compact />
-                    )}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <Activity className="size-4 text-purple-500" /> Model 3: PretermGuard
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ⚡ ML Pipeline Live
+                      </span>
+                    </div>
 
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-xs font-medium text-gray-700">Preterm Delivery Risk</span>
                       <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
-                        result.preterm_risk.preterm_prediction === 1 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase shadow-sm",
+                        result.preterm_risk.preterm_prediction === 1 ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
                       )}>
-                        {result.preterm_risk.preterm_prediction === 1 ? 'High Risk' : 'Normal'}
+                        {result.preterm_risk.preterm_prediction === 1 ? 'High Risk' : 'Normal Gestation'}
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                      <span>Preterm Probability:</span>
-                      <span className="font-semibold text-gray-800">{(result.preterm_risk.preterm_probability * 100).toFixed(1)}%</span>
-                    </div>
+                    {result.preterm_risk.risk_stratum && (
+                      <div className="text-[11px] text-gray-500 flex justify-between">
+                        <span>Pattern Stratum:</span>
+                        <span className="font-mono font-bold text-purple-700">{result.preterm_risk.risk_stratum}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* 4. GestationInsight */}
                 {result.gestational_complication && (
                   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                      <Brain className="size-4 text-teal-500" /> Model 4: GestationInsight
-                    </h4>
-
-                    {(result.gestational_complication.model_available === false || result.gestational_complication.source === 'heuristic_fallback') && (
-                      <FallbackNotice modelName="GestationInsight" source={result.gestational_complication.source} compact />
-                    )}
-
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-medium text-gray-700">Gestational Complication</span>
-                      <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
-                        result.gestational_complication.risk_level === 'high risk' || result.gestational_complication.risk_level === 'High' ? 'bg-red-100 text-red-800' :
-                        result.gestational_complication.risk_level === 'mid risk' || result.gestational_complication.risk_level === 'Moderate' ? 'bg-amber-100 text-amber-800' :
-                        'bg-green-100 text-green-800'
-                      )}>
-                        {result.gestational_complication.risk_level}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <Brain className="size-4 text-teal-500" /> Model 4: GestationInsight
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ⚡ ML Pipeline Live
                       </span>
                     </div>
-                    <div className="mt-2 text-xs text-gray-500 flex justify-between">
-                      <span>Model Confidence:</span>
-                      <span className="font-semibold text-gray-800">{(result.gestational_complication.confidence * 100).toFixed(1)}%</span>
+
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-medium text-gray-700">Metabolic / Diabetes Risk</span>
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase shadow-sm",
+                        result.gestational_complication.risk_level === 'high risk' || result.gestational_complication.risk_level === '2' ? 'bg-red-600 text-white' :
+                        result.gestational_complication.risk_level === 'mid risk' || result.gestational_complication.risk_level === '1' ? 'bg-amber-500 text-white' :
+                        'bg-emerald-600 text-white'
+                      )}>
+                        {result.gestational_complication.risk_level === '2' ? 'High Risk' : result.gestational_complication.risk_level === '1' ? 'Moderate Risk' : result.gestational_complication.risk_level}
+                      </span>
                     </div>
+                    {result.gestational_complication.complication_type && (
+                      <div className="text-[11px] text-gray-500 flex justify-between">
+                        <span>Target Phenotype:</span>
+                        <span className="font-semibold text-teal-800">{result.gestational_complication.complication_type}</span>
+                      </div>
+                    )}
                   </div>
                 )}
 
                 {/* 5. CareReach */}
                 {result.anc_followup && (
                   <div className="md:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-5 space-y-3">
-                    <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                      <CalendarClock className="size-4 text-orange-500" /> Model 5: CareReach (ANC Care Outreach)
-                    </h4>
-
-                    {(result.anc_followup.model_available === false || result.anc_followup.source === 'heuristic_fallback') && (
-                      <FallbackNotice modelName="CareReach" source={result.anc_followup.source} compact />
-                    )}
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                        <CalendarClock className="size-4 text-orange-500" /> Model 5: CareReach (ANC Outreach)
+                      </h4>
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                        ⚡ ML Pipeline Live
+                      </span>
+                    </div>
 
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-xs font-medium text-gray-700">Missed Visit / Dropout Priority</span>
+                      <span className="text-xs font-medium text-gray-700">Missed ANC Visit / Dropout Risk</span>
                       <span className={cn(
-                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase",
-                        result.anc_followup.priority === 'high' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        "px-2.5 py-1 rounded-full text-xs font-bold uppercase shadow-sm",
+                        result.anc_followup.priority === 'high' ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'
                       )}>
                         {result.anc_followup.priority} Priority
                       </span>
@@ -556,6 +590,104 @@ export default function RiskIntelligencePage() {
                   </div>
                 )}
               </div>
+
+              {/* Interactive Bilingual Clinical Report (English & Urdu) */}
+              <div className="bg-white rounded-xl shadow-md border border-teal-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-teal-800 to-teal-900 text-white px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <FileText className="size-5 text-teal-300" />
+                    <div>
+                      <h3 className="text-sm font-bold tracking-tight">Bilingual Clinical Case Report (English & اردو)</h3>
+                      <p className="text-[11px] text-teal-100 mt-0.5">
+                        Generated Case ID: <code className="font-mono font-bold bg-white/10 px-1.5 py-0.5 rounded text-white">{result.case_id}</code>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <div className="flex bg-teal-950/60 p-1 rounded-lg border border-white/20 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => setReportLang('en')}
+                        className={`px-2.5 py-1 rounded font-bold transition-all ${reportLang === 'en' ? 'bg-white text-teal-950 shadow' : 'text-teal-100 hover:bg-white/10'}`}
+                      >
+                        English
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setReportLang('ur')}
+                        className={`px-2.5 py-1 rounded font-bold transition-all ${reportLang === 'ur' ? 'bg-white text-teal-950 shadow' : 'text-teal-100 hover:bg-white/10'}`}
+                      >
+                        اردو (Urdu)
+                      </button>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/reports?case_id=${result.case_id}&patient_id=${selectedPatientId}`)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white text-xs font-bold transition-colors shadow-sm cursor-pointer"
+                    >
+                      <span>Open Full Printable Report</span>
+                      <ExternalLink className="size-3.5" />
+                    </button>
+                  </div>
+                </div>
+
+                <div className={`p-5 space-y-4 text-xs leading-relaxed ${reportLang === 'ur' ? 'text-right' : 'text-left'}`} dir={reportLang === 'ur' ? 'rtl' : 'ltr'}>
+                  {/* Report 1: Care Instructions */}
+                  <div className="bg-teal-50/50 p-4 rounded-xl border border-teal-100 space-y-2">
+                    <h4 className="font-extrabold text-teal-900 text-xs uppercase tracking-wide border-b border-teal-200/60 pb-1 flex items-center gap-1.5">
+                      <span>📋</span>
+                      {reportLang === 'ur' ? 'رپورٹ ۱: ماں اور بچے کی دیکھ بھال کی ہدایات' : 'Report 1: Mother & Baby Clinical Care Guidance'}
+                    </h4>
+                    <p className="text-gray-800 font-semibold">
+                      {reportLang === 'ur'
+                        ? (result.is_emergency ? 'فوری طبی خطرہ! فوری طور پر قریبی ایمرجنسی زچگی ہسپتال منتقل ہوں۔' : 'باقاعدہ دیکھ بھال اور طبی معائنہ کی ضرورت ہے۔')
+                        : (result.is_emergency ? 'CRITICAL EMERGENCY: Immediate tertiary maternity hospital transfer required.' : 'ROUTINE CARE: Standard ANC monitoring and nutritional care protocol.')}
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-700">
+                      <li>{reportLang === 'ur' ? `ایمرجنسی کی صورتحال: ${result.is_emergency ? 'جی ہاں (High Alert)' : 'نہیں (Normal)'}` : `Emergency Status: ${result.is_emergency ? 'YES (High Alert)' : 'NO (Stable)'}`}</li>
+                      <li>{reportLang === 'ur' ? `سفارش کردہ عمل: ${result.anc_followup?.recommended_action || 'باقاعدہ طبی جائزہ'}` : `Recommended Action: ${result.anc_followup?.recommended_action || 'Standard ANC Monitoring'}`}</li>
+                      <li>{reportLang === 'ur' ? 'بائیں کروٹ پر لیٹیں اور بلڈ پریشر کا مسلسل جائزہ لیں۔' : 'Rest on left side (left lateral position) to maximize uteroplacental blood flow.'}</li>
+                      <li>{reportLang === 'ur' ? 'روزانہ 30-60mg آئرن اور 400µg فولک ایسڈ باقاعدگی سے لیں۔' : 'Administer daily WHO micronutrients: 30-60mg Elemental Iron + 400µg Folic Acid.'}</li>
+                    </ul>
+                  </div>
+
+                  {/* Report 2: Hospital Referral Plan */}
+                  <div className="bg-amber-50/50 p-4 rounded-xl border border-amber-200/80 space-y-2">
+                    <h4 className="font-extrabold text-amber-900 text-xs uppercase tracking-wide border-b border-amber-200 pb-1 flex items-center gap-1.5">
+                      <span>🏥</span>
+                      {reportLang === 'ur' ? 'رپورٹ ۲: مقام اور ہسپتال ریفرل منصوبہ' : 'Report 2: Location & Emergency Hospital Referral Plan'}
+                    </h4>
+                    <p className="text-gray-800 font-semibold">
+                      {reportLang === 'ur'
+                        ? `ترجیحی ریفرل درجہ: ${result.urgency_level || 'روزمرہ'}`
+                        : `Referral Urgency Threshold: ${(result.urgency_level || 'routine').toUpperCase()}`}
+                    </p>
+                    <ul className="list-disc list-inside space-y-1 text-gray-700">
+                      <li>{reportLang === 'ur' ? 'قریبی سہولت: اوپن اسٹریٹ میپ (OSM) کے ذریعے ایمرجنسی میٹرنٹی سینٹر منتخب شدہ ہے۔' : 'Facility Discovery: OpenStreetMap verified nearest tertiary maternity center mapped.'}</li>
+                      <li>{reportLang === 'ur' ? 'خطرناک علامات: شدید سر درد، آنکھوں میں دھندلاپن، یا خون کے اخراج پر بلا تاخیر ہسپتال پہنچیں۔' : 'Emergency Red Flags: Severe headache, vision changes, or bleeding require instant transport.'}</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nearest Hospital Routing Card for Mid and High Risk Verification */}
+              {(() => {
+                const overallRisk = result.is_emergency
+                  ? 'high'
+                  : result.maternal_risk?.risk_level ||
+                    result.fetal_health?.fetal_status ||
+                    result.gestational_complication?.risk_level ||
+                    (result.preterm_risk?.preterm_prediction === 1 ? 'high' : 'low');
+                return (
+                  <NearestHospitalMapCard
+                    riskLevel={overallRisk}
+                    patientName={patientsList?.find((p) => p.patient_id === selectedPatientId)?.name}
+                    title="Nearest Emergency Maternity Hospital Route"
+                  />
+                );
+              })()}
 
               {/* Escalate to Agentic Pipeline Banner */}
               <div className="mt-6 bg-gradient-to-r from-teal-900 to-teal-700 rounded-xl p-6 text-white shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">

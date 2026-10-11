@@ -38,8 +38,16 @@ def catalog():
     return items
 
 def predict(name,features):
-    if name=="maternalguard":return ModelRegistry().predict_maternal_risk(features)
-    if name=="fetalwatch":return ModelRegistry().predict_fetal_health(features)
+    if name=="maternalguard":
+        res = ModelRegistry().predict_maternal_risk(features)
+        if res.get("confidence") is None and res.get("probabilities"):
+            res = {**res, "confidence": float(max(res["probabilities"].values()))}
+        return res
+    if name=="fetalwatch":
+        res = ModelRegistry().predict_fetal_health(features)
+        if res.get("confidence") is None and res.get("probabilities"):
+            res = {**res, "confidence": float(max(res["probabilities"].values()))}
+        return res
     bundle=research_bundle(name)
     expected=set(bundle["features"])
     if set(features)!=expected:raise ValueError("Supply exactly these features: "+", ".join(bundle["features"]))
@@ -58,7 +66,8 @@ def predict(name,features):
     label=str(bundle["pipeline"].predict(sample)[0])
     probs=bundle["pipeline"].predict_proba(sample)[0]
     if not np.isfinite(probs).all() or not np.isclose(probs.sum(),1):raise ValueError("Invalid model output")
-    return {"status":"research_prediction","model":name,"label":bundle["label_map"].get(label,label),
-       "probabilities":{bundle["label_map"].get(str(c),str(c)):float(p) for c,p in zip(bundle["pipeline"].classes_,probs)},
+    confidence = float(max(probs)) if len(probs) > 0 else None
+    return {"status":"research_prediction","model":name,"prediction":bundle["label_map"].get(label,label),"label":bundle["label_map"].get(label,label),
+       "confidence":confidence,"probabilities":{bundle["label_map"].get(str(c),str(c)):float(p) for c,p in zip(bundle["pipeline"].classes_,probs)},
        "model_version":bundle["model_version"],"intended_use":bundle["intended_use"],"care_decision_use":False,
        "clinical_validation":"not established","warning":"Dataset-specific research output; it must not determine obstetric referral or treatment."}

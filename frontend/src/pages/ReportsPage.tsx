@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import {
   FileText,
@@ -77,8 +78,12 @@ function triggerDownload(content: string, filename: string, mimeType: string) {
 }
 
 export default function ReportsPage() {
-  const [selectedPatientId, setSelectedPatientId] = useState<string>('');
-  const [selectedCaseId, setSelectedCaseId] = useState<string>('');
+  const [searchParams] = useSearchParams();
+  const urlPatientId = searchParams.get('patient_id') || '';
+  const urlCaseId = searchParams.get('case_id') || '';
+
+  const [selectedPatientId, setSelectedPatientId] = useState<string>(urlPatientId);
+  const [selectedCaseId, setSelectedCaseId] = useState<string>(urlCaseId);
   const [activeLang, setActiveLang] = useState<'en' | 'ur'>('en');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     care: true,
@@ -116,24 +121,31 @@ export default function ReportsPage() {
     enabled: Boolean(selectedCaseId),
   });
 
-  // Auto-select first patient & first case
+  // Sync URL params if provided
   React.useEffect(() => {
-    if (patients && patients.length > 0 && !selectedPatientId) {
+    if (urlPatientId && urlPatientId !== selectedPatientId) {
+      setSelectedPatientId(urlPatientId);
+    }
+    if (urlCaseId && urlCaseId !== selectedCaseId) {
+      setSelectedCaseId(urlCaseId);
+    }
+  }, [urlPatientId, urlCaseId]);
+
+  // Auto-select first patient & first case if not URL specified
+  React.useEffect(() => {
+    if (patients && patients.length > 0 && !selectedPatientId && !urlPatientId) {
       setSelectedPatientId(patients[0].patient_id);
     }
-  }, [patients, selectedPatientId]);
+  }, [patients, selectedPatientId, urlPatientId]);
 
   React.useEffect(() => {
-    if (assessments && assessments.length > 0) {
-      // Pick first non-empty case_id
+    if (assessments && assessments.length > 0 && !urlCaseId) {
       const validCase = assessments.find((a) => Boolean(a.case_id));
-      if (validCase) {
+      if (validCase && !selectedCaseId) {
         setSelectedCaseId(validCase.case_id);
       }
-    } else if (assessments && assessments.length === 0) {
-      setSelectedCaseId('');
     }
-  }, [assessments]);
+  }, [assessments, urlCaseId, selectedCaseId]);
 
   const toggleSection = (key: string) => {
     setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));

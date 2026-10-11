@@ -6,10 +6,14 @@ import {
   Bot,
   HeartPulse,
   Users,
+  Baby,
+  Zap,
+  UserPlus,
 } from 'lucide-react'
 import { useDashboardStats, useModelHealth } from '@/hooks/useDashboard'
 import { useReferrals } from '@/hooks/useReferrals'
 import { cn } from '@/lib/utils'
+import { MaternalHealthIllustration } from '@/components/illustrations/MaternalHealthIllustration'
 
 export default function DashboardPage() {
   const { data: stats, isLoading: statsLoading, isError: statsError } = useDashboardStats()
@@ -45,12 +49,57 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">Clinical Intelligence</h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-gray-500">
-          Command center overview of patient volume, risk status, and operational alerts.
-        </p>
+      {/* Animated Hero Banner: Child, Doctor, Nurse & Family Care */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-teal-900 via-teal-800 to-teal-950 p-6 lg:p-8 text-white shadow-xl animate-card-fade-in">
+        <div className="absolute -right-12 -top-12 size-64 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
+        <div className="absolute -left-12 -bottom-12 size-64 rounded-full bg-sky-500/10 blur-3xl pointer-events-none" />
+
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+          <div className="lg:col-span-7 space-y-4">
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3.5 py-1 text-xs font-semibold text-teal-200 border border-teal-400/30">
+              <Baby className="size-3.5 text-teal-300" />
+              <span>MaaHifazat • Child, Doctor, Nurse & Family Care Intelligence</span>
+            </div>
+            
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight">
+              Maternal & Neonatal Clinical Command
+            </h1>
+            
+            <p className="text-sm text-teal-100/90 leading-relaxed max-w-xl">
+              Real-time multi-agent decision support uniting clinicians, nurses, field workers, and families to protect mothers and newborns across Pakistan.
+            </p>
+
+            <div className="flex flex-wrap gap-3 pt-2">
+              <Link
+                to="/risks"
+                className="inline-flex items-center gap-2 rounded-lg bg-teal-500 px-4 py-2.5 text-xs font-bold text-teal-950 shadow-md hover:bg-teal-400 transition-colors"
+              >
+                <Zap className="size-4" />
+                <span>Run 5-Model Risk Scan</span>
+              </Link>
+              <Link
+                to="/patients/new"
+                className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-semibold text-white border border-white/20 hover:bg-white/20 transition-colors"
+              >
+                <UserPlus className="size-4 text-teal-300" />
+                <span>Register Patient</span>
+              </Link>
+              <Link
+                to="/agents"
+                className="inline-flex items-center gap-2 rounded-lg bg-white/10 px-4 py-2.5 text-xs font-semibold text-white border border-white/20 hover:bg-white/20 transition-colors"
+              >
+                <Bot className="size-4 text-teal-300" />
+                <span>9-Agent Network</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 flex justify-center lg:justify-end">
+            <div className="w-full max-w-md bg-white/5 p-4 rounded-2xl backdrop-blur-sm border border-white/10 shadow-inner">
+              <MaternalHealthIllustration className="w-full h-auto" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* KPI Cards */}

@@ -5,10 +5,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { HeartPulse, Loader2, Lock, User, UserPlus } from 'lucide-react'
 import { api } from '@/lib/api-client'
+import { getErrorMessage } from '@/lib/utils'
 
 const signupSchema = z.object({
   username: z.string().min(3, 'Username must be at least 3 characters'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(12, 'Password must be at least 12 characters (e.g. Password123!)'),
   full_name: z.string().min(2, 'Full name is required'),
 })
 
@@ -31,11 +32,11 @@ export default function SignupPage() {
     try {
       await api.post('/auth/signup', {
         ...data,
-        role: 'clinician', // Default role for open signups in this MVP
+        role: 'patient', // Self-registration permits patient role
       })
       navigate('/login', { replace: true })
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || err.message || 'Signup failed')
+      setErrorMsg(getErrorMessage(err, 'Signup failed'))
     }
   }
 

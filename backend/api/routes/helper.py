@@ -13,7 +13,7 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str = Field(min_length=1, max_length=2000)
-    language: str = Field("en", pattern="^(en|ur)$")
+    language: str = Field("en", pattern="^(en|ur|roman_urdu|ur_roman)$")
     shared_assessment: Optional[Dict[str, Any]] = None
     chat_history: Optional[List[ChatMessage]] = None
 

@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { ArrowLeft, Loader2, Save, User } from 'lucide-react'
 import { useCreatePatient } from '@/hooks/usePatients'
-import { cn } from '@/lib/utils'
+import { cn, getErrorMessage } from '@/lib/utils'
 
 const patientSchema = z.object({
   name: z.string().min(2, 'Name must be at least 2 characters'),
@@ -60,7 +60,7 @@ export default function PatientRegistrationPage() {
         navigate('/patients')
       }
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || 'Failed to register patient. Please try again.')
+      setErrorMsg(getErrorMessage(err, 'Failed to register patient. Please try again.'))
     }
   }
 

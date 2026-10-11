@@ -3,7 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom'
 import { ArrowLeft, AlertCircle, Calendar, Phone, MapPin, Loader2, Activity, Bot, ArrowRightLeft, Clock, Edit2, X, Save } from 'lucide-react'
 import { usePatient, useUpdatePatient } from '@/hooks/usePatients'
 import { useReferrals } from '@/hooks/useReferrals'
-import { cn } from '@/lib/utils'
+import { cn, getErrorMessage } from '@/lib/utils'
 
 export default function PatientProfilePage() {
   const { id, patientId } = useParams<{ id?: string; patientId?: string }>()
@@ -68,7 +68,7 @@ export default function PatientProfilePage() {
       setIsEditing(false)
       refetch()
     } catch (err: any) {
-      setEditError(err.response?.data?.detail || 'Failed to update patient profile.')
+      setEditError(getErrorMessage(err, 'Failed to update patient profile.'))
     }
   }
 

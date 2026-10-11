@@ -14,7 +14,7 @@ from scripts.run_models import ROOT
 def test_model_readiness_complete_pipelines():
     r = ModelRegistry()
     r.load_all()
-    assert r.health_check() == {"maternalguard": True, "fetalwatch": True, "pretermguard": False, "gestationinsight": False, "carereach": False}
+    assert r.health_check() == {"maternalguard": True, "fetalwatch": True, "pretermguard": True, "gestationinsight": True, "carereach": True}
 
 
 @pytest.mark.parametrize("name,features", [("maternalguard", MATERNAL_FEATURES), ("fetalwatch", CTG_FEATURES)])

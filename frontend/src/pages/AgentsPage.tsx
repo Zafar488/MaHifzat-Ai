@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Bot, Loader2, Activity, AlertCircle, Play, FileText, Share2, MessageSquare, AlertTriangle, CheckCircle2 } from 'lucide-react'
 import { api } from '@/lib/api-client'
 import { usePatients } from '@/hooks/usePatients'
+import { getErrorMessage } from '@/lib/utils'
 
 interface NodeInfo {
   name: string
@@ -39,7 +40,7 @@ export default function AgentsPage() {
         patient_id: selectedPatientId || "pat_agent_" + Math.floor(Math.random() * 10000),
         case_id: "case-" + Math.floor(Math.random() * 10000),
         language: p?.language || "ur",
-        channel: "sms",
+        channel: "app",
         vitals: isEmergencyScenario ? {
           systolic_bp: 175,
           diastolic_bp: 110,
@@ -63,7 +64,7 @@ export default function AgentsPage() {
       const response = await api.post('/agents/run', requestData)
       setWorkflowResult(response.data?.result || response.data)
     } catch (err: any) {
-      setErrorMsg(err.response?.data?.detail || err.message || 'Workflow failed to execute')
+      setErrorMsg(getErrorMessage(err, 'Workflow failed to execute'))
     } finally {
       setIsRunning(false)
     }

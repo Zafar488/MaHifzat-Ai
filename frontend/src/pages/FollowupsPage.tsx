@@ -13,6 +13,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { api } from '@/lib/api-client';
+import { getErrorMessage } from '@/lib/utils';
 
 interface FollowupTask {
   id: string;
@@ -60,7 +61,7 @@ export default function FollowupsPage() {
       setResolveError(null);
     },
     onError: (err: any) => {
-      setResolveError(err.response?.data?.detail || err.message || 'Failed to update task.');
+      setResolveError(getErrorMessage(err, 'Failed to update task.'));
     },
   });
 

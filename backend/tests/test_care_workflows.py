@@ -155,3 +155,42 @@ async def test_demo_location_cannot_enter_measured_case(async_client,auth_header
     response = await async_client.post("/api/agents/run",json={"patient_id":patient_id,"vitals":VITALS,
                "location":{"latitude":34.08,"longitude":71.39,"source":"demo"}},headers=auth_headers)
     assert response.status_code == 422
+
+@pytest.mark.asyncio
+async def test_demo_ctg_cannot_be_assigned_to_real_assessment(async_client, auth_headers, patient_id):
+    from backend.services.inference import ModelRegistry, CTG_FEATURES
+    registry = ModelRegistry()
+    features = dict(zip(CTG_FEATURES, registry._models["fetalwatch"]["known_input"]))
+    response = await async_client.post(
+        "/api/risks/assess",
+        json={
+            "patient_id": patient_id,
+            "vitals": VITALS,
+            "ctg_features": features,
+            "ctg_source": "demo",
+            "provenance": "patient_reported",
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 422
+    assert "Demo CTG cannot be assigned to a real assessment" in response.text
+
+@pytest.mark.asyncio
+async def test_demo_ctg_with_demo_provenance_succeeds(async_client, auth_headers, patient_id, monkeypatch):
+    from backend.config import settings
+    from backend.services.inference import ModelRegistry, CTG_FEATURES
+    monkeypatch.setattr(settings, "DEMO_MODE", True)
+    registry = ModelRegistry()
+    features = dict(zip(CTG_FEATURES, registry._models["fetalwatch"]["known_input"]))
+    response = await async_client.post(
+        "/api/risks/assess",
+        json={
+            "patient_id": patient_id,
+            "vitals": VITALS,
+            "ctg_features": features,
+            "ctg_source": "demo",
+            "provenance": "demo",
+        },
+        headers=auth_headers,
+    )
+    assert response.status_code == 200

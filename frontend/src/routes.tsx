@@ -3,6 +3,7 @@ import { createBrowserRouter, Navigate, Outlet } from 'react-router-dom'
 import { HeartPulse, Loader2 } from 'lucide-react'
 import { AppShell, ProtectedRoute } from '@/components/layout'
 import { UserRole } from '@/types'
+import { RouteErrorBoundary } from '@/components/shared/ErrorBoundary'
 
 // --- Lazy pages (each becomes its own chunk under code splitting) ------------
 
@@ -42,6 +43,7 @@ function RouteFallback() {
 
 export const router = createBrowserRouter([
   {
+    errorElement: <RouteErrorBoundary />,
     // Global Suspense boundary so lazy elements can suspend anywhere in the
     // tree. Pages inside AppShell additionally get an in-shell fallback.
     element: (

@@ -89,10 +89,14 @@ def assess(intake, case_id, registry, safety):
     from backend.services.followup import plan_followup
     urgency = effective_urgency(triage, maternal, fetal)
     anc = plan_followup(intake.get("followup"), intake["vitals"], urgency)
+    carereach_ml = registry.predict_anc_followup_risk(intake["vitals"])
+    if carereach_ml.get("model_available"):
+        anc["carereach_ml"] = carereach_ml
+
     return {"case_id": case_id, "patient_id": intake["patient_id"],
             "status": "incomplete" if incomplete else "pending_review",
             "provenance": intake["provenance"], "maternal_risk": maternal, "fetal_health": fetal,
-            "preterm_risk": registry.predict_preterm_risk({}),
-            "gestational_complication": registry.predict_gestational_complication({}),
+            "preterm_risk": registry.predict_preterm_risk(intake.get("ctg_features") or {}),
+            "gestational_complication": registry.predict_gestational_complication(intake["vitals"]),
             "anc_followup": anc, "urgency_level": urgency, "fetal_concern": bool(fetal and fetal.get("fetal_status") in ("suspect", "pathological")),
             "safety_triage": triage, "is_emergency": urgency == "emergency"}
